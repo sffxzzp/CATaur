@@ -430,7 +430,7 @@ export class AuthService {
         await this.cacheManager.set(cacheKey, user.email, 1800000);
 
         // Send reset email
-        const resetLink = `${this.configService.get<string>('WEBAUTHN_ORIGIN')}/auth/reset-password?token=${resetToken}`;
+        const resetLink = `${this.configService.get<string>('WEBAUTHN_ORIGIN')}/reset-password?token=${resetToken}`;
         await this.emailService.sendPasswordResetEmail(user.email, resetLink);
     }
 

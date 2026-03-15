@@ -1,33 +1,62 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Lock, Eye, EyeOff, CheckCircle, RefreshCw, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { request } from "@/lib/request";
 
 const inputBase =
     "w-full rounded-lg border border-[#D1D5DB] bg-white px-3.5 py-2.5 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15";
 
 export default function ResetPasswordPage() {
+    const searchParams = useSearchParams();
+    const token = searchParams.get("token");
+    
     const [showPw, setShowPw] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState("");
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const form = e.currentTarget;
         const pw = (form.elements.namedItem("password") as HTMLInputElement).value;
         const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
-        if (pw !== confirm) { setError("Passwords do not match."); return; }
-        if (pw.length < 8) { setError("Password must be at least 8 characters."); return; }
+        
+        if (!token) {
+            setError("Reset token is missing. Please check your email link.");
+            return;
+        }
+        if (pw !== confirm) {
+            setError("Passwords do not match.");
+            return;
+        }
+        if (pw.length < 12) {
+            setError("Password must be at least 12 characters.");
+            return;
+        }
+
         setError("");
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        
+        try {
+            await request("/auth/reset-password", {
+                method: "POST",
+                json: {
+                    token,
+                    newPassword: pw
+                }
+            });
             setDone(true);
-        }, 800);
+        } catch (err: any) {
+            console.error("Reset password error:", err);
+            setError(err.message || "Failed to reset password. The link may be expired.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     // ── Success state ──────────────────────────────────────────────────────────
@@ -45,7 +74,7 @@ export default function ResetPasswordPage() {
                         </p>
                     </div>
                     <Link
-                        href="/login?role=candidate"
+                        href="/candidate-login"
                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF]"
                     >
                         Sign in <ArrowRight className="h-4 w-4" />
@@ -61,7 +90,9 @@ export default function ResetPasswordPage() {
             {/* Header */}
             <div className="mb-7 text-center">
                 <h1 className="text-xl font-bold text-[#111827]">Set new password</h1>
-                <p className="mt-1 text-sm text-[#6B7280]">Must be at least 8 characters</p>
+                <p className="mt-1 text-sm text-[#6B7280]">
+                    12+ chars, include upper, lower, number & symbol
+                </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,7 +163,7 @@ export default function ResetPasswordPage() {
 
             <div className="mt-5 text-center">
                 <Link
-                    href="/login?role=candidate"
+                    href="/candidate-login"
                     className="text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                 >
                     Back to sign in

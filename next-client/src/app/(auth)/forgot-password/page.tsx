@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { Mail, ArrowLeft, CheckCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { request } from "@/lib/request";
 
 const inputBase =
     "w-full rounded-lg border border-[#D1D5DB] bg-white px-3.5 py-2.5 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15";
@@ -14,6 +15,7 @@ export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const [email, setEmail] = useState("");
+    const [error, setError] = useState("");
 
     const startCountdown = () => {
         setCountdown(60);
@@ -25,27 +27,45 @@ export default function ForgotPasswordPage() {
         }, 1000);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const val = emailRef.current?.value?.trim() ?? "";
         if (!val) return;
+        setError("");
         setLoading(true);
         setEmail(val);
-        // Simulate API call delay
-        setTimeout(() => {
-            setLoading(false);
+        
+        try {
+            await request("/auth/request-password-reset", {
+                method: "POST",
+                json: { email: val }
+            });
             setSent(true);
             startCountdown();
-        }, 800);
+        } catch (err: any) {
+            console.error("Forgot password error:", err);
+            setError(err.message || "Failed to send reset link. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleResend = () => {
+    const handleResend = async () => {
         if (countdown > 0) return;
+        setError("");
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await request("/auth/request-password-reset", {
+                method: "POST",
+                json: { email }
+            });
             startCountdown();
-        }, 600);
+        } catch (err: any) {
+            console.error("Resend error:", err);
+            setError(err.message || "Failed to resend. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     // ── Sent state ─────────────────────────────────────────────────────────────
@@ -100,7 +120,7 @@ export default function ForgotPasswordPage() {
                     <div className="h-px w-full bg-[#E5E7EB]" />
 
                     <Link
-                        href="/login?role=candidate"
+                        href="/candidate-login"
                         className="flex items-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -148,11 +168,12 @@ export default function ForgotPasswordPage() {
                         "Send reset link"
                     )}
                 </button>
+                {error && <p className="mt-2 text-center text-xs text-red-500">{error}</p>}
             </form>
 
             <div className="mt-5 text-center">
                 <Link
-                    href="/login?role=candidate"
+                    href="/candidate-login"
                     className="flex items-center justify-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                 >
                     <ArrowLeft className="h-3.5 w-3.5" />
