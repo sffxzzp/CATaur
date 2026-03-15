@@ -5,6 +5,10 @@ const API_BASE =
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  turbopack: {
+    // Avoid Next.js picking the monorepo root when multiple lockfiles exist.
+    root: process.cwd(),
+  },
   images: {
     remotePatterns: [
       {
