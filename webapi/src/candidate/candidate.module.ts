@@ -14,12 +14,16 @@ import { User } from '../database/entities/user.entity';
 import { Application } from '../database/entities/application.entity';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { CandidateProfileService } from '../recruiter/candidate-profile.service';
+import { AiModule } from '../ai/ai.module';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
     imports: [
         JobOrdersModule,
         ApplicationsModule,
         UsersModule,
+        AiModule,
+        AdminModule,
         TypeOrmModule.forFeature([
             Candidate,
             CandidateSkill,

@@ -141,6 +141,7 @@ export default function ProfilePage() {
     "basic-info"
   );
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profile, setProfile] = useState<CandidateProfileExtended | null>(null);
   const [saving, setSaving] = useState(false);
@@ -198,6 +199,12 @@ export default function ProfilePage() {
   const handleRegionChange = (code: string) => {
     setLocRegion(code);
     setLocCity("");
+  };
+
+  const showSuccessToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   // Fetch profile on mount
@@ -286,22 +293,24 @@ export default function ProfilePage() {
       if (flow === "onboarding") setStep("parsing");
       setParseError(null);
 
-      const sigRes = await request<any>(`/files/upload-url?filename=${encodeURIComponent(file.name)}`);
-      const { uploadUrl, params } = sigRes;
+      // Upload directly to external file service
       const formData = new FormData();
       formData.append("file", file);
-      const uploadUrlWithParams = `${uploadUrl}?filename=${encodeURIComponent(params.filename)}&expires=${params.expires}&signature=${params.signature}`;
-      const uploadRes = await fetch(`/api${uploadUrlWithParams}`, {
+      const uploadRes = await fetch("https://file-service.cataur.freedeeplearn.com/files/upload", {
         method: "POST",
         body: formData,
-        headers: { "Authorization": `Bearer ${localStorage.getItem("authToken")}` },
       });
       if (!uploadRes.ok) throw new Error("File upload failed");
       const uploadedData = await uploadRes.json();
+      // Build absolute URL: file service returns a relative path like "/views/xxxxx"
+      const rawPath: string = uploadedData.url || uploadedData.path || "";
+      const resumeUrl = /^https?:\/\//i.test(rawPath)
+        ? rawPath
+        : `https://file-service.cataur.freedeeplearn.com${rawPath.startsWith("/") ? rawPath : `/${rawPath}`}`;
 
       const parseRes = await request<any>("/candidate/resume/parse", {
         method: "POST",
-        json: { resumeUrl: uploadedData.url },
+        json: { resumeUrl },
       });
       setLatestParsedResume(parseRes);
 
@@ -392,6 +401,7 @@ export default function ProfilePage() {
         setProfile(updated);
       }
       setIsEditProfileOpen(false);
+      showSuccessToast("Profile updated successfully");
     } catch (err) {
       console.error(err);
     } finally {
@@ -443,6 +453,7 @@ export default function ProfilePage() {
       const updated = await candidateSelfProfileClient.getMyProfile();
       setProfile(updated);
       setIsAddRoleOpen(false);
+      showSuccessToast(editingExp ? "Work experience updated" : "Work experience added");
     } catch (err) {
       console.error(err);
     } finally {
@@ -454,6 +465,7 @@ export default function ProfilePage() {
     await candidateSelfProfileClient.deleteWorkExperience(id);
     const updated = await candidateSelfProfileClient.getMyProfile();
     setProfile(updated);
+    showSuccessToast("Work experience deleted");
   };
 
   // ─── Education CRUD ────────────────────────────────────────────────────────
@@ -489,6 +501,7 @@ export default function ProfilePage() {
       const updated = await candidateSelfProfileClient.getMyProfile();
       setProfile(updated);
       setIsAddEducationOpen(false);
+      showSuccessToast(editingEdu ? "Education updated" : "Education added");
     } catch (err) {
       console.error(err);
     } finally {
@@ -500,6 +513,7 @@ export default function ProfilePage() {
     await candidateSelfProfileClient.deleteEducation(id);
     const updated = await candidateSelfProfileClient.getMyProfile();
     setProfile(updated);
+    showSuccessToast("Education deleted");
   };
 
   // ─── Skills CRUD ───────────────────────────────────────────────────────────
@@ -512,6 +526,7 @@ export default function ProfilePage() {
       setProfile(updated);
       setNewSkillName("");
       setNewSkillLevel("Intermediate");
+      showSuccessToast("Skill added");
     } catch (err) {
       console.error(err);
     } finally {
@@ -522,6 +537,7 @@ export default function ProfilePage() {
     await candidateSelfProfileClient.deleteSkill(skillId);
     const updated = await candidateSelfProfileClient.getMyProfile();
     setProfile(updated);
+    showSuccessToast("Skill removed");
   };
 
   // ─── Preferences CRUD ─────────────────────────────────────────────────────
@@ -543,6 +559,7 @@ export default function ProfilePage() {
       });
       setProfile(updated);
       setIsEditPreferencesOpen(false);
+      showSuccessToast("Preferences updated");
     } catch (err) {
       console.error(err);
     } finally {
@@ -1007,6 +1024,14 @@ export default function ProfilePage() {
 
             {/* ══ MODALS ══ */}
 
+            {/* Toast Notification */}
+            {showToast && (
+              <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 shadow-lg">
+                <CheckCircle2 className="h-4 w-4 text-[#166534]" />
+                <p className="text-sm font-medium text-[#166534]">{toastMessage}</p>
+              </div>
+            )}
+
             {/* 1. Edit Basic Profile */}
             {step === "complete" && isEditProfileOpen && (
               <Modal
@@ -1288,34 +1313,33 @@ export default function ProfilePage() {
                   )}
 
                   <div className="border-t border-[var(--border-light)] pt-4">
-                    <FormField label="Add a skill">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          className={`flex-1 ${inputCls}`}
-                          placeholder="e.g. Rust"
-                          value={newSkillName}
-                          onChange={(e) => setNewSkillName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleAddSkill(); }}
-                        />
-                        <select
-                          className={`w-36 ${inputCls}`}
-                          value={newSkillLevel}
-                          onChange={(e) => setNewSkillLevel(e.target.value as any)}
-                        >
-                          <option value="Expert">Expert</option>
-                          <option value="Intermediate">Intermediate</option>
-                          <option value="Beginner">Beginner</option>
-                        </select>
-                        <button
-                          onClick={handleAddSkill}
-                          disabled={!newSkillName.trim() || saving}
-                          className="flex items-center gap-1 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#1E40AF] disabled:opacity-50"
-                        >
-                          <Plus className="h-3 w-3" /> Add
-                        </button>
-                      </div>
-                    </FormField>
+                    <p className="text-xs font-medium text-[#374151] mb-2">Add a skill</p>
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                      <input
+                        type="text"
+                        className={inputCls}
+                        placeholder="e.g. React"
+                        value={newSkillName}
+                        onChange={(e) => setNewSkillName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && newSkillName.trim()) handleAddSkill(); }}
+                      />
+                      <select
+                        className={inputCls}
+                        value={newSkillLevel}
+                        onChange={(e) => setNewSkillLevel(e.target.value as any)}
+                      >
+                        <option value="Expert">Expert</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Beginner">Beginner</option>
+                      </select>
+                      <Button
+                        onClick={handleAddSkill}
+                        disabled={!newSkillName.trim() || saving}
+                        size="sm"
+                      >
+                        {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Modal>
