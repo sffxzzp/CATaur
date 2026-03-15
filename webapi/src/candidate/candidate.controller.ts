@@ -22,8 +22,6 @@ import type { JobOrderEmploymentType, JobOrderWorkArrangement } from '../databas
 import { Application } from '../database/entities/application.entity';
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { Candidate } from '../database/entities/candidate.entity';
-import { NotificationsService } from '../notifications/notifications.service';
-import { Notification } from '../database/entities/notification.entity';
 import { CandidateProfileService } from '../recruiter/candidate-profile.service';
 import { UpdateCandidateProfileDto } from '../recruiter/dto/update-candidate-profile.dto';
 import { CreateSkillDto } from '../recruiter/dto/create-skill.dto';
@@ -87,7 +85,6 @@ const ProfileResponseDto = createApiResponseDto(User);
     PaginatedApplicationsResponseDto,
     JobOrder,
     Application,
-    Notification,
     User,
     Candidate,
     JobOrderResponseDto,
@@ -107,7 +104,6 @@ export class CandidateController {
         private applicationsService: ApplicationsService,
         private usersService: UsersService,
         private candidateResumeService: CandidateResumeService,
-        private notificationsService: NotificationsService,
         private candidateProfileService: CandidateProfileService,
     ) {}
 
@@ -315,17 +311,4 @@ export class CandidateController {
         await this.candidateProfileService.deleteEducation(user, user.id, educationId);
     }
 
-    // ── Notifications ─────────────────────────────────────────────────────    @Get('notifications')
-    @ApiOperation({ summary: 'Get my notifications' })
-    @ApiOkResponse({ type: [Notification] })
-    getNotifications(@GetUser() user: User): Promise<Notification[]> {
-        return this.notificationsService.findAll(user.id);
-    }
-
-    @Patch('notifications/read-all')
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @ApiOperation({ summary: 'Mark all notifications as read' })
-    async markAllRead(@GetUser() user: User): Promise<void> {
-        return this.notificationsService.markAllRead(user.id);
-    }
 }

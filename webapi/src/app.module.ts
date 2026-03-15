@@ -24,6 +24,7 @@ import { CandidateModule } from './candidate/candidate.module';
 import { ReportsModule } from './reports/reports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AiModule } from './ai/ai.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { AiModule } from './ai/ai.module';
     RecruiterModule,
     ClientModule,
     CandidateModule,
+    NotificationsModule,
     ReportsModule,
     DashboardModule,
     AiModule,

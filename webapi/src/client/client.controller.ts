@@ -13,7 +13,6 @@ import { User } from '../database/entities/user.entity';
 import { Company } from '../database/entities/company.entity';
 import { JobOrdersService } from '../job-orders/job-orders.service';
 import { ApplicationsService } from '../applications/applications.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { SubmitDecisionDto } from '../applications/dto/application.dto';
 import { ReportsService } from '../reports/reports.service';
 import { DashboardService } from '../dashboard/dashboard.service';
@@ -22,7 +21,6 @@ import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/pag
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
-import { Notification } from '../database/entities/notification.entity';
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(JobOrder);
 const PaginatedApplicationsResponseDto = createPaginatedResponseDto(Application);
@@ -35,7 +33,6 @@ const ApplicationResponseDto = createApiResponseDto(Application);
     PaginatedApplicationsResponseDto,
     JobOrder,
     Application,
-    Notification,
     JobOrderResponseDto,
     ApplicationResponseDto,
 )
@@ -47,7 +44,6 @@ export class ClientController {
     constructor(
         private jobOrdersService: JobOrdersService,
         private applicationsService: ApplicationsService,
-        private notificationsService: NotificationsService,
         @InjectRepository(Company)
         private companiesRepository: Repository<Company>,
         private reportsService: ReportsService,
@@ -157,22 +153,6 @@ export class ClientController {
     ): Promise<Application> {
         const companyIds = await this.getCompanyIds(user);
         return this.applicationsService.submitDecision(id, dto, companyIds);
-    }
-
-    // ── Notifications ─────────────────────────────────────────────────────
-    @Get('notifications')
-    @ApiOperation({ summary: 'Get notifications' })
-    @ApiOkResponse({ type: [Notification] })
-    getNotifications(@GetUser() user: User): Promise<Notification[]> {
-        return this.notificationsService.findAll(user.id);
-    }
-
-    @Patch('notifications/read-all')
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @ApiOperation({ summary: 'Mark all notifications as read' })
-    @ApiNoContentResponse()
-    markAllRead(@GetUser() user: User): Promise<void> {
-        return this.notificationsService.markAllRead(user.id);
     }
 
     // ── Reports ───────────────────────────────────────────────────────────

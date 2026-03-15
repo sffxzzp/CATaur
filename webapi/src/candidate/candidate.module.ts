@@ -13,14 +13,12 @@ import { ResumeParser } from '../database/entities/resume-parser.entity';
 import { User } from '../database/entities/user.entity';
 import { Application } from '../database/entities/application.entity';
 import { JobOrder } from '../database/entities/job-order.entity';
-import { NotificationsModule } from '../notifications/notifications.module';
 import { CandidateProfileService } from '../recruiter/candidate-profile.service';
 
 @Module({
     imports: [
         JobOrdersModule,
         ApplicationsModule,
-        NotificationsModule,
         UsersModule,
         TypeOrmModule.forFeature([
             Candidate,

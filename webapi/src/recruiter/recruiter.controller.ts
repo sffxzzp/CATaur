@@ -12,7 +12,6 @@ import { Role } from '../database/entities/user-role.entity';
 import { User } from '../database/entities/user.entity';
 import { JobOrdersService } from '../job-orders/job-orders.service';
 import { ApplicationsService } from '../applications/applications.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { AdminService } from '../admin/admin.service';
 import { CreateJobOrderDto } from '../job-orders/dto/create-job-order.dto';
 import { UpdateJobOrderDto, UpdateJobOrderStatusDto } from '../job-orders/dto/update-job-order.dto';
@@ -36,7 +35,6 @@ import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/pag
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
-import { Notification } from '../database/entities/notification.entity';
 import { Company } from '../database/entities/company.entity';
 import { Candidate } from '../database/entities/candidate.entity';
 import { Repository } from 'typeorm';
@@ -56,7 +54,6 @@ const CompanyResponseDto = createApiResponseDto(Company);
     PaginatedCompaniesResponseDto,
     JobOrder,
     Application,
-    Notification,
     Company,
     JobOrderResponseDto,
     ApplicationResponseDto,
@@ -74,7 +71,6 @@ export class RecruiterController {
     constructor(
         private jobOrdersService: JobOrdersService,
         private applicationsService: ApplicationsService,
-        private notificationsService: NotificationsService,
         private adminService: AdminService,
         private reportsService: ReportsService,
         private dashboardService: DashboardService,
@@ -536,22 +532,6 @@ export class RecruiterController {
     @ApiNoContentResponse()
     async deleteCompany(@Param('id') id: string): Promise<{ success: boolean }> {
         return this.adminService.deleteCompany(id);
-    }
-
-    // ── Notifications ─────────────────────────────────────────────────────
-    @Get('notifications')
-    @ApiOperation({ summary: 'Get my notifications' })
-    @ApiOkResponse({ type: [Notification] })
-    getNotifications(@GetUser() user: User): Promise<Notification[]> {
-        return this.notificationsService.findAll(user.id);
-    }
-
-    @Patch('notifications/read-all')
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @ApiOperation({ summary: 'Mark all notifications as read' })
-    @ApiNoContentResponse()
-    markAllRead(@GetUser() user: User): Promise<void> {
-        return this.notificationsService.markAllRead(user.id);
     }
 
     // ── Reports ───────────────────────────────────────────────────
