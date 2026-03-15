@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { IsStrongPassword } from '../../common/decorators/is-strong-password.decorator';
+import { Role } from '../../database/entities/user-role.entity';
 
 export class RegisterDto {
     @ApiProperty({ description: 'The email of the user', example: 'user@example.com' })
@@ -15,4 +16,9 @@ export class RegisterDto {
     @ApiProperty({ description: 'The nickname of the user', example: 'user123' })
     @IsString()
     nickname: string;
+
+    @ApiProperty({ description: 'The role of the user', enum: Role, required: false })
+    @IsOptional()
+    @IsEnum(Role)
+    role?: Role;
 }

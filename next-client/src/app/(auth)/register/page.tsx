@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { request } from "@/lib/request";
+import { auth, googleProvider } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -65,36 +68,72 @@ export default function RegisterPage() {
   const [pwError, setPwError] = useState("");
 
   const handleRegister = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const form = e.currentTarget;
+      const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
       const pw = (form.elements.namedItem("password") as HTMLInputElement).value;
       const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
-      if (pw !== confirm) { setPwError("Passwords do not match."); return; }
+      
+      if (pw !== confirm) { 
+        setPwError("Passwords do not match."); 
+        return; 
+      }
       setPwError("");
 
-      const email = emailRef.current?.value?.trim() ?? "";
-      const role = params.get("role") ?? "candidate";
+      const rawRole = params.get("role")?.toLowerCase() || "candidate";
+      const roleMap: Record<string, string> = {
+        admin: "Admin",
+        administer: "Admin",
+        client: "Client",
+        recruiter: "Recruiter",
+        candidate: "Candidate",
+        user: "User",
+      };
+      const role = roleMap[rawRole] || "Candidate";
       const redirect = params.get("redirect");
 
-      switch (role) {
-        case "recruiter":
-          localStorage.setItem("recruiterLoggedIn", "1");
-          router.push(redirect || "/recruiter");
-          break;
-        case "client":
-          localStorage.setItem("clientLoggedIn", "1");
-          router.push(redirect || "/client");
-          break;
-        case "administer":
-        case "admin":
-          localStorage.setItem("adminLoggedIn", "1");
-          router.push(redirect || "/administer");
-          break;
-        default:
-          localStorage.setItem("candidateLoggedIn", "1");
-          if (email) localStorage.setItem("candidateEmail", email);
-          router.push(redirect || "/candidate");
+      try {
+        const data = await request("/auth/register", {
+          method: "POST",
+          json: { 
+            email, 
+            password: pw, 
+            nickname: email.split('@')[0],
+            role: role as any
+          },
+          skipDefaults: true
+        });
+
+        // Backend now returns LoginResponseDto on successful registration
+        if (data.access_token) {
+          localStorage.setItem("authToken", data.access_token);
+        }
+
+        // Set local storage flags based on role
+        switch (role) {
+          case "recruiter":
+            localStorage.setItem("recruiterLoggedIn", "1");
+            router.push(redirect || "/recruiter");
+            break;
+          case "client":
+            localStorage.setItem("clientLoggedIn", "1");
+            router.push(redirect || "/client");
+            break;
+          case "administer":
+          case "admin":
+            localStorage.setItem("adminLoggedIn", "1");
+            router.push(redirect || "/administer");
+            break;
+          default:
+            localStorage.setItem("candidateLoggedIn", "1");
+            localStorage.setItem("candidateEmail", email);
+            localStorage.setItem("candidateName", email.split('@')[0]);
+            router.push(redirect || "/candidate");
+        }
+      } catch (err: any) {
+        console.error("Registration Error:", err);
+        setPwError(err.message || "Registration failed. Please try again.");
       }
     },
     [params, router]

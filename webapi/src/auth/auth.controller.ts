@@ -35,9 +35,9 @@ export class AuthController {
     @Post('register')
     @Throttle({ default: { limit: 5, ttl: 60 } })
     @ApiOperation({ summary: 'Register a new user' })
-    @ApiCreatedResponse({ type: UserResponseDto })
+    @ApiCreatedResponse({ type: LoginResponseDto })
     @ApiResponse({ status: 409, description: 'Email already exists' })
-    async register(@Body() registerDto: RegisterDto): Promise<UserWithoutPassword> {
+    async register(@Body() registerDto: RegisterDto): Promise<LoginResponseDto> {
         return this.authService.register(registerDto);
     }
 

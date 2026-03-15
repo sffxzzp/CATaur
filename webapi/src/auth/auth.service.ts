@@ -68,41 +68,53 @@ export class AuthService {
         authenticator.options = { step: 30, window: 1 };
     }
 
-    async register(registerDto: RegisterDto): Promise<UserWithoutPassword> {
+    async register(registerDto: RegisterDto): Promise<LoginResponseDto> {
         await this.authAttempts.checkEmailActionAllowed(registerDto.email, 'register');
         let user = await this.usersService.findOneByEmail(registerDto.email);
 
         if (user) {
             if (user.isActive) {
-                // If user is active, we don't want to allow re-registration,
-                // but we should probably tell them to login.
                 throw new ConflictException('Email already registered');
             }
-            // If inactive, update with new details and resend verification
+            // If inactive, update with new details
             const hashedPassword = await bcrypt.hash(registerDto.password, 10);
             user = await this.usersService.update(user.id, {
                 nickname: registerDto.nickname,
                 passwordHash: hashedPassword,
+                isActive: true, // Auto-activate
             });
         } else {
-            // Hash the password before creating user
             const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-            // Create inactive user with hashed password
+            
+            // Security: Restrict public registration roles to prevent privilege escalation
+            // Allow only 'Candidate' and 'User' from public register endpoint
+            let targetRole = registerDto.role || Role.CANDIDATE;
+            const allowedPublicRoles = [Role.CANDIDATE, Role.USER];
+            if (!allowedPublicRoles.includes(targetRole)) {
+                targetRole = Role.CANDIDATE; // Force downgrade to Candidate for security
+            }
+
+            // Create active user with specified role
             user = await this.usersService.create({
                 email: registerDto.email,
                 passwordHash: hashedPassword,
                 nickname: registerDto.nickname,
+                isActive: true,
+                roles: [targetRole] as any,
             });
+
+            // Initialize candidate profile if role is Candidate
+            if (targetRole === Role.CANDIDATE) {
+                const candidate = this.candidateRepository.create({
+                    id: user.id,
+                    profileStatus: 'draft',
+                });
+                await this.candidateRepository.save(candidate);
+            }
         }
 
-        // Generate and store verification token
-        const token = this.ulidService.generate();
-        await this.cacheManager.set(`verify_email:${token}`, user.email, 3600 * 1000); // 1 hour
-
-        // Send email
-        await this.emailService.sendVerificationEmail(user.email, token);
-
-        return user;
+        // Return login token immediately for "instant access"
+        return this.login(user);
     }
 
     async requestMagicLink(email: string): Promise<void> {
