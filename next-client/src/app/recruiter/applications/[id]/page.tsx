@@ -67,7 +67,7 @@ interface CommunicationEntry {
   sentAt: string;
   interviewType?: "Zoom" | "Phone" | "Onsite";
   interviewDate?: string; interviewTime?: string;
-  confirmed?: boolean;
+
 }
 
 interface WorkExp { role: string; company: string; duration: string; highlights: string[]; }
@@ -230,7 +230,6 @@ function seedMessages(c: CandidateRecord): CommunicationEntry[] {
       sender: "recruiter", sentAt: c.interviewMessage.sentAt,
       interviewType: c.interviewMessage.type as "Zoom" | "Phone" | "Onsite",
       interviewDate: c.interviewMessage.date, interviewTime: c.interviewMessage.time,
-      confirmed: true,
     });
   }
   return msgs;
@@ -302,47 +301,6 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
   );
 }
 
-/* ─── Confirm Status Dialog ───────────────────────────────────────────────── */
-function ConfirmStatusDialog({ candidateName, newStatus, onConfirm, onCancel }: {
-  candidateName: string; newStatus: ApplicationStatus;
-  onConfirm: () => void; onCancel: () => void;
-}) {
-  const cfg = STATUS_CONFIG[newStatus];
-  return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-[var(--overlay)] p-4">
-      <div className="w-full max-w-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-modal)] p-6">
-        <div className="flex items-start gap-3 mb-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]">
-            <AlertCircle className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-[var(--gray-900)]">Confirm Status Change</h3>
-            <p className="mt-1 text-sm text-[var(--gray-500)]">
-              Move <span className="font-semibold text-[var(--gray-700)]">{candidateName}</span> to{" "}
-              <span className={`inline-flex items-center rounded-r border-l-[3px] px-2 py-0.5 text-[11px] font-bold tracking-wide uppercase ${cfg.badge}`}>
-                {cfg.label}
-              </span>?
-            </p>
-            {newStatus === "interview" && (
-              <p className="mt-2 text-xs text-[var(--gray-400)]">You'll be prompted to compose an interview invitation email.</p>
-            )}
-            {newStatus === "offer" && (
-              <p className="mt-2 text-xs text-[var(--gray-400)]">An offer notification email will be sent to the candidate.</p>
-            )}
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <button onClick={onCancel} className="rounded-md border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--gray-600)] cursor-pointer hover:bg-[var(--gray-50)] transition">Cancel</button>
-          <button onClick={onConfirm} className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-[var(--accent-hover)] transition">Confirm</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-
-
 /* ─── Section header ──────────────────────────────────────────────────────── */
 function SectionTitle({ icon: Icon, title }: { icon: React.ComponentType<{ className?: string }>; title: string }) {
   return (
@@ -374,7 +332,6 @@ export default function CandidateDetailPage() {
   const [noteEditing, setNoteEditing] = useState(false);
   const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
   const [noteSaveToast, setNoteSaveToast] = useState(false);
-  const [confirmPending, setConfirmPending] = useState<ApplicationStatus | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
 
@@ -495,7 +452,7 @@ export default function CandidateDetailPage() {
     }
   };
 
-  const confirmInterview = (msgId: string) => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
+  const confirmInterview = (msgId: string) => setMessages(prev => prev.map(m => m.id === msgId ? { ...m } : m));
 
   const handleSaveNote = async () => {
     if (!id) return;
@@ -517,16 +474,9 @@ export default function CandidateDetailPage() {
     }
   };
 
-  const requestStatusChange = (newStatus: ApplicationStatus) => {
+  const requestStatusChange = async (newStatus: ApplicationStatus) => {
     setStatusDropdown(false);
     if (newStatus === cand.status) return;
-    setConfirmPending(newStatus);
-  };
-
-  const handleConfirmStatus = async () => {
-    if (!confirmPending) return;
-    const newStatus = confirmPending;
-    setConfirmPending(null);
     if (newStatus === "interview") {
       openInterviewModal();
       return;
@@ -752,14 +702,9 @@ export default function CandidateDetailPage() {
                           </div>
                         </div>
                         {msg.type === "interview_invite" && (
-                          msg.confirmed
-                            ? <span className="flex items-center gap-1.5 rounded bg-[var(--status-green-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-green-text)]">
-                              <CheckCircle2 className="h-3 w-3" /> Confirmed
-                            </span>
-                            : <button onClick={() => confirmInterview(msg.id)}
-                              className="flex items-center gap-1.5 rounded border border-[var(--status-amber-text)] bg-[var(--status-amber-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-amber-text)] hover:opacity-80 transition">
-                              <Clock className="h-3 w-3" /> Pending Confirmation
-                            </button>
+                          <span className="flex items-center gap-1.5 rounded bg-[var(--status-green-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-green-text)]">
+                            <CheckCircle2 className="h-3 w-3" /> Sent
+                          </span>
                         )}
                       </div>
                       <div className="px-5 py-4 space-y-2">
@@ -816,16 +761,13 @@ export default function CandidateDetailPage() {
                 <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Interview Rounds</h3>
                 <div className="space-y-2">
                   {messages.filter(m => m.type === "interview_invite").map(m => (
-                    <div key={m.id} className={`flex items-center justify-between rounded-md px-3 py-2 text-xs ${m.confirmed ? "bg-[var(--status-green-bg)] text-[var(--status-green-text)]" : "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]"}`}>
+                    <div key={m.id} className="flex items-center justify-between rounded-md px-3 py-2 text-xs bg-[var(--status-green-bg)] text-[var(--status-green-text)]">
                       <div className="flex items-center gap-2">
                         <CalendarClock className="h-3.5 w-3.5" />
                         <span className="font-medium">Round {m.round}</span>
                         {m.interviewType && <span className="text-[10px] opacity-70">· {m.interviewType}</span>}
                       </div>
-                      {m.confirmed
-                        ? <span className="font-medium flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Confirmed</span>
-                        : <span className="font-medium flex items-center gap-1"><Clock className="h-3 w-3" /> Pending</span>
-                      }
+                      <span className="font-medium flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Sent</span>
                     </div>
                   ))}
                 </div>
@@ -928,11 +870,6 @@ export default function CandidateDetailPage() {
           </div>
         </div>
       </div>
-
-      {confirmPending && (
-        <ConfirmStatusDialog candidateName={cand.name} newStatus={confirmPending}
-          onConfirm={handleConfirmStatus} onCancel={() => setConfirmPending(null)} />
-      )}
 
       {showInterviewModal && (
         <InterviewModal round={interviewRound} candidateName={cand.name} jobTitle={cand.jobTitle}

@@ -113,29 +113,52 @@ export default function RecruiterClientsPage() {
     loadClientUsers();
   }, []);
 
-  const handleOpenModal = (client?: Row) => {
+  const handleOpenModal = async (client?: Row) => {
     if (client) {
       setEditingClient(client);
-      setFormData({
-        name: client.name,
-        contact: client.contact || "",
-        email: client.email,
-        phone: "",
-        website: "",
-        country: "",
-        state: "",
-        city: "",
-        keyTechnologies: "",
-        clientAccount: "",
-      });
+      setIsModalOpen(true);
+      try {
+        const company = await companiesClient.getById(client.id);
+        // Parse "City, StateAbbr" back to country/state/city
+        let country = "", state = "", city = "";
+        if (company.location) {
+          const parts = company.location.split(", ");
+          if (parts.length >= 2) {
+            const cityPart = parts[0];
+            const stateAbbrPart = parts[1];
+            outer: for (const [c, statesMap] of Object.entries(LOCATION_DATA)) {
+              for (const [s, stateData] of Object.entries(statesMap)) {
+                if (stateData.abbr === stateAbbrPart && stateData.cities.includes(cityPart)) {
+                  country = c; state = s; city = cityPart;
+                  break outer;
+                }
+              }
+            }
+          }
+        }
+        setFormData({
+          name: company.name,
+          contact: company.contact || "",
+          email: company.email,
+          phone: company.phone || "",
+          website: company.website || "",
+          country,
+          state,
+          city,
+          keyTechnologies: company.keyTechnologies || "",
+          clientAccount: company.clientId || "",
+        });
+      } catch {
+        // fallback to row data already set
+      }
     } else {
       setEditingClient(null);
       setFormData({
         name: "", contact: "", email: "", phone: "", website: "",
         country: "", state: "", city: "", keyTechnologies: "", clientAccount: ""
       });
+      setIsModalOpen(true);
     }
-    setIsModalOpen(true);
   };
 
   const handleSubmit = async () => {

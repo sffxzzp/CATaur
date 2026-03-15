@@ -44,6 +44,11 @@ export class CandidateProfileService {
             return;
         }
 
+        // Candidates can always access their own profile
+        if (actor.id === candidateId) {
+            return;
+        }
+
         const exists = await this.appRepo.createQueryBuilder('app')
             .innerJoin(JobOrder, 'jo', 'jo.id = app.jobOrderId')
             .where('app.candidateId = :candidateId', { candidateId })

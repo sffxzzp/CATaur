@@ -5,3 +5,4 @@ export * from "./companies";
 export * from "./applications";
 export * from "./candidate-profile-types";
 export * from "./candidate-profile";
+export * from "./candidate-self-profile";

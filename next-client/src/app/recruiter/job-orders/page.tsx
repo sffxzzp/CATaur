@@ -451,8 +451,8 @@ export default function RecruiterJobOrdersPage() {
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Status</TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Owner</TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Created</TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)] text-center">Action</TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)] text-right pr-6 w-[120px]">Applicants</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)] text-center">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -534,6 +534,11 @@ export default function RecruiterJobOrdersPage() {
                           {new Date(j.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
                       </TableCell>
+                      <TableCell className="py-4 text-right pr-6">
+                        <span className="inline-flex items-center justify-center font-medium text-sm text-[var(--gray-900)]">
+                          {j.applicants || 0}
+                        </span>
+                      </TableCell>
                       <TableCell className="py-4 border-l border-transparent">
                         <div className="flex items-center justify-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
                           <button
@@ -556,11 +561,7 @@ export default function RecruiterJobOrdersPage() {
                           </button>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4 text-right pr-6">
-                        <span className="inline-flex items-center justify-center font-medium text-sm text-[var(--gray-900)]">
-                          {j.applicants || 0}
-                        </span>
-                      </TableCell>
+
                     </TableRow>
                   );
                 })

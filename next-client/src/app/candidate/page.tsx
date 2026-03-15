@@ -4,157 +4,61 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { GuestGate } from "@/components/candidate/guest-gate";
 import {
-  BriefcaseBusiness,
   FileText,
   CheckCircle2,
-  XCircle,
   CalendarClock,
   ChevronRight,
-  MapPin,
   Building2,
   TrendingUp,
   Inbox,
-  User,
-  Sparkles,
   Clock,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
+import { candidateSelfProfileClient } from "@/lib/api/candidate-self-profile";
+import { candidateApplicationsClient } from "@/lib/api/candidate-applications";
+import type { Application } from "@/lib/api/types";
+import type { CandidateProfileExtended } from "@/lib/api/candidate-profile-types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface ProfileState {
-  email: string;
-  hasBasicInfo: boolean;
-  hasResume: boolean;
-}
+type AppStatus = "new" | "interview" | "offer" | "closed";
 
-type AppStatus = "New" | "Interview" | "Offer" | "Closed";
-
-interface Application {
-  id: number;
-  jobSlug: string;
-  role: string;
-  company: string;
-  location: string;
-  appliedDate: string;
-  recruiterStatus: AppStatus;
-  interview?: {
-    recruiterName: string;
-    date: string;
-    time: string;
-    format: string;
-    type: string;
-  };
-}
-
-// ─── Mock data (shared with /candidate/applications) ──────────────────────────
-
-const APPLICATIONS: Application[] = [
-  {
-    id: 1,
-    jobSlug: "senior-backend-engineer-neptune",
-    role: "Senior Backend Engineer",
-    company: "Neptune Pay",
-    location: "Toronto, ON",
-    appliedDate: "Feb 25",
-    recruiterStatus: "Interview",
-    interview: {
-      recruiterName: "Sarah Chen",
-      date: "Thu, Mar 6",
-      time: "2:30 PM EST",
-      format: "Zoom",
-      type: "Technical Interview",
-    },
-  },
-  {
-    id: 2,
-    jobSlug: "frontend-engineer-eurora",
-    role: "Frontend Engineer",
-    company: "Aurora Cloud Platform",
-    location: "Toronto, ON",
-    appliedDate: "Feb 24",
-    recruiterStatus: "New",
-  },
-  {
-    id: 3,
-    jobSlug: "devops-sre-atlas",
-    role: "DevOps / SRE",
-    company: "Atlas Ventures",
-    location: "Vancouver, BC",
-    appliedDate: "Feb 22",
-    recruiterStatus: "Offer",
-  },
-  {
-    id: 4,
-    jobSlug: "data-engineer-nova",
-    role: "Data Engineer",
-    company: "Polar Analytics",
-    location: "Montreal, QC",
-    appliedDate: "Feb 18",
-    recruiterStatus: "Closed",
-  },
-];
-
-const STATUS_META: Record<
-  AppStatus,
-  { label: string; classes: string }
-> = {
-  New: { label: "Application Received", classes: "bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]" },
-  Interview: { label: "Interview Scheduled", classes: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]" },
-  Offer: { label: "Offer Received", classes: "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" },
-  Closed: { label: "Position Filled", classes: "bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]" },
+const STATUS_META: Record<AppStatus, { label: string; classes: string }> = {
+  new: { label: "Application Received", classes: "bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]" },
+  interview: { label: "Interview Scheduled", classes: "bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]" },
+  offer: { label: "Offer Received", classes: "bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]" },
+  closed: { label: "Position Filled", classes: "bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB]" },
 };
 
-const RECOMMENDED_JOBS = [
-  {
-    slug: "fullstack-engineer-lunaris",
-    role: "Full-stack Engineer",
-    company: "Lunaris AI",
-    location: "Ottawa, ON",
-    type: "Permanent",
-    match: 92,
-  },
-  {
-    slug: "mobile-engineer-ios-orbit",
-    role: "Mobile Engineer (iOS)",
-    company: "Orbit Health",
-    location: "Montréal, QC",
-    type: "Full-time",
-    match: 85,
-  },
-  {
-    slug: "qa-engineer-granite",
-    role: "QA Engineer",
-    company: "Granite AI",
-    location: "Calgary, AB",
-    type: "Part-time",
-    match: 78,
-  },
-];
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+}
 
-// ─── Onboarding section (profile not yet complete) ─────────────────────────────
+// ─── Onboarding section ───────────────────────────────────────────────────────
 
-function OnboardingSection({ profile }: { profile: ProfileState }) {
+function OnboardingSection({ profile }: { profile: CandidateProfileExtended | null }) {
+  const hasBasicInfo = !!(profile?.nickname || profile?.phone);
+  const hasResume = !!profile?.resumeUrl;
+
   const steps = [
     {
       key: "info",
-      icon: User,
       title: "Complete your profile",
       description: "Add your contact info, location, and about section",
-      done: profile.hasBasicInfo,
+      done: hasBasicInfo,
       href: "/candidate/profile",
     },
     {
       key: "resume",
-      icon: FileText,
       title: "Upload your resume",
       description: "Attach a resume so recruiters can review your background",
-      done: profile.hasResume,
-      href: "/candidate/profile#resume",
+      done: hasResume,
+      href: "/candidate/profile",
     },
     {
       key: "jobs",
-      icon: BriefcaseBusiness,
       title: "Browse & apply to jobs",
       description: "Find your first opportunity and submit an application",
       done: false,
@@ -184,19 +88,20 @@ function OnboardingSection({ profile }: { profile: ProfileState }) {
 
       <div className="space-y-2">
         {steps.map((step, i) => {
-          const Icon = step.icon;
           return (
             <Link
               key={step.key}
               href={step.href}
-              className={`flex items-center gap-4 rounded-lg border p-4 transition-colors ${step.done
-                ? "border-[#E5E7EB] bg-white opacity-60"
-                : "border-[#E5E7EB] bg-white hover:border-[#1D4ED8]"
-                }`}
+              className={`flex items-center gap-4 rounded-lg border p-4 transition-colors ${
+                step.done
+                  ? "border-[#E5E7EB] bg-white opacity-60"
+                  : "border-[#E5E7EB] bg-white hover:border-[#1D4ED8]"
+              }`}
             >
               <div
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${step.done ? "bg-[#F0FDF4] text-[#166534]" : "bg-[#EFF6FF] text-[#1D4ED8]"
-                  }`}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
+                  step.done ? "bg-[#F0FDF4] text-[#166534]" : "bg-[#EFF6FF] text-[#1D4ED8]"
+                }`}
               >
                 {step.done ? (
                   <CheckCircle2 className="h-4 w-4" />
@@ -205,10 +110,7 @@ function OnboardingSection({ profile }: { profile: ProfileState }) {
                 )}
               </div>
               <div className="flex-1">
-                <p
-                  className={`text-sm font-medium ${step.done ? "text-[#6B7280] line-through" : "text-[#111827]"
-                    }`}
-                >
+                <p className={`text-sm font-medium ${step.done ? "text-[#6B7280] line-through" : "text-[#111827]"}`}>
                   {step.title}
                 </p>
                 {!step.done && (
@@ -224,13 +126,13 @@ function OnboardingSection({ profile }: { profile: ProfileState }) {
   );
 }
 
-// ─── A. Stats Row ─────────────────────────────────────────────────────────────
+// ─── Stats Row ────────────────────────────────────────────────────────────────
 
 function StatsRow({ apps }: { apps: Application[] }) {
   const total = apps.length;
-  const inProgress = apps.filter((a) => a.recruiterStatus === "New" || a.recruiterStatus === "Interview").length;
-  const interviews = apps.filter((a) => a.recruiterStatus === "Interview").length;
-  const offers = apps.filter((a) => a.recruiterStatus === "Offer").length;
+  const inProgress = apps.filter((a) => a.status === "new" || a.status === "interview").length;
+  const interviews = apps.filter((a) => a.status === "interview").length;
+  const offers = apps.filter((a) => a.status === "offer").length;
 
   const stats = [
     { label: "Total Applied", value: total, icon: FileText, iconCls: "text-[#1D4ED8]", bgCls: "bg-[#EFF6FF]" },
@@ -244,13 +146,8 @@ function StatsRow({ apps }: { apps: Application[] }) {
       {stats.map((s) => {
         const Icon = s.icon;
         return (
-          <div
-            key={s.label}
-            className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white p-4"
-          >
-            <div
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${s.bgCls}`}
-            >
+          <div key={s.label} className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white p-4">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${s.bgCls}`}>
               <Icon className={`h-4 w-4 ${s.iconCls}`} />
             </div>
             <div className="min-w-0">
@@ -264,11 +161,12 @@ function StatsRow({ apps }: { apps: Application[] }) {
   );
 }
 
-// ─── C. Upcoming Interviews ───────────────────────────────────────────────────
+// ─── Upcoming Interviews ──────────────────────────────────────────────────────
 
 function UpcomingInterviews({ apps }: { apps: Application[] }) {
-  const interviews = apps.filter((a) => a.recruiterStatus === "Interview" && a.interview);
-
+  const interviews = apps.filter(
+    (a) => a.status === "interview" && a.interviewDate
+  );
   if (interviews.length === 0) return null;
 
   return (
@@ -285,16 +183,22 @@ function UpcomingInterviews({ apps }: { apps: Application[] }) {
             className="flex items-center gap-4 px-5 py-4 transition hover:bg-[#FEF3C7]"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#111827]">{app.interview!.type}</p>
+              <p className="text-sm font-semibold text-[#111827]">
+                {app.interviewType || "Interview"}
+              </p>
               <p className="mt-0.5 text-xs text-[#6B7280]">
-                {app.role} · {app.company}
+                {app.jobOrder?.title || "Position"} · {app.jobOrder?.companyId || "Company"}
               </p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold text-[#92400E]">{app.interview!.date}</p>
-              <p className="text-xs text-[#6B7280]">
-                {app.interview!.time} · {app.interview!.format}
-              </p>
+              {app.interviewDate && (
+                <p className="text-sm font-semibold text-[#92400E]">
+                  {new Date(app.interviewDate).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })}
+                </p>
+              )}
+              {app.interviewTime && (
+                <p className="text-xs text-[#6B7280]">{app.interviewTime}</p>
+              )}
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-[#92400E]" />
           </Link>
@@ -304,7 +208,7 @@ function UpcomingInterviews({ apps }: { apps: Application[] }) {
   );
 }
 
-// ─── B. Recent Activity ───────────────────────────────────────────────────────
+// ─── Recent Activity ──────────────────────────────────────────────────────────
 
 function RecentActivity({ apps }: { apps: Application[] }) {
   const recent = apps.slice(0, 4);
@@ -316,57 +220,54 @@ function RecentActivity({ apps }: { apps: Application[] }) {
           <Inbox className="h-4 w-4 text-[#6B7280]" />
           <h2 className="text-sm font-semibold text-[#111827]">Recent Applications</h2>
         </div>
-        <Link
-          href="/candidate/applications"
-          className="flex items-center gap-1 text-xs font-medium text-[#1D4ED8] hover:underline"
-        >
+        <Link href="/candidate/applications" className="flex items-center gap-1 text-xs font-medium text-[#1D4ED8] hover:underline">
           View all <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
-      <div className="divide-y divide-[var(--border-light)]">
-        {recent.map((app) => {
-          const meta = STATUS_META[app.recruiterStatus];
-          return (
-            <Link
-              key={app.id}
-              href="/candidate/applications"
-              className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-[#F9FAFB]"
-            >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#F3F4F6]">
-                <Building2 className="h-4 w-4 text-[#6B7280]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-[#111827]">{app.role}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-xs text-[#6B7280]">{app.company}</span>
-                  <span className="text-[#D1D5DB]">·</span>
-                  <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
-                    <Clock className="h-3 w-3" />
-                    {app.appliedDate}
-                  </span>
+      {recent.length === 0 ? (
+        <div className="px-5 py-8 text-center text-sm text-[#6B7280]">No applications yet.</div>
+      ) : (
+        <div className="divide-y divide-[var(--border-light)]">
+          {recent.map((app) => {
+            const meta = STATUS_META[app.status as AppStatus] ?? STATUS_META.new;
+            return (
+              <Link key={app.id} href="/candidate/applications" className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-[#F9FAFB]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-[#F3F4F6]">
+                  <Building2 className="h-4 w-4 text-[#6B7280]" />
                 </div>
-              </div>
-              <span
-                className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium border ${meta.classes}`}
-              >
-                {meta.label}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm font-medium text-[#111827]">
+                    {app.jobOrder?.title || "Position"}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-xs text-[#6B7280]">{app.jobOrder?.companyId || "—"}</span>
+                    <span className="text-[#D1D5DB]">·</span>
+                    <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
+                      <Clock className="h-3 w-3" />
+                      {formatDate(app.createdAt)}
+                    </span>
+                  </div>
+                </div>
+                <span className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium border ${meta.classes}`}>
+                  {meta.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── D. Pipeline Funnel ───────────────────────────────────────────────────────
+// ─── Pipeline Funnel ──────────────────────────────────────────────────────────
 
 function PipelineFunnel({ apps }: { apps: Application[] }) {
   const stages: { key: AppStatus; label: string; textCls: string; barCls: string }[] = [
-    { key: "New", label: "Applied", textCls: "text-[#1E40AF]", barCls: "bg-[#BFDBFE]" },
-    { key: "Interview", label: "Interview", textCls: "text-[#92400E]", barCls: "bg-[#FDE68A]" },
-    { key: "Offer", label: "Offer", textCls: "text-[#166534]", barCls: "bg-[#BBF7D0]" },
-    { key: "Closed", label: "Closed", textCls: "text-[#6B7280]", barCls: "bg-[#E5E7EB]" },
+    { key: "new", label: "Applied", textCls: "text-[#1E40AF]", barCls: "bg-[#BFDBFE]" },
+    { key: "interview", label: "Interview", textCls: "text-[#92400E]", barCls: "bg-[#FDE68A]" },
+    { key: "offer", label: "Offer", textCls: "text-[#166534]", barCls: "bg-[#BBF7D0]" },
+    { key: "closed", label: "Closed", textCls: "text-[#6B7280]", barCls: "bg-[#E5E7EB]" },
   ];
 
   const total = Math.max(apps.length, 1);
@@ -379,21 +280,16 @@ function PipelineFunnel({ apps }: { apps: Application[] }) {
       </div>
       <div className="space-y-3 px-5 py-4">
         {stages.map((stage) => {
-          const count = apps.filter((a) => a.recruiterStatus === stage.key).length;
+          const count = apps.filter((a) => a.status === stage.key).length;
           const pct = Math.round((count / total) * 100);
           return (
             <div key={stage.key}>
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-medium text-[#374151]">{stage.label}</span>
-                <span className={`text-xs font-semibold ${stage.textCls}`}>
-                  {count}
-                </span>
+                <span className={`text-xs font-semibold ${stage.textCls}`}>{count}</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-[#F3F4F6]">
-                <div
-                  className={`h-full rounded-full transition-all duration-700 ${stage.barCls}`}
-                  style={{ width: `${pct}%` }}
-                />
+                <div className={`h-full rounded-full transition-all duration-700 ${stage.barCls}`} style={{ width: `${pct}%` }} />
               </div>
             </div>
           );
@@ -403,92 +299,27 @@ function PipelineFunnel({ apps }: { apps: Application[] }) {
   );
 }
 
-// ─── E. Recommended Jobs ──────────────────────────────────────────────────────
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 
-function RecommendedJobs() {
-  return (
-    <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
-      <div className="flex items-center justify-between border-b border-[var(--border-light)] px-5 py-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-[#1D4ED8]" />
-          <h2 className="text-sm font-semibold text-[#111827]">Recommended for You</h2>
-        </div>
-        <Link
-          href="/candidate/jobs"
-          className="flex items-center gap-1 text-xs font-medium text-[#1D4ED8] hover:underline"
-        >
-          Browse all <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
-      <div className="divide-y divide-[var(--border-light)]">
-        {RECOMMENDED_JOBS.map((job) => (
-          <Link
-            key={job.slug}
-            href="/candidate/jobs"
-            className="flex items-center gap-4 px-5 py-3.5 transition hover:bg-[#F9FAFB]"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-[#EFF6FF]">
-              <BriefcaseBusiness className="h-4 w-4 text-[#1D4ED8]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium text-[#111827]">{job.role}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-xs text-[#6B7280]">{job.company}</span>
-                <span className="text-[#D1D5DB]">·</span>
-                <span className="flex items-center gap-0.5 text-xs text-[#6B7280]">
-                  <MapPin className="h-3 w-3" />
-                  {job.location}
-                </span>
-              </div>
-            </div>
-            <div className="shrink-0 text-right">
-
-              <p className="mt-0.5 text-xs text-[#9CA3AF]">{job.type}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Full dashboard (profile complete) ───────────────────────────────────────
-
-function Dashboard({ profile }: { profile: ProfileState }) {
-  const displayName = profile.email
-    ? profile.email.split("@")[0]
-    : "there";
+function Dashboard({ profile, apps }: { profile: CandidateProfileExtended | null; apps: Application[] }) {
+  const displayName = profile?.nickname || profile?.email?.split("@")[0] || "there";
 
   return (
     <div className="space-y-6">
-      {/* Greeting */}
       <div>
-        <h1 className="text-xl font-semibold text-[#111827]">
-          Hi, {displayName} 👋
-        </h1>
-        <p className="mt-1 text-sm text-[#6B7280]">
-          Here&apos;s a summary of your job search activity.
-        </p>
+        <h1 className="text-xl font-semibold text-[#111827]">Hi, {displayName} 👋</h1>
+        <p className="mt-1 text-sm text-[#6B7280]">Here&apos;s a summary of your job search activity.</p>
       </div>
-
-      {/* A. Stats Row */}
-      <StatsRow apps={APPLICATIONS} />
-
-      {/* C. Upcoming Interviews — full width alert banner */}
-      <UpcomingInterviews apps={APPLICATIONS} />
-
-      {/* B + D. Recent Activity + Pipeline — side by side on lg */}
+      <StatsRow apps={apps} />
+      <UpcomingInterviews apps={apps} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <RecentActivity apps={APPLICATIONS} />
+          <RecentActivity apps={apps} />
         </div>
         <div className="lg:col-span-2">
-          <PipelineFunnel apps={APPLICATIONS} />
+          <PipelineFunnel apps={apps} />
         </div>
       </div>
-
-      {/* E. Recommended Jobs */}
-      <RecommendedJobs />
     </div>
   );
 }
@@ -496,30 +327,52 @@ function Dashboard({ profile }: { profile: ProfileState }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CandidateHomePage() {
-  const [profile, setProfile] = useState<ProfileState>({
-    email: "",
-    hasBasicInfo: false,
-    hasResume: false,
-  });
-  const [ready, setReady] = useState(false);
+  const [profile, setProfile] = useState<CandidateProfileExtended | null>(null);
+  const [apps, setApps] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const hasBasicInfo = localStorage.getItem("candidateProfileBasic") === "1";
-    const hasResume = localStorage.getItem("candidateProfileResume") === "1";
-    const email = localStorage.getItem("candidateEmail") || "";
-    setProfile({ email, hasBasicInfo, hasResume });
-    setReady(true);
+    const load = async () => {
+      try {
+        const [profileData, appsData] = await Promise.all([
+          candidateSelfProfileClient.getMyProfile().catch(() => null),
+          candidateApplicationsClient.list({ limit: 50 }).catch(() => null),
+        ]);
+        setProfile(profileData);
+        setApps(appsData?.data ?? []);
+        if (profileData?.nickname || profileData?.phone) {
+          localStorage.setItem("candidateProfileBasic", "1");
+        }
+        if (profileData?.resumeUrl) {
+          localStorage.setItem("candidateProfileResume", "1");
+        }
+        if (profileData?.email) {
+          localStorage.setItem("candidateEmail", profileData.email);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
-  if (!ready) return null;
+  if (loading) {
+    return (
+      <GuestGate>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1D4ED8]" />
+        </div>
+      </GuestGate>
+    );
+  }
 
-  const profileComplete = profile.hasBasicInfo && profile.hasResume;
+  const profileComplete = !!(profile?.nickname || profile?.phone) && !!profile?.resumeUrl;
 
   return (
     <GuestGate>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
         {profileComplete ? (
-          <Dashboard profile={profile} />
+          <Dashboard profile={profile} apps={apps} />
         ) : (
           <OnboardingSection profile={profile} />
         )}

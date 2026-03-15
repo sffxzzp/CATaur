@@ -7,14 +7,41 @@ import { companiesClient } from "@/lib/api/companies";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import { usersClient } from "@/lib/api/users";
 import type { Company, JobOrder, User } from "@/lib/api/types";
-import { ArrowLeft, Phone, Mail, MapPin, Globe, Users, Code2, Briefcase, ChevronRight } from "lucide-react";
+import { ArrowLeft, Phone, Mail, MapPin, Globe, Users, Code2, Briefcase, ChevronRight, X } from "lucide-react";
+
+const LOCATION_DATA: Record<string, Record<string, { abbr: string; cities: string[] }>> = {
+  "United States": {
+    "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
+    "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
+    "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
+    "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
+  },
+  "Canada": {
+    "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
+    "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
+    "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
+    "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
+  }
+};
 
 export default function ClientDetails({ params }: { params: Promise<{ id: string }> }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [clientUser, setClientUser] = useState<User | null>(null);
+  const [clientUsers, setClientUsers] = useState<User[]>([]);
   const [jobs, setJobs] = useState<JobOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "", contact: "", email: "", phone: "", website: "",
+    country: "", state: "", city: "", keyTechnologies: "", clientAccount: "",
+  });
+
+  const countries = Object.keys(LOCATION_DATA);
+  const states = formData.country ? Object.keys(LOCATION_DATA[formData.country] || {}) : [];
+  const cities = formData.state ? (LOCATION_DATA[formData.country]?.[formData.state]?.cities || []) : [];
 
   useEffect(() => {
     params.then(p => setCompanyId(p.id));
@@ -25,22 +52,17 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
     const loadData = async () => {
       try {
-        // Load company details
         const companyData = await companiesClient.getById(companyId);
         setCompany(companyData);
 
-        // Load client user if clientId exists
+        const usersRes = await usersClient.listByRole("Client", { page: 1, limit: 100 });
+        setClientUsers(usersRes.data);
+
         if (companyData.clientId) {
-          try {
-            const usersRes = await usersClient.listByRole("Client", { page: 1, limit: 100 });
-            const user = usersRes.data.find(u => u.id === companyData.clientId);
-            if (user) setClientUser(user);
-          } catch (err) {
-            console.error("Failed to load client user:", err);
-          }
+          const user = usersRes.data.find(u => u.id === companyData.clientId);
+          if (user) setClientUser(user);
         }
 
-        // Load job orders for this company
         const jobsRes = await jobOrdersClient.list({ companyId: companyId, limit: 100 });
         setJobs(jobsRes.data);
       } catch (error) {
@@ -53,6 +75,79 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
     loadData();
   }, [companyId]);
+
+  const handleOpenEdit = () => {
+    if (!company) return;
+    let country = "", state = "", city = "";
+    if (company.location) {
+      const parts = company.location.split(", ");
+      if (parts.length >= 2) {
+        const cityPart = parts[0];
+        const stateAbbrPart = parts[1];
+        outer: for (const [c, statesMap] of Object.entries(LOCATION_DATA)) {
+          for (const [s, stateData] of Object.entries(statesMap)) {
+            if (stateData.abbr === stateAbbrPart && stateData.cities.includes(cityPart)) {
+              country = c; state = s; city = cityPart;
+              break outer;
+            }
+          }
+        }
+      }
+    }
+    setFormData({
+      name: company.name,
+      contact: company.contact || "",
+      email: company.email,
+      phone: company.phone || "",
+      website: company.website || "",
+      country,
+      state,
+      city,
+      keyTechnologies: company.keyTechnologies || "",
+      clientAccount: company.clientId || "",
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!company || !formData.name || !formData.email) {
+      alert("Name and Email are required");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const stateAbbr = formData.state && formData.country
+        ? LOCATION_DATA[formData.country]?.[formData.state]?.abbr
+        : null;
+      const location = [formData.city, stateAbbr].filter(Boolean).join(", ");
+
+      await companiesClient.update(company.id, {
+        name: formData.name,
+        email: formData.email,
+        contact: formData.contact || undefined,
+        phone: formData.phone || undefined,
+        website: formData.website || undefined,
+        location: location || undefined,
+        keyTechnologies: formData.keyTechnologies || undefined,
+        clientAccountId: formData.clientAccount || undefined,
+      });
+
+      // Reload company data
+      const updated = await companiesClient.getById(company.id);
+      setCompany(updated);
+      if (updated.clientId) {
+        const user = clientUsers.find(u => u.id === updated.clientId);
+        setClientUser(user || null);
+      } else {
+        setClientUser(null);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to save company");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -76,7 +171,10 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
           <ArrowLeft className="h-4 w-4" /> Back to Companies
         </Link>
         <div className="flex items-center gap-3 shrink-0">
-          <button className="h-9 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer">
+          <button
+            onClick={handleOpenEdit}
+            className="h-9 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer"
+          >
             Edit Company
           </button>
         </div>
@@ -217,6 +315,91 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
           </section>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl rounded-xl bg-[var(--surface)] shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+              <h2 className="text-lg font-semibold text-[var(--gray-900)]">Edit Company</h2>
+              <button onClick={() => setIsModalOpen(false)} className="rounded-md text-[var(--gray-400)] hover:text-[var(--gray-600)] hover:bg-[var(--gray-100)] p-1.5 transition">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Name <span className="text-red-500">*</span></label>
+                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Email <span className="text-red-500">*</span></label>
+                  <input type="email" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Contact</label>
+                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
+                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--gray-700)]">Web Site</label>
+                <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--gray-700)]">Location (Country / State / City)</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value, state: "", city: "" })}>
+                    <option value="">Country</option>
+                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <select disabled={!formData.country} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer" value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value, city: "" })}>
+                    <option value="">State / Province</option>
+                    {states.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <select disabled={!formData.state} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })}>
+                    <option value="">City</option>
+                    {cities.map(cty => <option key={cty} value={cty}>{cty}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--gray-700)]">Key Technologies</label>
+                <input type="text" placeholder="e.g. React, Node.js, AWS..." className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.keyTechnologies} onChange={e => setFormData({ ...formData, keyTechnologies: e.target.value })} />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--gray-700)]">ClientAccount <span className="text-xs text-[var(--gray-400)] ml-1 font-normal">(Optional)</span></label>
+                <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer" value={formData.clientAccount} onChange={e => setFormData({ ...formData, clientAccount: e.target.value })}>
+                  <option value="">Select a Client Account</option>
+                  {clientUsers.map(user => (
+                    <option key={user.id} value={user.id}>{user.nickname || user.email}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
+              <button onClick={() => setIsModalOpen(false)} disabled={submitting} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                Cancel
+              </button>
+              <button onClick={handleSubmit} disabled={submitting} className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                {submitting ? "Saving..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
