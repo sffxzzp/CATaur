@@ -5,39 +5,16 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { applicationsClient } from "@/lib/api/applications";
-import { candidateProfileClient } from "@/lib/api/candidate-profile";
 import type { Application } from "@/lib/api/types";
-import type { CandidateProfileExtended } from "@/lib/api/candidate-profile-types";
 import {
   ArrowLeft, Mail, Phone, MapPin, Linkedin, ExternalLink,
   CalendarClock, BadgeDollarSign, X,
   ChevronRight, Clock, CheckCircle2,
   ChevronDown, Briefcase, FileText,
   Download, Inbox, PenSquare, Save, AlertCircle, Loader2,
-  Award,
-  GraduationCap,
-  Globe,
-  UserCheck,
-  MessageCircle,
-  DollarSign,
-  Check,} from "lucide-react";
+} from "lucide-react";
 
 type ApplicationStatus = 'new' | 'interview' | 'offer' | 'closed';
-
-interface CandidateRecord {
-  id: string;
-  candidateId: string;
-  name: string;
-  role: string;
-  jobTitle: string;
-  location: string;
-  appliedAt: string;
-  status: ApplicationStatus;
-  interviewMessage?: { subject: string; content: string; sentAt: string; type: 'Zoom' | 'Phone' | 'Onsite'; date: string; time: string } | null;
-  clientDecision?: { type: 'request-offer' | 'pass' | 'hold'; note?: string | null; submittedAt: string } | null;
-}
-
-const CANDIDATE_RECORDS: CandidateRecord[] = [];
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type MessageType = "interview_invite" | "offer_notification";
@@ -175,99 +152,6 @@ function buildProfile(c: CandidateRecord): CandidateProfile {
     resumeFile: `${c.name.replace(" ", "_")}_Resume.pdf`,
     resumeSize: `${180 + (n % 180)} KB`,
     resumeUploaded: c.appliedAt,
-  };
-}
-
-
-function formatShortDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
-function parseJsonArray(value: string | null | undefined): string[] {
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    return [];
-  }
-}
-
-function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
-  const name = app.candidate?.nickname || app.candidate?.email || "Candidate";
-  const jobTitle = app.jobOrder?.title || "";
-  const location = (app.location as any) || app.jobOrder?.location || "";
-
-  const clientDecision = app.clientDecisionType ? {
-    type: app.clientDecisionType as any,
-    note: app.clientDecisionNote || null,
-    submittedAt: formatShortDate(app.clientDecisionAt) || "",
-  } : null;
-
-  const interviewMessage = app.interviewSubject && app.interviewContent ? {
-    subject: app.interviewSubject,
-    content: app.interviewContent,
-    sentAt: formatShortDate(app.interviewSentAt) || "",
-    type: (app.interviewType as any) || "Zoom",
-    date: app.interviewDate || "",
-    time: app.interviewTime || "",
-  } : null;
-
-  return {
-    id: app.id,
-    candidateId: app.candidateId,
-    name,
-    role: jobTitle || "Software Engineer",
-    jobTitle: jobTitle || "Applied Position",
-    location: location || "—",
-    appliedAt: formatShortDate(app.createdAt) || "—",
-    status: app.status,
-    interviewMessage,
-    clientDecision,
-  };
-}
-
-function mapExtendedToCandidateProfile(ext: CandidateProfileExtended, fallback: CandidateProfile): CandidateProfile {
-  const resumeFile = ext.resumeUrl ? (ext.resumeUrl.split('/').pop() || fallback.resumeFile) : fallback.resumeFile;
-
-  const work = ext.workExperience?.length
-    ? ext.workExperience.map((w) => ({
-      role: w.role,
-      company: w.company,
-      duration: `${w.startDate || ""} – ${w.isCurrent ? "Present" : (w.endDate || "")}`.trim(),
-      highlights: parseJsonArray(w.highlights),
-    }))
-    : fallback.work;
-
-  const education = ext.education?.length
-    ? ext.education.map((e) => ({
-      school: e.school,
-      degree: [e.degree, e.fieldOfStudy].filter(Boolean).join(" · "),
-      year: e.graduationYear ? String(e.graduationYear) : "",
-    }))
-    : fallback.education;
-
-  const skills = ext.skills?.length
-    ? ext.skills.map((s) => ({ name: s.skillName, level: s.skillLevel }))
-    : fallback.skills;
-
-  return {
-    email: ext.email || fallback.email,
-    phone: ext.phone || fallback.phone,
-    linkedin: ext.linkedin || fallback.linkedin,
-    targetSalary: ext.targetSalary || fallback.targetSalary,
-    preferredLocation: ext.preferredLocation || fallback.preferredLocation,
-    yearsExp: ext.yearsOfExperience ?? fallback.yearsExp,
-    summary: ext.summary || fallback.summary,
-    skills,
-    work,
-    education,
-    resumeFile,
-    resumeSize: fallback.resumeSize,
-    resumeUploaded: fallback.resumeUploaded,
   };
 }
 
@@ -430,85 +314,25 @@ export default function CandidateDetailPage() {
   const rawId = params?.id;
   const id = typeof rawId === "string" ? decodeURIComponent(rawId) : Array.isArray(rawId) ? decodeURIComponent(rawId[0]) : "";
 
-  const [cand, setCand] = useState<CandidateRecord | null>(null);
-  const [messages, setMessages] = useState<CommunicationEntry[]>([]);
-  const [profileData, setProfileData] = useState<CandidateProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const foundRecord = CANDIDATE_RECORDS.find((c) => c.id === id);
+  const [cand, setCand] = useState<CandidateRecord | null>(foundRecord ?? null);
+  const [messages, setMessages] = useState<CommunicationEntry[]>(() => foundRecord ? seedMessages(foundRecord) : []);
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [interviewDraft, setInterviewDraft] = useState<InterviewDraft>({ subject: "", type: "Zoom", date: "", time: "", content: "" });
   const [statusDropdown, setStatusDropdown] = useState(false);
 
+  const router = useRouter();
+
   // Recruiter Notes state
-  const [noteText, setNoteText] = useState("");
+  const [noteText, setNoteText] = useState("Candidate submitted via portal. Strong technical background. Consider for fast-track interview.");
   const [noteEditing, setNoteEditing] = useState(false);
   const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
   const [noteSaveToast, setNoteSaveToast] = useState(false);
   const [confirmPending, setConfirmPending] = useState<ApplicationStatus | null>(null);
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-    let cancelled = false;
+  if (!cand) return notFound();
 
-    (async () => {
-      try {
-        setLoading(true);
-        const app = await applicationsClient.getById(id);
-        if (cancelled) return;
-
-        const record = mapApplicationToCandidateRecord(app);
-        setCand(record);
-        setMessages(seedMessages(record));
-        setNoteText(app.recruiterNotes || "");
-
-        const fallback = buildProfile(record);
-        try {
-          const ext = await candidateProfileClient.getProfile(app.candidateId);
-          if (!cancelled) setProfileData(mapExtendedToCandidateProfile(ext, fallback));
-        } catch {
-          if (!cancelled) setProfileData(fallback);
-        }
-      } catch (err: any) {
-        toast.error(err?.message || "Failed to load candidate");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 text-sm text-[var(--gray-500)] flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading candidate...
-        </div>
-      </div>
-    );
-  }
-
-  if (!cand) {
-    return (
-      <div className="min-h-screen bg-[var(--background)]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-3">
-          <div className="text-sm text-[var(--gray-600)]">Candidate not found.</div>
-          <Link
-            href="/recruiter/applications"
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to Applications
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const profile = profileData ?? buildProfile(cand);
+  const profile = buildProfile(cand);
   const ini = cand.name.split(" ").map(n => n[0]).join("").toUpperCase();
   const interviewRound = messages.filter(m => m.type === "interview_invite").length + 1;
   const hasActiveInterview = messages.some(m => m.type === "interview_invite");

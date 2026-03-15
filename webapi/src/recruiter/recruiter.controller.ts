@@ -2,6 +2,7 @@ import {
     Controller, Get, Post, Put, Patch, Delete,
     Body, Param, Query, UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiExtraModels, ApiOkResponse, ApiNoContentResponse, ApiCreatedResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -26,12 +27,19 @@ import { AuditLog } from '../common/decorators/audit-log.decorator';
 import { CreateCompanyDto } from '../admin/dto/create-company.dto';
 import { UpdateCompanyDto } from '../admin/dto/update-company.dto';
 import { UpdateRecruiterCandidateDto } from './dto/update-recruiter-candidate.dto';
+import { CandidateProfileService } from './candidate-profile.service';
+import { UpdateCandidateProfileDto } from './dto/update-candidate-profile.dto';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { CreateWorkExperienceDto } from './dto/create-work-experience.dto';
+import { CreateEducationDto } from './dto/create-education.dto';
 import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/paginated-response.dto';
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
 import { Notification } from '../database/entities/notification.entity';
 import { Company } from '../database/entities/company.entity';
+import { Candidate } from '../database/entities/candidate.entity';
+import { Repository } from 'typeorm';
 
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(JobOrder);
@@ -59,6 +67,10 @@ const CompanyResponseDto = createApiResponseDto(Company);
 @RequireRoles(Role.RECRUITER, Role.ADMIN)
 @ApiBearerAuth()
 export class RecruiterController {
+    private isAdmin(user: User): boolean {
+        return Boolean(user.roles?.some((r) => r.role === Role.ADMIN));
+    }
+
     constructor(
         private jobOrdersService: JobOrdersService,
         private applicationsService: ApplicationsService,
@@ -66,6 +78,9 @@ export class RecruiterController {
         private adminService: AdminService,
         private reportsService: ReportsService,
         private dashboardService: DashboardService,
+        @InjectRepository(Candidate)
+        private candidateRepository: Repository<Candidate>,
+        private candidateProfileService: CandidateProfileService,
     ) {}
 
     // ── Job Orders ────────────────────────────────────────────────────────
@@ -82,6 +97,7 @@ export class RecruiterController {
     @ApiQuery({ name: 'locationState', required: false })
     @ApiQuery({ name: 'locationCity', required: false })
     @ApiQuery({ name: 'sortBy', required: false, enum: ['recent', 'openings'] })
+    @ApiQuery({ name: 'recruiterId', required: false, description: 'Admin only: filter by recruiter userId' })
     @ApiOkResponse({ type: PaginatedJobOrdersResponseDto })
     listJobOrders(
         @GetUser() user: User,
@@ -96,8 +112,11 @@ export class RecruiterController {
         @Query('locationState') locationState?: string,
         @Query('locationCity') locationCity?: string,
         @Query('sortBy') sortBy?: 'recent' | 'openings',
+        @Query('recruiterId') recruiterId?: string,
     ): Promise<PaginatedResponse<JobOrder>> {
-        const where: any = { assignedToId: user.id };
+        const where: any = this.isAdmin(user)
+            ? (recruiterId ? { assignedToId: recruiterId } : {})
+            : { assignedToId: user.id };
         if (companyId) {
             where.companyId = companyId;
         }
@@ -177,6 +196,8 @@ export class RecruiterController {
     @ApiQuery({ name: 'status', required: false })
     @ApiQuery({ name: 'jobOrderId', required: false })
     @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'location', required: false })
+    @ApiQuery({ name: 'recruiterId', required: false, description: 'Admin only: filter by recruiter userId' })
     @ApiOkResponse({ type: PaginatedApplicationsResponseDto })
     listApplications(
         @GetUser() user: User,
@@ -185,37 +206,57 @@ export class RecruiterController {
         @Query('status') status?: string,
         @Query('jobOrderId') jobOrderId?: string,
         @Query('search') search?: string,
+        @Query('location') location?: string,
+        @Query('recruiterId') recruiterId?: string,
     ): Promise<PaginatedResponse<Application>> {
+        const scope = this.isAdmin(user)
+            ? (recruiterId ? { assignedToId: recruiterId } : {})
+            : { assignedToId: user.id };
         return this.applicationsService.findAll(
-            { assignedToId: user.id },
-            { page: +page, limit: +limit, status, jobOrderId, search },
+            scope,
+            {
+                page: +page,
+                limit: +limit,
+                status,
+                jobOrderId,
+                search,
+                location,
+            },
         );
     }
 
     @Get('applications/:id')
     @ApiOperation({ summary: 'Get an application by ID (must belong to my job order)' })
-    @ApiOkResponse({ type: ApplicationResponseDto })
+    @ApiOkResponse({ type: Application })
     getApplication(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
+        if (this.isAdmin(user)) {
+            return this.applicationsService.findOne(id);
+        }
         return this.applicationsService.findOne(id, { assignedToId: user.id });
     }
 
     @Post('applications')
     @AuditLog('create application')
     @ApiOperation({ summary: 'Manually add a candidate to a job order' })
-    @ApiOkResponse({ type: ApplicationResponseDto })
-    createApplication(@Body() dto: CreateApplicationDto): Promise<Application> {
+    @ApiOkResponse({ type: Application })
+    async createApplication(@GetUser() user: User, @Body() dto: CreateApplicationDto): Promise<Application> {
+        // Verify the job order belongs to this recruiter
+        await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
         return this.applicationsService.create(dto, 'recruiter_import');
     }
 
     @Patch('applications/:id/status')
     @AuditLog('update application status')
     @ApiOperation({ summary: 'Update application status (triggers email on interview/offer)' })
-    @ApiOkResponse({ type: ApplicationResponseDto })
+    @ApiOkResponse({ type: Application })
     updateApplicationStatus(
         @GetUser() user: User,
         @Param('id') id: string,
         @Body() dto: UpdateApplicationStatusDto,
     ): Promise<Application> {
+        if (this.isAdmin(user)) {
+            return this.applicationsService.updateStatus(id, dto);
+        }
         return this.applicationsService.updateStatus(id, dto, { assignedToId: user.id });
     }
 
@@ -228,6 +269,7 @@ export class RecruiterController {
     @ApiQuery({ name: 'jobOrderId', required: false })
     @ApiQuery({ name: 'search', required: false })
     @ApiQuery({ name: 'location', required: false })
+    @ApiQuery({ name: 'recruiterId', required: false, description: 'Admin only: filter by recruiter userId' })
     @ApiOkResponse({ type: PaginatedApplicationsResponseDto })
     listCandidates(
         @GetUser() user: User,
@@ -238,6 +280,17 @@ export class RecruiterController {
         @Query('search') search?: string,
         @Query('location') location?: string,
     ): Promise<PaginatedResponse<Application>> {
+        if (this.isAdmin(user)) {
+            return this.applicationsService.findAll({}, {
+                page: +page,
+                limit: +limit,
+                status,
+                jobOrderId,
+                search,
+                location,
+            });
+        }
+
         return this.applicationsService.findRecruiterCandidates(user.id, {
             page: +page,
             limit: +limit,
@@ -250,20 +303,26 @@ export class RecruiterController {
 
     @Get('candidates/:id')
     @ApiOperation({ summary: 'Get candidate application detail (must belong to my job order)' })
-    @ApiOkResponse({ type: ApplicationResponseDto })
+    @ApiOkResponse({ type: Application })
     getCandidate(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
+        if (this.isAdmin(user)) {
+            return this.applicationsService.findOne(id);
+        }
         return this.applicationsService.findRecruiterCandidateById(user.id, id);
     }
 
     @Put('candidates/:id')
     @AuditLog('update candidate')
     @ApiOperation({ summary: 'Update candidate profile fields and application fields' })
-    @ApiOkResponse({ type: ApplicationResponseDto })
+    @ApiOkResponse({ type: Application })
     updateCandidate(
         @GetUser() user: User,
         @Param('id') id: string,
         @Body() dto: UpdateRecruiterCandidateDto,
     ): Promise<Application> {
+        if (this.isAdmin(user)) {
+            return this.applicationsService.updateApplicationCandidate(id, dto);
+        }
         return this.applicationsService.updateRecruiterCandidate(user.id, id, dto);
     }
 
@@ -271,16 +330,145 @@ export class RecruiterController {
     @ApiOperation({ summary: 'Get candidate resume download URL' })
     @ApiOkResponse({ schema: { type: 'object', properties: { resumeUrl: { type: 'string' } } } })
     async getCandidateResume(@GetUser() user: User, @Param('id') id: string): Promise<{ resumeUrl: string | null }> {
-        const application = await this.applicationsService.findRecruiterCandidateById(user.id, id);
-        return { resumeUrl: application.candidate?.candidate?.resumeUrl || null };
+        const application = this.isAdmin(user)
+            ? await this.applicationsService.findOne(id)
+            : await this.applicationsService.findRecruiterCandidateById(user.id, id);
+        const candidate = await this.candidateRepository.findOne({ where: { id: application.candidateId } });
+        return { resumeUrl: candidate?.resumeUrl ?? null };
     }
 
     @Post('candidates/import')
     @AuditLog('bulk import candidates')
     @ApiOperation({ summary: 'Bulk-import candidates into a job order' })
-    @ApiOkResponse({ type: ApplicationResponseDto, isArray: true })
-    bulkImport(@Body() dto: BulkImportDto): Promise<Application[]> {
+    @ApiOkResponse({ type: Application, isArray: true })
+    async bulkImport(@GetUser() user: User, @Body() dto: BulkImportDto): Promise<Application[]> {
+        // Verify the job order belongs to this recruiter
+        await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
         return this.applicationsService.bulkImport(dto);
+    }
+
+    // ── Candidate Profile (Detail Page) ───────────────────────────────────
+    @Get('candidates/:candidateId/profile')
+    @ApiOperation({ summary: 'Get candidate full profile (extended + skills + work + education)' })
+    @ApiOkResponse({ schema: { type: 'object' } })
+    getCandidateProfile(@GetUser() user: User, @Param('candidateId') candidateId: string) {
+        return this.candidateProfileService.getProfile(user, candidateId);
+    }
+
+    @Put('candidates/:candidateId/profile')
+    @ApiOperation({ summary: 'Update candidate basic profile fields' })
+    @ApiOkResponse({ schema: { type: 'object' } })
+    updateCandidateProfile(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Body() dto: UpdateCandidateProfileDto,
+    ) {
+        return this.candidateProfileService.updateProfile(user, candidateId, dto);
+    }
+
+    @Post('candidates/:candidateId/skills')
+    @ApiOperation({ summary: 'Add a skill' })
+    @ApiOkResponse({ type: Object })
+    addCandidateSkill(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Body() dto: CreateSkillDto,
+    ) {
+        return this.candidateProfileService.addSkill(user, candidateId, dto);
+    }
+
+    @Put('candidates/:candidateId/skills/:skillId')
+    @ApiOperation({ summary: 'Update a skill' })
+    @ApiOkResponse({ type: Object })
+    updateCandidateSkill(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('skillId') skillId: string,
+        @Body() dto: CreateSkillDto,
+    ) {
+        return this.candidateProfileService.updateSkill(user, candidateId, skillId, dto);
+    }
+
+    @Delete('candidates/:candidateId/skills/:skillId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a skill' })
+    @ApiNoContentResponse()
+    async deleteCandidateSkill(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('skillId') skillId: string,
+    ): Promise<void> {
+        await this.candidateProfileService.deleteSkill(user, candidateId, skillId);
+    }
+
+    @Post('candidates/:candidateId/work-experience')
+    @ApiOperation({ summary: 'Add work experience' })
+    @ApiOkResponse({ type: Object })
+    addWorkExperience(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Body() dto: CreateWorkExperienceDto,
+    ) {
+        return this.candidateProfileService.addWorkExperience(user, candidateId, dto);
+    }
+
+    @Put('candidates/:candidateId/work-experience/:experienceId')
+    @ApiOperation({ summary: 'Update work experience' })
+    @ApiOkResponse({ type: Object })
+    updateWorkExperience(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('experienceId') experienceId: string,
+        @Body() dto: CreateWorkExperienceDto,
+    ) {
+        return this.candidateProfileService.updateWorkExperience(user, candidateId, experienceId, dto);
+    }
+
+    @Delete('candidates/:candidateId/work-experience/:experienceId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete work experience' })
+    @ApiNoContentResponse()
+    async deleteWorkExperience(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('experienceId') experienceId: string,
+    ): Promise<void> {
+        await this.candidateProfileService.deleteWorkExperience(user, candidateId, experienceId);
+    }
+
+    @Post('candidates/:candidateId/education')
+    @ApiOperation({ summary: 'Add education' })
+    @ApiOkResponse({ type: Object })
+    addEducation(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Body() dto: CreateEducationDto,
+    ) {
+        return this.candidateProfileService.addEducation(user, candidateId, dto);
+    }
+
+    @Put('candidates/:candidateId/education/:educationId')
+    @ApiOperation({ summary: 'Update education' })
+    @ApiOkResponse({ type: Object })
+    updateEducation(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('educationId') educationId: string,
+        @Body() dto: CreateEducationDto,
+    ) {
+        return this.candidateProfileService.updateEducation(user, candidateId, educationId, dto);
+    }
+
+    @Delete('candidates/:candidateId/education/:educationId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete education' })
+    @ApiNoContentResponse()
+    async deleteEducation(
+        @GetUser() user: User,
+        @Param('candidateId') candidateId: string,
+        @Param('educationId') educationId: string,
+    ): Promise<void> {
+        await this.candidateProfileService.deleteEducation(user, candidateId, educationId);
     }
 
     // ── Companies ──────────────────────────────────────────────────────────

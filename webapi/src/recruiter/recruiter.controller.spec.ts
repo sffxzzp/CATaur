@@ -45,6 +45,24 @@ describe('RecruiterController', () => {
             getRecruiterDashboard: jest.fn(),
         } as any;
 
+        const candidateRepository = {
+            findOne: jest.fn(),
+        } as any;
+
+        const candidateProfileService = {
+            getProfile: jest.fn(),
+            updateProfile: jest.fn(),
+            addSkill: jest.fn(),
+            updateSkill: jest.fn(),
+            deleteSkill: jest.fn(),
+            addWorkExperience: jest.fn(),
+            updateWorkExperience: jest.fn(),
+            deleteWorkExperience: jest.fn(),
+            addEducation: jest.fn(),
+            updateEducation: jest.fn(),
+            deleteEducation: jest.fn(),
+        } as any;
+
         const controller = new RecruiterController(
             jobOrdersService,
             applicationsService,
@@ -52,6 +70,8 @@ describe('RecruiterController', () => {
             adminService,
             reportsService,
             dashboardService,
+            candidateRepository,
+            candidateProfileService,
         );
 
         return {
@@ -62,12 +82,14 @@ describe('RecruiterController', () => {
             adminService,
             reportsService,
             dashboardService,
+            candidateRepository,
+            candidateProfileService,
         };
     };
 
     it('requires recruiter role metadata', () => {
         const roles = Reflect.getMetadata('roles', RecruiterController);
-        expect(roles).toEqual([Role.RECRUITER]);
+        expect(roles).toEqual([Role.RECRUITER, Role.ADMIN]);
     });
 
     describe('candidate endpoints', () => {
@@ -143,9 +165,10 @@ describe('RecruiterController', () => {
             const expected = { id: 'co-1', name: 'Acme' };
             adminService.createCompany.mockReturnValue(expected);
 
-            const result = controller.createCompany(dto);
+            const user = { email: 'rec@test.com', nickname: 'Rec' } as any;
+            const result = controller.createCompany(user, dto);
 
-            expect(adminService.createCompany).toHaveBeenCalledWith(dto);
+            expect(adminService.createCompany).toHaveBeenCalledWith(dto, 'Rec');
             expect(result).toBe(expected);
         });
 

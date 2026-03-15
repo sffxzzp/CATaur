@@ -281,7 +281,23 @@ export class ApplicationsService {
             phone?: string;
         },
     ) {
-        const app = await this.getApplication(id, { assignedToId: recruiterId });
+        return this.updateApplicationCandidate(id, dto, { assignedToId: recruiterId });
+    }
+
+    async updateApplicationCandidate(
+        id: string,
+        dto: {
+            location?: string;
+            availability?: string;
+            recruiterNotes?: string;
+            status?: 'new' | 'interview' | 'offer' | 'closed';
+            nickname?: string;
+            email?: string;
+            phone?: string;
+        },
+        scope: Partial<{ assignedToId: string; companyIds: string[] }> = {},
+    ) {
+        const app = await this.getApplication(id, scope);
 
         if (dto.location !== undefined) {
             app.location = dto.location
@@ -319,7 +335,7 @@ export class ApplicationsService {
         await this.userRepo.save(candidate);
         await this.repo.save(app);
 
-        return this.findOne(id, { assignedToId: recruiterId });
+        return this.findOne(id, scope);
     }
 
     async delete(id: string): Promise<void> {

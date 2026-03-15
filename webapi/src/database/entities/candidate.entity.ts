@@ -20,6 +20,31 @@ export class Candidate {
     @Column({ type: 'varchar', length: 500, nullable: true })
     portfolioUrl: string | null;
 
+    // ── Profile Extensions (Candidate Profile API) ────────────────────────
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'text', nullable: true })
+    summary: string | null;
+
+    @ApiProperty({ required: false, type: Number })
+    @Column({ type: 'int', nullable: true })
+    yearsOfExperience: number | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    targetSalary: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 200, nullable: true })
+    preferredLocation: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    linkedin: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    phone: string | null;
+
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'varchar', length: 255, nullable: true })
     currentLocation: string | null;
