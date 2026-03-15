@@ -228,4 +228,53 @@ describe('FilesController', () => {
             expect(res.send).toHaveBeenCalledWith('Not Found');
         });
     });
+
+    describe('download', () => {
+        it('should set attachment headers and pipe stream to response on success', async () => {
+            const mockStream = {
+                headers: { 'content-type': 'application/pdf' },
+                data: {
+                    pipe: jest.fn(),
+                },
+            };
+            const res = {
+                setHeader: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            } as unknown as Response;
+
+            (axios as unknown as jest.Mock).mockResolvedValue(mockStream);
+
+            await controller.download('resume.pdf', res);
+
+            expect(axios).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    url: expect.stringContaining('/uploads/resume.pdf'),
+                    method: 'GET',
+                    responseType: 'stream',
+                }),
+            );
+            expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
+            expect(res.setHeader).toHaveBeenCalledWith(
+                'Content-Disposition',
+                'attachment; filename="resume.pdf"',
+            );
+            expect(mockStream.data.pipe).toHaveBeenCalledWith(res);
+        });
+
+        it('should respond with 404 if file not found', async () => {
+            const res = {
+                setHeader: jest.fn(),
+                status: jest.fn().mockReturnThis(),
+                send: jest.fn(),
+            } as unknown as Response;
+
+            (axios as unknown as jest.Mock).mockRejectedValue(new Error('Not found'));
+
+            await controller.download('nonexistent.pdf', res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+            expect(res.send).toHaveBeenCalledWith('Not Found');
+        });
+    });
 });

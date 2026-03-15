@@ -215,4 +215,27 @@ export class FilesController {
             res.status(404).send('Not Found');
         }
     }
+
+    @Get('download/:name')
+    @ApiOperation({
+        summary: 'Download a file',
+        description: 'Downloads the file as an attachment from storage.',
+    })
+    @ApiParam({ name: 'name', description: 'The name of the file to download' })
+    @ApiResponse({ status: 200, description: 'File download stream.' })
+    @ApiResponse({ status: 404, description: 'File not found.' })
+    async download(@Param('name') name: string, @Res() res: Response) {
+        try {
+            const stream = await axios({
+                url: `${this.filerUrl}/uploads/${name}`,
+                method: 'GET',
+                responseType: 'stream',
+            });
+            res.setHeader('Content-Type', stream.headers['content-type']);
+            res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(name)}"`);
+            stream.data.pipe(res);
+        } catch (e) {
+            res.status(404).send('Not Found');
+        }
+    }
 }
