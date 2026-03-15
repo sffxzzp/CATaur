@@ -1,26 +1,84 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { User, Phone, Mail, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { request } from "@/lib/request";
+
+type CurrentUser = {
+    nickname?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    avatarUrl?: string | null;
+    createdAt?: string | null;
+};
+
+const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop";
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<"basic" | "password">("basic");
 
-    // Form states for demo
-    const [basicForm, setBasicForm] = useState({
-        nickname: "admin",
-        phone: "15888888888",
-        email: "ry@163.com",
+    const [basicInfo, setBasicInfo] = useState({
+        nickname: "",
+        phone: "",
+        email: "",
     });
+
+    const [basicForm, setBasicForm] = useState({
+        nickname: "",
+        phone: "",
+        email: "",
+    });
+    const [createdAt, setCreatedAt] = useState<string | null>(null);
 
     const [pwdForm, setPwdForm] = useState({
         oldPwd: "",
         newPwd: "",
         confirmPwd: "",
     });
+    const [basicSaving, setBasicSaving] = useState(false);
+    const [pwdSaving, setPwdSaving] = useState(false);
+    const [basicMsg, setBasicMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [pwdMsg, setPwdMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-    const [avatarPreview, setAvatarPreview] = useState<string>("https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop");
+    const [avatarPreview, setAvatarPreview] = useState<string>(DEFAULT_AVATAR);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadCurrentUser = async () => {
+            try {
+                const user = await request<CurrentUser>("/users/me");
+                if (!mounted) {
+                    return;
+                }
+
+                setBasicInfo({
+                    nickname: user?.nickname ?? "",
+                    phone: user?.phone ?? "",
+                    email: user?.email ?? "",
+                });
+                setBasicForm({
+                    nickname: user?.nickname ?? "",
+                    phone: user?.phone ?? "",
+                    email: user?.email ?? "",
+                });
+                setAvatarPreview(user?.avatarUrl || DEFAULT_AVATAR);
+                setCreatedAt(user?.createdAt ?? null);
+            } catch {
+                if (!mounted) {
+                    return;
+                }
+                setAvatarPreview(DEFAULT_AVATAR);
+            }
+        };
+
+        loadCurrentUser();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -30,9 +88,105 @@ export default function ProfilePage() {
         }
     };
 
+    const handleBasicSave = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setBasicMsg(null);
+
+        const nickname = basicForm.nickname.trim();
+        const phone = basicForm.phone.trim();
+        const email = basicForm.email.trim();
+        if (!nickname) {
+            setBasicMsg({ type: "error", text: "Account name is required." });
+            return;
+        }
+
+        if (!email) {
+            setBasicMsg({ type: "error", text: "Email is required." });
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setBasicMsg({ type: "error", text: "Please enter a valid email address." });
+            return;
+        }
+
+        try {
+            setBasicSaving(true);
+            await request("/users/me", {
+                method: "PUT",
+                json: {
+                    nickname,
+                    email,
+                    phone: phone || undefined,
+                },
+            });
+
+            setBasicForm((prev) => ({
+                ...prev,
+                nickname,
+                email,
+                phone,
+            }));
+            setBasicInfo({
+                nickname,
+                email,
+                phone,
+            });
+            setBasicMsg({ type: "success", text: "Basic information saved." });
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Failed to save basic information.";
+            setBasicMsg({ type: "error", text: message });
+        } finally {
+            setBasicSaving(false);
+        }
+    };
+
+    const handlePasswordSave = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setPwdMsg(null);
+
+        if (!pwdForm.oldPwd || !pwdForm.newPwd || !pwdForm.confirmPwd) {
+            setPwdMsg({ type: "error", text: "Please fill in all password fields." });
+            return;
+        }
+
+        if (pwdForm.newPwd !== pwdForm.confirmPwd) {
+            setPwdMsg({ type: "error", text: "New passwords do not match." });
+            return;
+        }
+
+        try {
+            setPwdSaving(true);
+            await request<{ message?: string }>("/auth/change-password", {
+                method: "POST",
+                json: {
+                    oldPassword: pwdForm.oldPwd,
+                    newPassword: pwdForm.newPwd,
+                },
+            });
+
+            setPwdForm({ oldPwd: "", newPwd: "", confirmPwd: "" });
+            setPwdMsg({ type: "success", text: "Password changed successfully." });
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Failed to change password.";
+            setPwdMsg({ type: "error", text: message });
+        } finally {
+            setPwdSaving(false);
+        }
+    };
+
     const inpClass = "h-10 w-full max-w-lg rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] transition";
     const labelClass = "flex items-center text-sm font-semibold text-[var(--gray-800)] mb-1.5";
     const asterisk = <span className="text-[var(--danger)] mr-1">*</span>;
+    const parsedCreatedAt = createdAt ? new Date(createdAt) : null;
+    const hasValidCreatedAt = !!parsedCreatedAt && !Number.isNaN(parsedCreatedAt.getTime());
+    const createdDateText = hasValidCreatedAt
+        ? parsedCreatedAt.toLocaleDateString(undefined, { month: "short", day: "2-digit", year: "numeric" })
+        : "-";
+    const createdTimeText = hasValidCreatedAt
+        ? parsedCreatedAt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+        : "-";
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto">
@@ -56,7 +210,7 @@ export default function ProfilePage() {
                             </div>
                             <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
                         </label>
-                        <h3 className="mt-4 text-base font-semibold text-[var(--gray-900)]">Recruiter</h3>
+                        <h3 className="mt-4 text-base font-semibold text-[var(--gray-900)]">{basicInfo.nickname || "Recruiter"}</h3>
                     </div>
 
                     <div className="px-5 py-4 border-t border-[var(--border)] divide-y divide-[var(--border-light)]">
@@ -65,21 +219,21 @@ export default function ProfilePage() {
                                 <User className="h-4 w-4" />
                                 <span className="text-sm">Account name</span>
                             </div>
-                            <span className="text-sm font-medium text-[var(--gray-900)]">admin</span>
+                            <span className="text-sm font-medium text-[var(--gray-900)]">{basicInfo.nickname || "-"}</span>
                         </div>
                         <div className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-2 text-[var(--gray-700)]">
                                 <Phone className="h-4 w-4" />
                                 <span className="text-sm">Phone</span>
                             </div>
-                            <span className="text-sm font-medium text-[var(--gray-900)]">15888888888</span>
+                            <span className="text-sm font-medium text-[var(--gray-900)]">{basicInfo.phone || "-"}</span>
                         </div>
                         <div className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-2 text-[var(--gray-700)]">
                                 <Mail className="h-4 w-4" />
                                 <span className="text-sm">Email</span>
                             </div>
-                            <span className="text-sm font-medium text-[var(--gray-900)]">ry@163.com</span>
+                            <span className="text-sm font-medium text-[var(--gray-900)]">{basicInfo.email || "-"}</span>
                         </div>
                         <div className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-2 text-[var(--gray-700)]">
@@ -87,7 +241,7 @@ export default function ProfilePage() {
                                 <span className="text-sm">Created</span>
                             </div>
                             <span className="text-sm font-medium text-[var(--gray-900)] text-right leading-tight">
-                                Feb 24, 2026<br /><span className="text-[11px] text-[var(--gray-500)]">09:37:13</span>
+                                {createdDateText}<br /><span className="text-[11px] text-[var(--gray-500)]">{createdTimeText}</span>
                             </span>
                         </div>
                     </div>
@@ -124,7 +278,7 @@ export default function ProfilePage() {
                     {/* Form Content */}
                     <div className="p-6 flex-1">
                         {activeTab === "basic" ? (
-                            <form className="space-y-6" onSubmit={e => e.preventDefault()}>
+                            <form className="space-y-6" onSubmit={handleBasicSave}>
                                 <div>
                                     <label className={labelClass}>{asterisk} Account name</label>
                                     <input
@@ -150,13 +304,17 @@ export default function ProfilePage() {
                                         onChange={(e) => setBasicForm({ ...basicForm, email: e.target.value })}
                                     />
                                 </div>
+                                {basicMsg && (
+                                    <p className={`text-sm ${basicMsg.type === "success" ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>
+                                        {basicMsg.text}
+                                    </p>
+                                )}
                                 <div className="pt-4 flex gap-3">
-                                    <Button type="submit" className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24">Save</Button>
-                                    <Button type="button" variant="outline" className="border-[var(--border)] text-[var(--gray-700)] bg-[var(--surface)] cursor-pointer hover:bg-[var(--gray-50)] px-6 w-24">Close</Button>
+                                    <Button type="submit" disabled={basicSaving} className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24 disabled:cursor-not-allowed disabled:opacity-70">{basicSaving ? "Saving..." : "Save"}</Button>
                                 </div>
                             </form>
                         ) : (
-                            <form className="space-y-6" onSubmit={e => e.preventDefault()}>
+                            <form className="space-y-6" onSubmit={handlePasswordSave}>
                                 <div>
                                     <label className={labelClass}>{asterisk} Old Password</label>
                                     <input
@@ -187,9 +345,13 @@ export default function ProfilePage() {
                                         onChange={(e) => setPwdForm({ ...pwdForm, confirmPwd: e.target.value })}
                                     />
                                 </div>
+                                {pwdMsg && (
+                                    <p className={`text-sm ${pwdMsg.type === "success" ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>
+                                        {pwdMsg.text}
+                                    </p>
+                                )}
                                 <div className="pt-4 flex gap-3">
-                                    <Button type="submit" className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24">Save</Button>
-                                    <Button type="button" variant="outline" className="border-[var(--border)] text-[var(--gray-700)] bg-[var(--surface)] cursor-pointer hover:bg-[var(--gray-50)] px-6 w-24">Close</Button>
+                                    <Button type="submit" disabled={pwdSaving} className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24 disabled:cursor-not-allowed disabled:opacity-70">{pwdSaving ? "Saving..." : "Save"}</Button>
                                 </div>
                             </form>
                         )}
