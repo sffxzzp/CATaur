@@ -267,6 +267,14 @@ export class RecruiterController {
         return this.applicationsService.updateRecruiterCandidate(user.id, id, dto);
     }
 
+    @Get('candidates/:id/resume')
+    @ApiOperation({ summary: 'Get candidate resume download URL' })
+    @ApiOkResponse({ schema: { type: 'object', properties: { resumeUrl: { type: 'string' } } } })
+    async getCandidateResume(@GetUser() user: User, @Param('id') id: string): Promise<{ resumeUrl: string | null }> {
+        const application = await this.applicationsService.findRecruiterCandidateById(user.id, id);
+        return { resumeUrl: application.candidate?.candidate?.resumeUrl || null };
+    }
+
     @Post('candidates/import')
     @AuditLog('bulk import candidates')
     @ApiOperation({ summary: 'Bulk-import candidates into a job order' })

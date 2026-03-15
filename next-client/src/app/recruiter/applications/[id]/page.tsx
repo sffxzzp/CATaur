@@ -1,24 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { notFound } from "next/navigation";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import {
-  CANDIDATE_RECORDS,
-  type ApplicationStatus,
-  type CandidateRecord,
-  type ClientDecision,
-} from "@/data/recruiter";
+import { toast } from "sonner";
+import { applicationsClient } from "@/lib/api/applications";
+import type { Application } from "@/lib/api/types";
 import {
   ArrowLeft, Mail, Phone, MapPin, Linkedin, ExternalLink,
   CalendarClock, BadgeDollarSign, X,
   ChevronRight, Clock, CheckCircle2,
-  ChevronDown, Briefcase, GraduationCap, Award, FileText,
-  Download, Inbox, DollarSign, Target, PenSquare, Save, Check, AlertCircle, MessageCircle,
-  UserCheck, Globe
+  ChevronDown, Briefcase, FileText,
+  Download, Inbox, PenSquare, Save, AlertCircle, Loader2,
 } from "lucide-react";
+
+type ApplicationStatus = 'new' | 'interview' | 'offer' | 'closed';
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type MessageType = "interview_invite" | "offer_notification";

@@ -63,6 +63,39 @@ export type Company = {
   createdAt: string;
 };
 
+export type Application = {
+  id: string;
+  jobOrderId: string;
+  candidateId: string;
+  status: 'new' | 'interview' | 'offer' | 'closed';
+  source: 'self_applied' | 'recruiter_import';
+  location: string | null;
+  availability: string | null;
+  recruiterNotes: string | null;
+  interviewType: string | null;
+  interviewDate: string | null;
+  interviewTime: string | null;
+  interviewSubject: string | null;
+  interviewContent: string | null;
+  interviewSentAt: string | null;
+  clientDecisionType: string | null;
+  clientDecisionNote: string | null;
+  clientDecisionAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  jobOrder?: JobOrder;
+  candidate?: User & {
+    candidate?: {
+      resumeUrl: string | null;
+      portfolioUrl: string | null;
+      currentLocation: string | null;
+      noticePeriod: number | null;
+      availableDate: string | null;
+      profileStatus: string | null;
+    };
+  };
+};
+
 export type PaginatedResponse<T> = {
   data: T[];
   total: number;
