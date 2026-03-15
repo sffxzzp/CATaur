@@ -145,6 +145,11 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<CandidateProfileExtended | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Controlled form for basic-info onboarding step
+  const [basicForm, setBasicForm] = useState({
+    firstName: "", lastName: "", phone: "", linkedin: "",
+  });
+
   // Location state (onboarding + edit modal share these)
   const [locCountry, setLocCountry] = useState<CountryCode | "">("");
   const [locRegion, setLocRegion] = useState("");
@@ -201,10 +206,19 @@ export default function ProfilePage() {
       try {
         const data = await candidateSelfProfileClient.getMyProfile();
         setProfile(data);
+
+        // Pre-fill basic-info form with whatever we already know
+        const nameParts = (data.nickname || "").split(" ");
+        setBasicForm({
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" "),
+          phone: data.phone || "",
+          linkedin: data.linkedin || "",
+        });
+
         // Parse currentLocation into country/region/city if set
         if (data.currentLocation) {
           const parts = data.currentLocation.split(", ");
-          // Expected format from our save: "City, Region, Country"
           if (parts.length >= 3) {
             setLocCity(parts[0]);
             setLocRegion(parts[1]);
@@ -214,8 +228,9 @@ export default function ProfilePage() {
             setLocRegion(parts[1]);
           }
         }
-        // Set step
-        if (data.nickname || data.phone) {
+
+        // profileStatus 'active' means onboarding was completed
+        if (data.profileStatus === "active") {
           setStep("complete");
           localStorage.setItem("candidateProfileBasic", "1");
         }
@@ -223,7 +238,7 @@ export default function ProfilePage() {
           localStorage.setItem("candidateProfileResume", "1");
         }
       } catch {
-        // Not yet a candidate or no profile, show basic-info step
+        // Not yet a candidate or no profile — stay on basic-info step
       } finally {
         setIsLoadingProfile(false);
       }
@@ -233,25 +248,26 @@ export default function ProfilePage() {
 
   // ─── Onboarding: save basic info ──────────────────────────────────────────
   const handleSaveBasicInfo = async () => {
-    const firstName = (document.getElementById("basic_fname") as HTMLInputElement)?.value || "";
-    const lastName = (document.getElementById("basic_lname") as HTMLInputElement)?.value || "";
-    const phone = (document.getElementById("basic_phone") as HTMLInputElement)?.value || "";
-    const linkedin = (document.getElementById("basic_linkedin") as HTMLInputElement)?.value || "";
-    const nickname = [firstName, lastName].filter(Boolean).join(" ");
+    const nickname = [basicForm.firstName, basicForm.lastName].filter(Boolean).join(" ");
     const currentLocation = [locCity, locRegion, locCountry].filter(Boolean).join(", ");
     setSaving(true);
     try {
+      // Save extended candidate fields
       const updated = await candidateSelfProfileClient.updateMyProfile({
-        ...(nickname ? { } : {}), // nickname handled via /candidate/profile (user table)
-        phone: phone || undefined,
-        linkedin: linkedin || undefined,
+        phone: basicForm.phone || undefined,
+        linkedin: basicForm.linkedin || undefined,
         currentLocation: currentLocation || undefined,
+        profileStatus: "active",
       });
-      // Also update nickname via legacy profile endpoint
+      // Also update display name (nickname) on the user record
       if (nickname) {
         await request("/candidate/profile", { method: "PUT", json: { nickname } });
+        // Re-fetch so nickname is reflected in profile state
+        const full = await candidateSelfProfileClient.getMyProfile();
+        setProfile(full);
+      } else {
+        setProfile(updated);
       }
-      setProfile(updated);
       localStorage.setItem("candidateProfileBasic", "1");
       if (!localStorage.getItem("candidateName")) {
         localStorage.setItem("candidateName", nickname || "Candidate");
@@ -347,31 +363,29 @@ export default function ProfilePage() {
     setResumeUploadState("hidden");
   };
 
-  const handleFillManually = () => {
+  const handleFillManually = async () => {
     localStorage.setItem("candidateProfileBasic", "1");
     localStorage.setItem("candidateProfileResume", "1");
+    try {
+      await candidateSelfProfileClient.updateMyProfile({ profileStatus: "active" });
+    } catch { /* best-effort */ }
     setStep("complete");
     setShowToast(false);
   };
 
   // ─── Edit basic profile (modal save) ──────────────────────────────────────
   const handleSaveEditProfile = async () => {
-    const fn = (document.getElementById("edit_fname") as HTMLInputElement)?.value || "";
-    const ln = (document.getElementById("edit_lname") as HTMLInputElement)?.value || "";
-    const ph = (document.getElementById("edit_phone") as HTMLInputElement)?.value || "";
-    const li = (document.getElementById("edit_linkedin") as HTMLInputElement)?.value || "";
-    const nickname = [fn, ln].filter(Boolean).join(" ");
+    const nickname = [basicForm.firstName, basicForm.lastName].filter(Boolean).join(" ");
     const currentLocation = [locCity, locRegion, locCountry].filter(Boolean).join(", ");
     setSaving(true);
     try {
       const updated = await candidateSelfProfileClient.updateMyProfile({
-        phone: ph || undefined,
-        linkedin: li || undefined,
+        phone: basicForm.phone || undefined,
+        linkedin: basicForm.linkedin || undefined,
         currentLocation: currentLocation || undefined,
       });
       if (nickname) {
         await request("/candidate/profile", { method: "PUT", json: { nickname } });
-        // Refetch to get nickname in profile
         const full = await candidateSelfProfileClient.getMyProfile();
         setProfile(full);
       } else {
@@ -572,16 +586,34 @@ export default function ProfilePage() {
                 <div className="p-6">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField label="First Name">
-                      <input id="basic_fname" type="text" className={inputCls} placeholder="John" defaultValue={displayName.split(" ")[0] || ""} />
+                      <input
+                        type="text"
+                        className={inputCls}
+                        placeholder="John"
+                        value={basicForm.firstName}
+                        onChange={(e) => setBasicForm((f) => ({ ...f, firstName: e.target.value }))}
+                      />
                     </FormField>
                     <FormField label="Last Name">
-                      <input id="basic_lname" type="text" className={inputCls} placeholder="Doe" defaultValue={displayName.split(" ").slice(1).join(" ")} />
+                      <input
+                        type="text"
+                        className={inputCls}
+                        placeholder="Doe"
+                        value={basicForm.lastName}
+                        onChange={(e) => setBasicForm((f) => ({ ...f, lastName: e.target.value }))}
+                      />
                     </FormField>
                     <FormField label="Email Address">
-                      <input type="email" className={inputCls} value={displayEmail} disabled />
+                      <input type="email" className={inputCls} value={profile?.email ?? ""} disabled />
                     </FormField>
                     <FormField label="Phone Number">
-                      <input id="basic_phone" type="tel" className={inputCls} placeholder="+1 (416) 555-0198" defaultValue={displayPhone} />
+                      <input
+                        type="tel"
+                        className={inputCls}
+                        placeholder="+1 (416) 555-0198"
+                        value={basicForm.phone}
+                        onChange={(e) => setBasicForm((f) => ({ ...f, phone: e.target.value }))}
+                      />
                     </FormField>
                     <FormField label="Country">
                       <select value={locCountry} onChange={(e) => handleCountryChange(e.target.value as CountryCode | "")} className={inputCls}>
@@ -605,7 +637,13 @@ export default function ProfilePage() {
                     </FormField>
                     <FormField label="LinkedIn Profile URL">
                       <div className="sm:col-span-2">
-                        <input id="basic_linkedin" type="url" className={inputCls} placeholder="https://linkedin.com/in/..." defaultValue={displayLinkedin} />
+                        <input
+                          type="url"
+                          className={inputCls}
+                          placeholder="https://linkedin.com/in/..."
+                          value={basicForm.linkedin}
+                          onChange={(e) => setBasicForm((f) => ({ ...f, linkedin: e.target.value }))}
+                        />
                       </div>
                     </FormField>
                   </div>
@@ -723,7 +761,16 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-1.5 self-start" onClick={() => setIsEditProfileOpen(true)}>
+                    <Button variant="outline" size="sm" className="gap-1.5 self-start" onClick={() => {
+                      const nameParts = (profile?.nickname || "").split(" ");
+                      setBasicForm({
+                        firstName: nameParts[0] || "",
+                        lastName: nameParts.slice(1).join(" "),
+                        phone: profile?.phone || "",
+                        linkedin: profile?.linkedin || "",
+                      });
+                      setIsEditProfileOpen(true);
+                    }}>
                       <PenSquare className="h-3.5 w-3.5" />
                       Edit Profile
                     </Button>
@@ -977,16 +1024,31 @@ export default function ProfilePage() {
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="First Name">
-                    <input id="edit_fname" type="text" className={inputCls} defaultValue={displayName.split(" ")[0] || ""} />
+                    <input
+                      type="text"
+                      className={inputCls}
+                      value={basicForm.firstName}
+                      onChange={(e) => setBasicForm((f) => ({ ...f, firstName: e.target.value }))}
+                    />
                   </FormField>
                   <FormField label="Last Name">
-                    <input id="edit_lname" type="text" className={inputCls} defaultValue={displayName.split(" ").slice(1).join(" ")} />
+                    <input
+                      type="text"
+                      className={inputCls}
+                      value={basicForm.lastName}
+                      onChange={(e) => setBasicForm((f) => ({ ...f, lastName: e.target.value }))}
+                    />
                   </FormField>
                   <FormField label="Email Address">
-                    <input type="email" className={inputCls} value={displayEmail} disabled />
+                    <input type="email" className={inputCls} value={profile?.email ?? ""} disabled />
                   </FormField>
                   <FormField label="Phone Number">
-                    <input id="edit_phone" type="tel" className={inputCls} defaultValue={displayPhone} />
+                    <input
+                      type="tel"
+                      className={inputCls}
+                      value={basicForm.phone}
+                      onChange={(e) => setBasicForm((f) => ({ ...f, phone: e.target.value }))}
+                    />
                   </FormField>
                   <FormField label="Country">
                     <select value={locCountry} onChange={(e) => handleCountryChange(e.target.value as CountryCode | "")} className={inputCls}>
@@ -1010,7 +1072,12 @@ export default function ProfilePage() {
                   </div>
                   <div className="sm:col-span-2">
                     <FormField label="LinkedIn Profile URL">
-                      <input id="edit_linkedin" type="url" className={inputCls} defaultValue={displayLinkedin} />
+                      <input
+                        type="url"
+                        className={inputCls}
+                        value={basicForm.linkedin}
+                        onChange={(e) => setBasicForm((f) => ({ ...f, linkedin: e.target.value }))}
+                      />
                     </FormField>
                   </div>
                 </div>
