@@ -17,5 +17,6 @@ import { OllamaChatAdapter } from './adapters/ollama-chat.adapter';
     GeminiChatAdapter,
     OllamaChatAdapter,
   ],
+  exports: [AiChatService],
 })
 export class AiModule {}

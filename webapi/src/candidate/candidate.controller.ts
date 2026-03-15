@@ -14,8 +14,10 @@ import { CreateApplicationDto } from '../applications/dto/application.dto';
 import { UpdateUserProfileDto } from '../users/dto/update-user-profile.dto';
 import { UsersService } from '../users/users.service';
 import { CandidateResumeService } from './candidate-resume.service';
+import { CandidateAssistantService } from './candidate-assistant.service';
 import { ParseResumeDto } from './dto/parse-resume.dto';
 import { ApplyResumeDto } from './dto/apply-resume.dto';
+import { ChatMessageDto, ChatResponseDto } from './dto/chat.dto';
 import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/paginated-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import type { JobOrderEmploymentType, JobOrderWorkArrangement } from '../database/entities/job-order.entity';
@@ -105,6 +107,7 @@ export class CandidateController {
         private usersService: UsersService,
         private candidateResumeService: CandidateResumeService,
         private candidateProfileService: CandidateProfileService,
+        private candidateAssistantService: CandidateAssistantService,
     ) {}
 
     @Get('jobs')
@@ -309,6 +312,13 @@ export class CandidateController {
     @ApiOperation({ summary: 'Delete education from my profile' })
     async deleteMyEducation(@GetUser() user: User, @Param('educationId') educationId: string): Promise<void> {
         await this.candidateProfileService.deleteEducation(user, user.id, educationId);
+    }
+
+    @Post('assistant/chat')
+    @ApiOperation({ summary: 'Chat with AI career assistant' })
+    @ApiOkResponse({ type: ChatResponseDto })
+    chat(@GetUser() user: User, @Body() dto: ChatMessageDto): Promise<ChatResponseDto> {
+        return this.candidateAssistantService.chat(user.id, dto);
     }
 
 }
