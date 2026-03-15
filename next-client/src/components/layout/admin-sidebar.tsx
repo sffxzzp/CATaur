@@ -241,7 +241,7 @@ export function AdminSidebar() {
                 AA
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-white truncate">Allan Admin</p>
+                <p className="text-[13px] font-semibold text-white truncate">xxxxx</p>
                 <p className="text-[11px] text-slate-500 truncate">allan@cataur.com</p>
               </div>
               <button

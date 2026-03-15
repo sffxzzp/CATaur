@@ -5,6 +5,7 @@ import { Bell, ChevronRight, Menu, User, Type, Sun, Moon, LogOut, Check } from "
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { request } from "@/lib/request";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/recruiter": { title: "Dashboard", subtitle: "Overview of your recruitment pipeline" },
@@ -165,6 +166,8 @@ function AvatarDropdown() {
   const [open, setOpen] = useState(false);
   const [fontIdx, setFontIdx] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [nickname, setNickname] = useState("Recruiter");
+  const [email, setEmail] = useState("-");
   const ref = useRef<HTMLDivElement>(null);
 
   // Init from localStorage
@@ -183,6 +186,20 @@ function AvatarDropdown() {
       // No saved preference — apply default (Small / 0.875)
       document.documentElement.style.setProperty("--font-scale", String(FONT_SIZES[0].value));
     }
+  }, []);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const user = await request<{ nickname?: string; email?: string }>("/users/me");
+        setNickname(user?.nickname || "Recruiter");
+        setEmail(user?.email || "-");
+      } catch {
+        setNickname("Recruiter");
+        setEmail("-");
+      }
+    };
+    loadCurrentUser();
   }, []);
 
   // Close on click-outside
@@ -214,21 +231,29 @@ function AvatarDropdown() {
     window.location.replace("/login?role=recruiter&redirect=%2Frecruiter");
   };
 
+  const avatarLabel = nickname
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "R";
+
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white transition-shadow hover:ring-2 hover:ring-[var(--accent-ring)] hover:ring-offset-1"
       >
-        AR
+        {avatarLabel}
       </button>
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] animate-scale-in z-50">
           {/* User info */}
           <div className="border-b border-[var(--border)] px-4 py-3">
-            <p className="text-sm font-semibold text-[var(--gray-900)]">Allan Recruiter</p>
-            <p className="text-xs text-[var(--gray-500)]">allan@cataur.com</p>
+            <p className="text-sm font-semibold text-[var(--gray-900)]">{nickname}</p>
+            <p className="text-xs text-[var(--gray-500)]">{email}</p>
           </div>
 
           {/* Profile */}
