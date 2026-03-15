@@ -38,6 +38,7 @@ export const applicationsClient = {
     interviewDate?: string;
     interviewTime?: string;
     interviewContent?: string;
+    offerContent?: string;
   }) =>
     request<Application>(`/api/recruiter/applications/${id}/status`, {
       method: "PATCH",

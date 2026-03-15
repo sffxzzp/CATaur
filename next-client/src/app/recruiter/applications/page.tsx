@@ -366,7 +366,7 @@ export default function RecruiterApplicationsPage() {
     const handleSendOffer = async () => {
         if (!offerDraft) return;
         try {
-            await applicationsClient.updateStatus(offerDraft.applicationId, { status: "offer" });
+            await applicationsClient.updateStatus(offerDraft.applicationId, { status: "offer", offerContent: offerDraft.content });
             toast.success("Offer notification sent");
             setOfferDraft(null);
             loadData();

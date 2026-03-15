@@ -67,7 +67,7 @@ export class ApplicationsService {
         if (status) qb.andWhere('app.status = :status', { status });
         if (jobOrderId) qb.andWhere('app.jobOrderId = :jobOrderId', { jobOrderId });
         if (search) {
-            qb.andWhere('(candidate.nickname LIKE :s OR candidate.email LIKE :s)', {
+            qb.andWhere('(candidate.nickname LIKE :s OR candidate.email LIKE :s OR jobOrder.title LIKE :s)', {
                 s: `%${search}%`,
             });
         }
@@ -206,9 +206,58 @@ export class ApplicationsService {
             ).catch((err) => {
                 this.logger.error(`Failed to send interview email for application ${id}: ${err?.message}`);
             });
+
+            // Create in-app notification for candidate
+            const when = `${dto.interviewDate ?? ''}${dto.interviewTime ? ` ${dto.interviewTime}` : ''}`.trim();
+            const title = 'Interview Scheduled';
+            const jobTitle = app.jobOrder?.title ?? 'the role';
+            const body = `Your interview for ${jobTitle}${when ? ` is scheduled on ${when}` : ''}. Please check your email for details.`;
+            await this.notificationsService.create(
+                app.candidateId,
+                'interview_scheduled',
+                title,
+                body,
+                app.id,
+            ).catch((err) => {
+                this.logger.error(`Failed to create interview notification for candidate (app ${id}): ${err?.message}`);
+            });
         }
 
         if (dto.status === 'offer' && prevStatus !== 'offer') {
+            const jobTitle = app.jobOrder?.title ?? 'the role';
+            const companyName = app.jobOrder?.company?.name ?? 'our client';
+
+            // Notify the candidate (in-app + email)
+            await this.notificationsService.create(
+                app.candidateId,
+                'offer_extended',
+                'Offer Extended',
+                `An offer has been extended for ${jobTitle} at ${companyName}. Please check your email for details.`,
+                app.id,
+            ).catch((err) => {
+                this.logger.error(`Failed to create offer notification for candidate (app ${id}): ${err?.message}`);
+            });
+
+            const offerEmailContent = dto.offerContent?.trim()
+                ? dto.offerContent.trim()
+                : [
+                    `Hi ${app.candidate?.nickname ?? ''}`.trim() || 'Hi,',
+                    '',
+                    `Good news — an offer has been extended for ${jobTitle} at ${companyName}.`,
+                    '',
+                    'Please reply to this email or contact your recruiter for the next steps.',
+                    '',
+                    'CATaur Recruiting Platform',
+                ].join('\n');
+
+            await this.emailService.sendOfferNotification(
+                app.candidate.email,
+                jobTitle,
+                offerEmailContent,
+            ).catch((err) => {
+                this.logger.error(`Failed to send offer email for application ${id}: ${err?.message}`);
+            });
+
             // Notify the client that an offer is being extended
             const jo = await this.jobOrderRepo.findOne({
                 where: { id: app.jobOrderId },

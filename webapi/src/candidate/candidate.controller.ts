@@ -1,5 +1,5 @@
 import {
-    Controller, Get, Post, Put, Body, Param, Query, UseGuards,
+    Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiExtraModels, ApiOkResponse, ApiProperty } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,6 +22,8 @@ import type { JobOrderEmploymentType, JobOrderWorkArrangement } from '../databas
 import { Application } from '../database/entities/application.entity';
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { Candidate } from '../database/entities/candidate.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { Notification } from '../database/entities/notification.entity';
 
 class ResumeParseResponseDto {
     @ApiProperty()
@@ -80,6 +82,7 @@ const ProfileResponseDto = createApiResponseDto(User);
     PaginatedApplicationsResponseDto,
     JobOrder,
     Application,
+    Notification,
     User,
     Candidate,
     JobOrderResponseDto,
@@ -99,6 +102,7 @@ export class CandidateController {
         private applicationsService: ApplicationsService,
         private usersService: UsersService,
         private candidateResumeService: CandidateResumeService,
+        private notificationsService: NotificationsService,
     ) {}
 
     @Get('jobs')
@@ -231,5 +235,20 @@ export class CandidateController {
     @ApiOkResponse({ type: ResumeParseResponseDto })
     getResumeParse(@GetUser() user: User, @Param('id') parserId: string): Promise<ResumeParseResponseDto> {
         return this.candidateResumeService.getResumeParse(user.id, parserId);
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────
+    @Get('notifications')
+    @ApiOperation({ summary: 'Get my notifications' })
+    @ApiOkResponse({ type: [Notification] })
+    getNotifications(@GetUser() user: User): Promise<Notification[]> {
+        return this.notificationsService.findAll(user.id);
+    }
+
+    @Patch('notifications/read-all')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Mark all notifications as read' })
+    async markAllRead(@GetUser() user: User): Promise<void> {
+        return this.notificationsService.markAllRead(user.id);
     }
 }

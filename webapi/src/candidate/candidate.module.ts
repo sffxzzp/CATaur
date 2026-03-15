@@ -8,11 +8,13 @@ import { CandidateResumeService } from './candidate-resume.service';
 import { Candidate } from '../database/entities/candidate.entity';
 import { ResumeParser } from '../database/entities/resume-parser.entity';
 import { User } from '../database/entities/user.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
     imports: [
         JobOrdersModule,
         ApplicationsModule,
+        NotificationsModule,
         UsersModule,
         TypeOrmModule.forFeature([Candidate, ResumeParser, User]),
     ],

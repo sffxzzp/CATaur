@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { notFound } from "next/navigation";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
+import { applicationsClient } from "@/lib/api/applications";
+import { candidateProfileClient } from "@/lib/api/candidate-profile";
+import { recruiterCandidatesClient } from "@/lib/api/recruiter-candidates";
+import type { Application } from "@/lib/api/types";
+import type { CandidateProfileExtended } from "@/lib/api/candidate-profile-types";
 import {
-  CANDIDATE_RECORDS,
   type ApplicationStatus,
   type CandidateRecord,
   type ClientDecision,
@@ -43,119 +46,128 @@ interface CandidateProfile {
   resumeFile: string; resumeSize: string; resumeUploaded: string;
 }
 
-/* ─── Profile builder ─────────────────────────────────────────────────────── */
-const SKILL_POOLS: Record<string, Skill[]> = {
-  "Backend": [
-    { name: "Go", level: "Expert" }, { name: "PostgreSQL", level: "Expert" },
-    { name: "Kubernetes", level: "Intermediate" }, { name: "gRPC", level: "Expert" },
-    { name: "AWS", level: "Intermediate" }, { name: "Redis", level: "Intermediate" },
-    { name: "Docker", level: "Expert" }, { name: "Terraform", level: "Intermediate" },
-  ],
-  "Frontend": [
-    { name: "React", level: "Expert" }, { name: "TypeScript", level: "Expert" },
-    { name: "Next.js", level: "Expert" }, { name: "CSS/Tailwind", level: "Intermediate" },
-    { name: "GraphQL", level: "Intermediate" }, { name: "Figma", level: "Beginner" },
-    { name: "Cypress", level: "Intermediate" },
-  ],
-  "DevOps": [
-    { name: "Kubernetes", level: "Expert" }, { name: "Terraform", level: "Expert" },
-    { name: "CI/CD", level: "Expert" }, { name: "AWS", level: "Expert" },
-    { name: "Prometheus", level: "Intermediate" }, { name: "Helm", level: "Intermediate" },
-    { name: "Python", level: "Intermediate" },
-  ],
-  "Data": [
-    { name: "Python", level: "Expert" }, { name: "SQL", level: "Expert" },
-    { name: "Spark", level: "Intermediate" }, { name: "Airflow", level: "Intermediate" },
-    { name: "dbt", level: "Intermediate" }, { name: "Snowflake", level: "Intermediate" },
-    { name: "TensorFlow", level: "Beginner" },
-  ],
-  "Security": [
-    { name: "Penetration Testing", level: "Expert" }, { name: "SIEM", level: "Expert" },
-    { name: "AWS Security", level: "Intermediate" }, { name: "Python", level: "Intermediate" },
-    { name: "Compliance (SOC 2)", level: "Intermediate" }, { name: "Incident Response", level: "Expert" },
-  ],
-  "Mobile": [
-    { name: "Swift", level: "Expert" }, { name: "SwiftUI", level: "Expert" },
-    { name: "Objective-C", level: "Intermediate" }, { name: "Xcode", level: "Expert" },
-    { name: "CoreData", level: "Intermediate" }, { name: "Firebase", level: "Intermediate" },
-  ],
-  "QA": [
-    { name: "Selenium", level: "Expert" }, { name: "Playwright", level: "Expert" },
-    { name: "Python", level: "Intermediate" }, { name: "Jest", level: "Intermediate" },
-    { name: "CI/CD", level: "Intermediate" }, { name: "JIRA", level: "Expert" },
-  ],
-};
+function formatShortDate(value: string | Date | null | undefined) {
+  if (!value) return "—";
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
-const COMPANIES = ["Maple Fintech", "Aurora Health", "Shopify", "RBC Ventures", "Hootsuite", "Elastic", "Mattermost", "Cohere", "Wealthsimple", "1Password"];
-const SCHOOLS = ["University of Toronto", "University of British Columbia", "McGill University", "Waterloo", "Queen's University", "Concordia"];
-const DEGREES = ["B.Sc. Computer Science", "B.Eng. Software Engineering", "M.Sc. Data Science", "M.Eng. Software Engineering", "B.Sc. Mathematics", "B.Comp. Honours"];
-const SALARIES = ["CA$140k – CA$160k", "CA$150k – CA$175k", "CA$130k – CA$150k", "CA$160k – CA$185k", "CA$120k – CA$140k"];
-const LOCATIONS_PREF = ["Toronto, ON (Hybrid)", "Vancouver, BC (Remote OK)", "Remote · Canada", "Montreal, QC (Onsite)", "Calgary, AB (Hybrid)"];
-const SUMMARIES: string[] = [
-  "Seasoned engineer with {n}+ years building high-throughput distributed systems. Passionate about clean APIs and developer experience.",
-  "Results-driven professional with {n}+ years specializing in scalable cloud infrastructure and modern tooling.",
-  "Full-cycle engineer with {n}+ years across early-stage startups and enterprise. Thrives in ambiguous environments.",
-  "Technical leader with {n}+ years delivering production-grade software. Strong focus on observability and reliability.",
-];
+function parseJsonArray(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value !== "string") return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
 
-function buildProfile(c: CandidateRecord): CandidateProfile {
-  const n = parseInt(c.id.replace(/\D/g, "")) || 700;
-  const role = c.role.toLowerCase();
-  let pool = SKILL_POOLS["Backend"];
-  if (role.includes("frontend") || role.includes("react") || role.includes("next")) pool = SKILL_POOLS["Frontend"];
-  else if (role.includes("devops") || role.includes("sre")) pool = SKILL_POOLS["DevOps"];
-  else if (role.includes("data") || role.includes("scientist") || role.includes("ml")) pool = SKILL_POOLS["Data"];
-  else if (role.includes("security")) pool = SKILL_POOLS["Security"];
-  else if (role.includes("mobile") || role.includes("ios") || role.includes("android")) pool = SKILL_POOLS["Mobile"];
-  else if (role.includes("qa") || role.includes("test")) pool = SKILL_POOLS["QA"];
+function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
+  const name = app.candidate?.nickname || app.candidate?.email || "Candidate";
+  const email = app.candidate?.email || "—";
+  const jobTitle = app.jobOrder?.title || "—";
+  const location = (app.location || app.jobOrder?.location || "—") as string;
 
-  const yrsExp = 4 + (n % 9);
-  const handle = c.name.toLowerCase().replace(/[^a-z]/g, ".");
+  let clientDecision: ClientDecision | undefined;
+  if (app.clientDecisionType && app.clientDecisionAt) {
+    clientDecision = {
+      type: app.clientDecisionType as any,
+      note: app.clientDecisionNote ?? undefined,
+      submittedAt: formatShortDate(app.clientDecisionAt as any),
+    };
+  }
 
-  const work: WorkExp[] = [
-    {
-      role: c.role,
-      company: COMPANIES[n % COMPANIES.length],
-      duration: `${2021 - (n % 3)} – Present`,
-      highlights: [
-        "Led architecture of core platform service handling 2M+ daily requests with 99.9% SLA",
-        "Mentored a team of 4 engineers and drove adoption of modern testing practices",
-        "Reduced deployment cycle time by 40% by implementing automated CI/CD pipeline",
-      ],
-    },
-    {
-      role: c.role.replace("Senior", "").replace("Lead", "").trim() || "Software Engineer",
-      company: COMPANIES[(n + 3) % COMPANIES.length],
-      duration: `${2018 - (n % 2)} – ${2021 - (n % 3)}`,
-      highlights: [
-        "Built and shipped core product features used by 10k+ users",
-        "Collaborated with design and product on defining technical requirements",
-        "Contributed to open-source tooling adopted by the engineering community",
-      ],
-    },
-  ];
-
-  const education: Education[] = [
-    { school: SCHOOLS[n % SCHOOLS.length], degree: DEGREES[n % DEGREES.length], year: String(2014 + (n % 5)) },
-    { school: SCHOOLS[(n + 2) % SCHOOLS.length], degree: DEGREES[(n + 3) % DEGREES.length], year: String(2016 + (n % 4)) },
-  ];
-
-  const summary = SUMMARIES[n % SUMMARIES.length].replace("{n}", String(yrsExp));
+  const interviewMessage = app.interviewDate && app.interviewSubject && app.interviewContent && app.interviewSentAt
+    ? {
+      subject: String(app.interviewSubject),
+      type: (app.interviewType || "Zoom") as any,
+      date: String(app.interviewDate),
+      time: String(app.interviewTime || ""),
+      content: String(app.interviewContent),
+      sentAt: formatShortDate(app.interviewSentAt as any),
+    }
+    : undefined;
 
   return {
-    email: `${handle}@example.com`,
-    phone: `${[416, 604, 514, 403, 613, 780, 519][n % 7]}-555-0${100 + (n % 899)}`,
-    linkedin: `https://linkedin.com/in/${handle.replace(/\./g, "-")}`,
-    targetSalary: SALARIES[n % SALARIES.length],
-    preferredLocation: LOCATIONS_PREF[n % LOCATIONS_PREF.length],
-    yearsExp: yrsExp,
-    summary,
-    skills: pool,
+    id: app.id,
+    name,
+    email,
+    role: jobTitle,
+    jobTitle,
+    jobId: app.jobOrderId,
+    status: app.status as any,
+    appliedAt: formatShortDate(app.createdAt as any),
+    location,
+    availability: app.availability || "—",
+    lastContact: app.interviewSentAt ? formatShortDate(app.interviewSentAt as any) : "—",
+    source: app.source as any,
+    recruiterNotes: app.recruiterNotes ?? undefined,
+    clientDecision,
+    interviewMessage,
+  };
+}
+
+function mapExtendedToCandidateProfile(ext: CandidateProfileExtended, fallback: CandidateProfile): CandidateProfile {
+  const resumeFile = ext.resumeUrl ? (ext.resumeUrl.split('/').pop() || fallback.resumeFile) : fallback.resumeFile;
+
+  const work = ext.workExperience?.length
+    ? ext.workExperience.map((w) => ({
+      role: w.role,
+      company: w.company,
+      duration: `${w.startDate || ""} – ${w.isCurrent ? "Present" : (w.endDate || "")}`.trim(),
+      highlights: parseJsonArray(w.highlights),
+    }))
+    : [];
+
+  const education = ext.education?.length
+    ? ext.education.map((e) => ({
+      school: e.school,
+      degree: [e.degree, e.fieldOfStudy].filter(Boolean).join(" · "),
+      year: e.graduationYear ? String(e.graduationYear) : "",
+    }))
+    : [];
+
+  const skills = ext.skills?.length
+    ? ext.skills.map((s) => ({ name: s.skillName, level: s.skillLevel }))
+    : [];
+
+  return {
+    email: ext.email || fallback.email,
+    phone: ext.phone || fallback.phone,
+    linkedin: ext.linkedin || fallback.linkedin,
+    targetSalary: ext.targetSalary || fallback.targetSalary,
+    preferredLocation: ext.preferredLocation || fallback.preferredLocation,
+    yearsExp: ext.yearsOfExperience ?? fallback.yearsExp,
+    summary: ext.summary || fallback.summary,
+    skills,
     work,
     education,
-    resumeFile: `${c.name.replace(" ", "_")}_Resume.pdf`,
-    resumeSize: `${180 + (n % 180)} KB`,
-    resumeUploaded: c.appliedAt,
+    resumeFile,
+    resumeSize: fallback.resumeSize,
+    resumeUploaded: fallback.resumeUploaded,
+  };
+}
+
+/* ─── Profile builder ─────────────────────────────────────────────────────── */
+function buildProfile(c: CandidateRecord): CandidateProfile {
+  // This page started as a static mock; avoid generating fake Work/Education on real imported candidates.
+  return {
+    email: c.email || "—",
+    phone: "—",
+    linkedin: "—",
+    targetSalary: "—",
+    preferredLocation: c.location || "—",
+    yearsExp: 0,
+    summary: "",
+    skills: [],
+    work: [],
+    education: [],
+    resumeFile: "—",
+    resumeSize: "",
+    resumeUploaded: c.appliedAt || "—",
   };
 }
 
@@ -209,10 +221,11 @@ const MSG_CONFIG: Record<MessageType, { label: string; iconBg: string; icon: Rea
 /* ─── Interview Modal ─────────────────────────────────────────────────────── */
 interface InterviewDraft { subject: string; type: "Zoom" | "Phone" | "Onsite"; date: string; time: string; content: string; }
 
-function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSend, onClose }: {
+function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSend, onClose, disabled = false }: {
   round: number; candidateName: string; jobTitle: string;
   draft: InterviewDraft; onChange: (p: Partial<InterviewDraft>) => void;
   onSend: () => void; onClose: () => void;
+  disabled?: boolean;
 }) {
   const inp = "w-full rounded-md border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] text-[var(--gray-900)]";
   return (
@@ -252,7 +265,13 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
         </div>
         <div className="flex justify-end gap-3 border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
           <button onClick={onClose} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] cursor-pointer hover:bg-[var(--gray-50)] transition">Cancel</button>
-          <button onClick={onSend} className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-[var(--accent-hover)] transition">Send Invitation</button>
+          <button
+            onClick={onSend}
+            disabled={disabled}
+            className={`rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-[var(--accent-hover)]"}`}
+          >
+            Send Invitation
+          </button>
         </div>
       </div>
     </div>
@@ -365,10 +384,11 @@ function EditCandidateModal({
     onSave({
       name: form.name.trim(),
       email: form.email.trim(),
+      phone: form.phone.trim(),
       jobTitle: form.role.trim(),
       role: form.role.trim(),
       location: form.location.trim(),
-    });
+    } as any);
   };
 
   const inp = "w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--gray-900)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] transition";
@@ -427,34 +447,94 @@ export default function CandidateDetailPage() {
   const rawId = params?.id;
   const id = typeof rawId === "string" ? decodeURIComponent(rawId) : Array.isArray(rawId) ? decodeURIComponent(rawId[0]) : "";
 
-  const foundRecord = CANDIDATE_RECORDS.find((c) => c.id === id);
-  const [cand, setCand] = useState<CandidateRecord | null>(foundRecord ?? null);
-  const [messages, setMessages] = useState<CommunicationEntry[]>(() => foundRecord ? seedMessages(foundRecord) : []);
+  const [cand, setCand] = useState<CandidateRecord | null>(null);
+  const [messages, setMessages] = useState<CommunicationEntry[]>([]);
+  const [profileData, setProfileData] = useState<CandidateProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [interviewDraft, setInterviewDraft] = useState<InterviewDraft>({ subject: "", type: "Zoom", date: "", time: "", content: "" });
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [savingNote, setSavingNote] = useState(false);
   const router = useRouter();
 
   // Recruiter Notes state
-  const [noteText, setNoteText] = useState("Candidate submitted via portal. Strong technical background. Consider for fast-track interview.");
+  const [noteText, setNoteText] = useState("");
   const [noteEditing, setNoteEditing] = useState(false);
   const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
   const [noteSaveToast, setNoteSaveToast] = useState(false);
   const [confirmPending, setConfirmPending] = useState<ApplicationStatus | null>(null);
 
-  if (!cand) return notFound();
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const app = await recruiterCandidatesClient.getById(id);
+        if (cancelled) return;
+        const record = mapApplicationToCandidateRecord(app);
+        setCand(record);
+        setMessages(seedMessages(record));
+        setNoteText(app.recruiterNotes || "");
 
-  const profile = buildProfile(cand);
+        const fallback = buildProfile(record);
+        try {
+          const ext = await candidateProfileClient.getProfile(app.candidateId);
+          if (!cancelled) setProfileData(mapExtendedToCandidateProfile(ext, fallback));
+        } catch {
+          if (!cancelled) setProfileData(fallback);
+        }
+      } catch (err: any) {
+        toast.error(err?.message || "Failed to load candidate");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[var(--background)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 text-sm text-[var(--gray-500)]">
+          Loading candidate...
+        </div>
+      </div>
+    );
+  }
+
+  if (!cand) {
+    return (
+      <div className="min-h-screen bg-[var(--background)]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 space-y-3">
+          <div className="text-sm text-[var(--gray-600)]">Candidate not found.</div>
+          <Link
+            href="/recruiter/candidates"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Candidates
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const profile = profileData ?? buildProfile(cand);
   const ini = cand.name.split(" ").map(n => n[0]).join("").toUpperCase();
   const interviewRound = messages.filter(m => m.type === "interview_invite").length + 1;
   const hasActiveInterview = messages.some(m => m.type === "interview_invite");
 
-  // Deterministic source: even ID number = Self-applied, odd = Recruiter Import
-  const idNum = parseInt(cand.id.replace(/\D/g, "")) || 0;
-  const source = idNum % 2 === 0 ? "Self-applied" : "Recruiter Import";
-  const SourceIcon = idNum % 2 === 0 ? Globe : UserCheck;
+  const source = cand.source === "self_applied" ? "Self-applied" : "Recruiter Import";
+  const SourceIcon = cand.source === "self_applied" ? Globe : UserCheck;
 
   const openInterviewModal = () => {
     setInterviewDraft({
@@ -465,27 +545,61 @@ export default function CandidateDetailPage() {
     setShowInterviewModal(true);
   };
 
-  const handleSendInterview = () => {
-    setMessages(prev => [...prev, {
-      id: `msg-${Date.now()}`, type: "interview_invite", round: interviewRound,
-      subject: interviewDraft.subject, content: interviewDraft.content,
-      sender: "recruiter", sentAt: "Just now",
-      interviewType: interviewDraft.type, interviewDate: interviewDraft.date, interviewTime: interviewDraft.time,
-      confirmed: false,
-    }]);
-    setCand(prev => prev ? { ...prev, status: "interview" } : prev);
-    setShowInterviewModal(false);
+  const handleSendInterview = async () => {
+    if (!id) return;
+    if (!interviewDraft.date?.trim() || !interviewDraft.content?.trim()) {
+      toast.error("Interview date and message are required");
+      return;
+    }
+    try {
+      setUpdatingStatus(true);
+      const updated = await applicationsClient.updateStatus(id, {
+        status: "interview",
+        interviewSubject: interviewDraft.subject,
+        interviewType: interviewDraft.type,
+        interviewDate: interviewDraft.date,
+        interviewTime: interviewDraft.time,
+        interviewContent: interviewDraft.content,
+      });
+      const record = mapApplicationToCandidateRecord(updated);
+      setCand(record);
+      setNoteText(updated.recruiterNotes || "");
+      setMessages(prev => [...prev, {
+        id: `msg-${Date.now()}`, type: "interview_invite", round: interviewRound,
+        subject: interviewDraft.subject, content: interviewDraft.content,
+        sender: "recruiter", sentAt: "Just now",
+        interviewType: interviewDraft.type, interviewDate: interviewDraft.date, interviewTime: interviewDraft.time,
+        confirmed: false,
+      }]);
+      toast.success("Interview invitation sent");
+      setShowInterviewModal(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to send interview invitation");
+    } finally {
+      setUpdatingStatus(false);
+    }
   };
 
   const confirmInterview = (msgId: string) => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, confirmed: true } : m));
 
-  const handleSaveNote = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
-    setNoteSavedAt(timeStr);
-    setNoteEditing(false);
-    setNoteSaveToast(true);
-    setTimeout(() => setNoteSaveToast(false), 2500);
+  const handleSaveNote = async () => {
+    if (!id) return;
+    try {
+      setSavingNote(true);
+      const updated = await applicationsClient.updateCandidate(id, { recruiterNotes: noteText });
+      const now = new Date();
+      const timeStr = now.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+      setNoteSavedAt(timeStr);
+      setNoteEditing(false);
+      setNoteText(updated.recruiterNotes || "");
+      toast.success("Note saved");
+      setNoteSaveToast(true);
+      setTimeout(() => setNoteSaveToast(false), 2500);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save note");
+    } finally {
+      setSavingNote(false);
+    }
   };
 
   const requestStatusChange = (newStatus: ApplicationStatus) => {
@@ -494,7 +608,7 @@ export default function CandidateDetailPage() {
     setConfirmPending(newStatus);
   };
 
-  const handleConfirmStatus = () => {
+  const handleConfirmStatus = async () => {
     if (!confirmPending) return;
     const newStatus = confirmPending;
     setConfirmPending(null);
@@ -502,20 +616,70 @@ export default function CandidateDetailPage() {
       openInterviewModal();
       return;
     }
-    setCand(prev => prev ? { ...prev, status: newStatus } : prev);
-    if (newStatus === "offer") {
-      setMessages(prev => [...prev, {
-        id: `msg-${Date.now()}`, type: "offer_notification",
-        subject: `Offer Notification — ${cand.jobTitle}`,
-        content: `Hi ${cand.name.split(" ")[0]}, we are pleased to inform you that you have been selected for the ${cand.jobTitle} position. Our team will be in touch shortly with the formal offer details.`,
-        sender: "recruiter", sentAt: "Just now",
-      }]);
+    if (!id) return;
+    try {
+      setUpdatingStatus(true);
+      const offerContent = newStatus === "offer"
+        ? `Hi ${cand.name.split(" ")[0]}, we are pleased to inform you that you have been selected for the ${cand.jobTitle} position. Our team will be in touch shortly with the formal offer details.`
+        : undefined;
+
+      const updated = await applicationsClient.updateStatus(id, {
+        status: newStatus,
+        ...(offerContent ? { offerContent } : {}),
+      });
+
+      const record = mapApplicationToCandidateRecord(updated);
+      setCand(record);
+      setNoteText(updated.recruiterNotes || "");
+
+      if (newStatus === "offer" && offerContent) {
+        setMessages(prev => [...prev, {
+          id: `msg-${Date.now()}`, type: "offer_notification",
+          subject: `Offer Notification — ${cand.jobTitle}`,
+          content: offerContent,
+          sender: "recruiter", sentAt: "Just now",
+        }]);
+      }
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update status");
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
-  const handleSaveEdit = (updates: Partial<CandidateRecord>) => {
-    setCand(prev => prev ? { ...prev, ...updates } : prev);
-    setShowEditModal(false);
+  const handleSaveEdit = async (updates: Partial<CandidateRecord>) => {
+    if (!id) return;
+    try {
+      const updated = await applicationsClient.updateCandidate(id, {
+        nickname: updates.name,
+        email: updates.email,
+        phone: (updates as any).phone,
+        location: updates.location,
+      });
+      const record = mapApplicationToCandidateRecord(updated);
+      // Keep UI-only fields from the modal (e.g. role) if provided
+      setCand({ ...record, ...(updates.role ? { role: updates.role } : {}) });
+      setNoteText(updated.recruiterNotes || "");
+      toast.success("Candidate updated");
+      setShowEditModal(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update candidate");
+    }
+  };
+
+  const handleDownloadResume = async () => {
+    if (!id) return;
+    try {
+      const res = await applicationsClient.getResumeUrl(id);
+      if (!res.resumeUrl) {
+        toast.error("No resume available for this candidate");
+        return;
+      }
+      window.open(res.resumeUrl, "_blank", "noopener,noreferrer");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to load resume link");
+    }
   };
 
   return (
@@ -661,7 +825,10 @@ export default function CandidateDetailPage() {
                     <p className="text-xs text-[var(--gray-500)]">{profile.resumeSize} PDF</p>
                   </div>
                 </div>
-                <button className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition cursor-pointer">
+                <button
+                  onClick={handleDownloadResume}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition cursor-pointer"
+                >
                   <Download className="h-3.5 w-3.5" /> Download File
                 </button>
               </div>
@@ -696,8 +863,11 @@ export default function CandidateDetailPage() {
                     className="w-full resize-none rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--gray-700)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] transition" autoFocus />
                   <div className="flex items-center justify-between mt-2">
                     <button onClick={() => setNoteEditing(false)} className="text-xs text-[var(--gray-400)] hover:text-[var(--gray-600)] transition font-medium cursor-pointer">Cancel</button>
-                    <button onClick={handleSaveNote}
-                      className="flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--accent-hover)] transition cursor-pointer">
+                    <button
+                      onClick={handleSaveNote}
+                      disabled={savingNote}
+                      className={`flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-3 py-1.5 text-xs font-medium text-white transition ${savingNote ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-[var(--accent-hover)]"}`}
+                    >
                       <Save className="h-3 w-3" /> Save Note
                     </button>
                   </div>
@@ -737,7 +907,7 @@ export default function CandidateDetailPage() {
       {showInterviewModal && (
         <InterviewModal round={interviewRound} candidateName={cand.name} jobTitle={cand.jobTitle}
           draft={interviewDraft} onChange={p => setInterviewDraft(d => ({ ...d, ...p }))}
-          onSend={handleSendInterview} onClose={() => setShowInterviewModal(false)} />
+          onSend={handleSendInterview} onClose={() => setShowInterviewModal(false)} disabled={updatingStatus} />
       )}
 
       {showEditModal && (
@@ -753,7 +923,16 @@ export default function CandidateDetailPage() {
       {showDeleteConfirm && (
         <ConfirmDeleteDialog
           candidateName={cand.name}
-          onConfirm={() => { setShowDeleteConfirm(false); router.push("/recruiter/candidates"); }}
+          onConfirm={async () => {
+            try {
+              await recruiterCandidatesClient.delete(id);
+              toast.success("Candidate deleted");
+              setShowDeleteConfirm(false);
+              router.push("/recruiter/candidates");
+            } catch (err: any) {
+              toast.error(err?.message || "Failed to delete candidate");
+            }
+          }}
           onCancel={() => setShowDeleteConfirm(false)}
         />
       )}

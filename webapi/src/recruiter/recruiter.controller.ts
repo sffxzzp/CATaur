@@ -240,8 +240,10 @@ export class RecruiterController {
     @ApiOperation({ summary: 'Manually add a candidate to a job order' })
     @ApiOkResponse({ type: Application })
     async createApplication(@GetUser() user: User, @Body() dto: CreateApplicationDto): Promise<Application> {
-        // Verify the job order belongs to this recruiter
-        await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
+        // Verify the job order belongs to this recruiter (Admin can bypass)
+        if (!this.isAdmin(user)) {
+            await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
+        }
         return this.applicationsService.create(dto, 'recruiter_import');
     }
 
@@ -326,6 +328,20 @@ export class RecruiterController {
         return this.applicationsService.updateRecruiterCandidate(user.id, id, dto);
     }
 
+    @Delete('candidates/:id')
+    @AuditLog('delete candidate')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a candidate application (must belong to my job order)' })
+    @ApiNoContentResponse({ description: 'Candidate deleted successfully' })
+    async deleteCandidate(@GetUser() user: User, @Param('id') id: string): Promise<void> {
+        if (this.isAdmin(user)) {
+            await this.applicationsService.findOne(id);
+            return this.applicationsService.delete(id);
+        }
+        await this.applicationsService.findRecruiterCandidateById(user.id, id);
+        return this.applicationsService.delete(id);
+    }
+
     @Get('candidates/:id/resume')
     @ApiOperation({ summary: 'Get candidate resume download URL' })
     @ApiOkResponse({ schema: { type: 'object', properties: { resumeUrl: { type: 'string' } } } })
@@ -342,8 +358,12 @@ export class RecruiterController {
     @ApiOperation({ summary: 'Bulk-import candidates into a job order' })
     @ApiOkResponse({ type: Application, isArray: true })
     async bulkImport(@GetUser() user: User, @Body() dto: BulkImportDto): Promise<Application[]> {
-        // Verify the job order belongs to this recruiter
-        await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
+        // Verify the job order belongs to this recruiter (Admin can bypass)
+        if (this.isAdmin(user)) {
+            await this.jobOrdersService.findOne(dto.jobOrderId);
+        } else {
+            await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
+        }
         return this.applicationsService.bulkImport(dto);
     }
 

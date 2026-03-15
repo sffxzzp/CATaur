@@ -1,14 +1,11 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
-import {
-  CANDIDATE_RECORDS,
-  JOB_ORDERS,
-  type ApplicationStatus,
-  type CandidateRecord,
-  type CandidateSource,
-} from "@/data/recruiter";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { jobOrdersClient } from "@/lib/api/jobOrders";
+import { recruiterCandidatesClient, type ImportCandidateInput } from "@/lib/api/recruiter-candidates";
+import type { Application, JobOrder } from "@/lib/api/types";
 import {
   Search,
   MapPin,
@@ -29,6 +26,8 @@ import {
   UserCheck,
   Import,
 } from "lucide-react";
+
+type CandidateSource = Application["source"];
 
 /* ─── Source Badge ───────────────────────────────────────────────────────── */
 function SourceBadge({ source }: { source?: CandidateSource }) {
@@ -51,18 +50,18 @@ function SourceBadge({ source }: { source?: CandidateSource }) {
 function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
-function toPhone(id: string) {
-  const n = parseInt(id.replace(/\D/g, "")) || 1;
-  const area = 400 + (n % 500);
-  const mid = 200 + ((n * 3) % 800);
-  const last = 1000 + ((n * 7) % 9000);
-  return `(${area}) ${mid}-${last}`;
+
+function formatShortDate(value: string | Date) {
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 /* ─── Add Candidate Modal ──────────────────────────────────────────────── */
 function AddCandidateModal({ activeJobs, onAdd, onClose }: {
   activeJobs: { id: string; title: string }[];
-  onAdd: (c: CandidateRecord) => void; onClose: () => void;
+  onAdd: (payload: { jobOrderId: string; candidates: ImportCandidateInput[] }) => void;
+  onClose: () => void;
 }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", jobId: activeJobs[0]?.id ?? "", location: "", availability: "" });
   const [resume, setResume] = useState<File | null>(null);
@@ -70,17 +69,26 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
   const lbl = "text-xs font-medium text-[var(--gray-500)]";
   const valid = form.name.trim() && form.email.trim() && form.phone.trim() && form.jobId;
 
+  useEffect(() => {
+    if (!form.jobId && activeJobs[0]?.id) {
+      setForm((f) => ({ ...f, jobId: activeJobs[0]!.id }));
+    }
+  }, [activeJobs, form.jobId]);
+
   const handleSubmit = () => {
     if (!valid) return;
-    const job = activeJobs.find(j => j.id === form.jobId);
-    const rec: CandidateRecord = {
-      id: `CAN-${Math.floor(100 + Math.random() * 900)}`,
-      name: form.name.trim(), email: form.email.trim(), role: job?.title ?? "—", jobTitle: job?.title ?? "—", jobId: form.jobId,
-      status: "new", appliedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      location: form.location.trim() || "—", availability: form.availability.trim() || "—", lastContact: "Today",
-      source: "recruiter_import",
-    };
-    onAdd(rec);
+    onAdd({
+      jobOrderId: form.jobId,
+      candidates: [
+        {
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          location: form.location.trim() || undefined,
+          availability: form.availability.trim() || undefined,
+        },
+      ],
+    });
   };
 
   return (
@@ -97,7 +105,7 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2">
               <label className={lbl}>Full Name *</label>
-              <input type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <input autoFocus type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div className="space-y-1">
               <label className={lbl}>Email *</label>
@@ -151,7 +159,8 @@ type CSVRow = { name: string; email: string; phone: string; location: string; av
 
 function ImportCSVModal({ activeJobs, onImport, onClose }: {
   activeJobs: { id: string; title: string }[];
-  onImport: (rows: CandidateRecord[]) => void; onClose: () => void;
+  onImport: (payload: { jobOrderId: string; candidates: ImportCandidateInput[] }) => void;
+  onClose: () => void;
 }) {
   const [step, setStep] = useState<"upload" | "preview" | "done">("upload");
   const [rows, setRows] = useState<CSVRow[]>([]);
@@ -159,6 +168,12 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
   const [jobId, setJobId] = useState(activeJobs[0]?.id ?? "");
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!jobId && activeJobs[0]?.id) {
+      setJobId(activeJobs[0]!.id);
+    }
+  }, [activeJobs, jobId]);
 
   const parseCSV = (text: string) => {
     const lines = text.trim().split("\n").map(l => l.split(",").map(c => c.trim().replace(/^"|"$/g, "")));
@@ -190,15 +205,14 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
   const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
 
   const handleConfirm = () => {
-    const job = activeJobs.find(j => j.id === jobId);
-    const candidates: CandidateRecord[] = rows.map((r) => ({
-      id: `CAN-${Math.floor(100 + Math.random() * 900)}`, name: r.name, email: r.email || "—", role: job?.title ?? "—",
-      jobTitle: job?.title ?? "—", jobId, status: "new" as ApplicationStatus,
-      appliedAt: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      location: r.location || "—", availability: r.availability || "—", lastContact: "Today",
-      source: "recruiter_import" as const,
+    const candidates: ImportCandidateInput[] = rows.map((r) => ({
+      name: r.name,
+      email: r.email,
+      phone: r.phone || undefined,
+      location: r.location || undefined,
+      availability: r.availability || undefined,
     }));
-    onImport(candidates);
+    onImport({ jobOrderId: jobId, candidates });
     setStep("done");
   };
 
@@ -309,38 +323,76 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
 
 /* ─── Main Page ─────────────────────────────────────────────────────────── */
 export default function RecruiterCandidatesPage() {
-  const [candidates, setCandidates] = useState<CandidateRecord[]>(CANDIDATE_RECORDS);
+  const [candidates, setCandidates] = useState<Application[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [jobOrders, setJobOrders] = useState<JobOrder[]>([]);
 
-  const activeJobs = useMemo(() => JOB_ORDERS.filter(j => j.status !== "filled" && j.status !== "paused"), []);
+  const loadJobOrders = async () => {
+    try {
+      const response = await jobOrdersClient.list({ page: 1, limit: 100 });
+      setJobOrders(response.data.filter(j => j.status !== "filled" && j.status !== "paused"));
+    } catch (err) {
+      console.error("Failed to load job orders:", err);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const resp = await recruiterCandidatesClient.list({
+        page: currentPage,
+        limit: pageSize,
+        search: query.trim() ? query.trim() : undefined,
+        location: locationFilter !== "all" ? locationFilter : undefined,
+      });
+      setCandidates(resp.data);
+      setTotal(resp.total);
+    } catch (err) {
+      console.error("Failed to load candidates:", err);
+      toast.error("Failed to load candidates");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadJobOrders();
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, query, locationFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, locationFilter]);
+
+  const activeJobs = useMemo(
+    () => jobOrders.filter(j => j.status !== "filled" && j.status !== "paused"),
+    [jobOrders],
+  );
 
   const locations = useMemo(() => {
-    const locs = [...new Set(candidates.map(c => c.location).filter(l => l && l !== "—"))].sort();
+    const locs = [...new Set(
+      candidates
+        .map(c => c.location)
+        .filter((l): l is string => typeof l === "string" && Boolean(l.trim()) && l !== "—"),
+    )].sort();
     return locs;
   }, [candidates]);
 
-  const filtered = useMemo(() => {
-    let rows = [...candidates];
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      rows = rows.filter(r => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q) || r.role.toLowerCase().includes(q));
-    }
-    if (locationFilter !== "all") rows = rows.filter(r => r.location === locationFilter);
-    return rows;
-  }, [candidates, query, locationFilter]);
-
-  useMemo(() => { setCurrentPage(1); }, [query, locationFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const startIdx = filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endIdx = Math.min(safePage * pageSize, filtered.length);
+  const startIdx = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endIdx = Math.min(safePage * pageSize, total);
 
   const pageNumbers = useMemo(() => {
     const pages: (number | "...")[] = [];
@@ -355,13 +407,27 @@ export default function RecruiterCandidatesPage() {
     return pages;
   }, [totalPages, safePage]);
 
+  const handleImport = async (payload: { jobOrderId: string; candidates: ImportCandidateInput[] }) => {
+    try {
+      await recruiterCandidatesClient.bulkImport(payload);
+      toast.success(`Imported ${payload.candidates.length} candidate${payload.candidates.length === 1 ? "" : "s"}`);
+      setShowAddModal(false);
+      setShowImportModal(false);
+      setCurrentPage(1);
+      loadData();
+    } catch (err) {
+      console.error("Import failed:", err);
+      toast.error("Import failed");
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-[var(--gray-900)]">Candidates</h2>
-          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Your talent pool — {candidates.length} candidates total</p>
+          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Your talent pool — {total} candidates total</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -408,7 +474,8 @@ export default function RecruiterCandidatesPage() {
           </div>
         )}
         <p className="ml-auto text-sm text-[var(--gray-400)] hidden sm:block">
-          <span className="font-medium text-[var(--gray-600)]">{filtered.length}</span> of <span className="font-medium text-[var(--gray-600)]">{candidates.length}</span>
+          Showing <span className="font-medium text-[var(--gray-600)]">{candidates.length}</span> of{" "}
+          <span className="font-medium text-[var(--gray-600)]">{total}</span>
         </p>
       </div>
 
@@ -427,56 +494,69 @@ export default function RecruiterCandidatesPage() {
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
+            <Users className="h-7 w-7" />
+            <p className="text-sm">Loading candidates…</p>
+          </div>
+        ) : candidates.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Users className="h-7 w-7" />
             <p className="text-sm">No candidates match your search.</p>
           </div>
         ) : (
-          paginatedRows.map((c) => (
+          candidates.map((c) => {
+            const name = c.candidate?.nickname || c.candidate?.email || "Candidate";
+            const email = c.candidate?.email || "—";
+            const role = c.jobOrder?.title || "—";
+            const loc = c.location || c.jobOrder?.location || "—";
+            const phone = c.candidate?.phone || "—";
+            const added = formatShortDate(c.createdAt as any);
+            return (
             <Link href={`/recruiter/candidates/${c.id}`} key={c.id}
               className="flex flex-col xl:grid xl:grid-cols-[2fr_1.5fr_2fr_1.3fr_1.2fr_1fr_1.1fr] xl:items-center gap-2 xl:gap-3 border-b border-[var(--border-light)] px-5 py-3 last:border-0 hover:bg-[var(--gray-50)] transition-colors cursor-pointer">
 
               {/* Name only (no ID) */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-light)] text-xs font-semibold text-[var(--accent)]">
-                  {initials(c.name)}
+                  {initials(name)}
                 </div>
-                <p className="text-sm font-medium text-[var(--gray-900)] truncate">{c.name}</p>
+                <p className="text-sm font-medium text-[var(--gray-900)] truncate">{name}</p>
               </div>
 
               {/* Role */}
-              <p className="text-sm text-[var(--gray-700)] truncate">{c.role}</p>
+              <p className="text-sm text-[var(--gray-700)] truncate">{role}</p>
 
               {/* Email */}
               <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
                 <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)] xl:hidden" />
-                <span className="truncate">{c.email}</span>
+                <span className="truncate">{email}</span>
               </div>
 
               {/* Location — hidden on tablet compact view */}
               <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
                 <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                <span className="truncate">{c.location}</span>
+                <span className="truncate">{loc}</span>
               </div>
 
               {/* Phone — xl only */}
               <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)]">
                 <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                <span>{toPhone(c.id)}</span>
+                <span>{phone}</span>
               </div>
 
               {/* Added (createdAt = appliedAt) */}
-              <span className="text-sm text-[var(--gray-500)]">{c.appliedAt}</span>
+              <span className="text-sm text-[var(--gray-500)]">{added}</span>
 
               {/* Source */}
               <SourceBadge source={c.source} />
             </Link>
-          ))
+          );
+          })
         )}
 
         {/* Pagination */}
-        {filtered.length > 0 && (
+        {total > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[var(--border)] px-5 py-3">
             <div className="flex items-center gap-2 text-xs text-[var(--gray-500)]">
               <span>Rows</span>
@@ -484,7 +564,7 @@ export default function RecruiterCandidatesPage() {
                 className="h-7 appearance-none rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 pr-6 text-xs font-medium text-[var(--gray-600)] cursor-pointer">
                 {[5, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
-              <span><span className="font-medium text-[var(--gray-700)]">{startIdx}–{endIdx}</span> of <span className="font-medium text-[var(--gray-700)]">{filtered.length}</span></span>
+              <span><span className="font-medium text-[var(--gray-700)]">{startIdx}–{endIdx}</span> of <span className="font-medium text-[var(--gray-700)]">{total}</span></span>
             </div>
             <div className="flex items-center gap-1">
               <button onClick={() => setCurrentPage(1)} disabled={safePage === 1}
@@ -520,14 +600,14 @@ export default function RecruiterCandidatesPage() {
       {showAddModal && (
         <AddCandidateModal
           activeJobs={activeJobs.map(j => ({ id: j.id, title: j.title }))}
-          onAdd={(c) => { setCandidates(p => [c, ...p]); setShowAddModal(false); }}
+          onAdd={handleImport}
           onClose={() => setShowAddModal(false)}
         />
       )}
       {showImportModal && (
         <ImportCSVModal
           activeJobs={activeJobs.map(j => ({ id: j.id, title: j.title }))}
-          onImport={(rows) => setCandidates(p => [...rows, ...p])}
+          onImport={handleImport}
           onClose={() => setShowImportModal(false)}
         />
       )}
