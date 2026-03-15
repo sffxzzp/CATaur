@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { JobOrder, JobOrderEmploymentType, JobOrderWorkArrangement } from '../database/entities/job-order.entity';
+import { User } from '../database/entities/user.entity';
 import { CreateJobOrderDto } from './dto/create-job-order.dto';
 import { UpdateJobOrderDto } from './dto/update-job-order.dto';
 import { UlidService } from '../common/ulid.service';
@@ -14,6 +15,8 @@ export class JobOrdersService {
     constructor(
         @InjectRepository(JobOrder)
         private repo: Repository<JobOrder>,
+        @InjectRepository(User)
+        private userRepo: Repository<User>,
         private ulidService: UlidService,
         private encryptionService: EncryptionService,
     ) {}
@@ -114,6 +117,10 @@ export class JobOrdersService {
     }
 
     async create(dto: CreateJobOrderDto, recruiterId: string): Promise<JobOrder> {
+        // Get recruiter info to set owner
+        const recruiter = await this.userRepo.findOne({ where: { id: recruiterId } });
+        const ownerName = recruiter ? (recruiter.nickname || recruiter.email) : null;
+
         const jo = this.repo.create({
             id: this.ulidService.generate(),
             title: dto.title,
@@ -133,11 +140,12 @@ export class JobOrdersService {
             locationCountry: dto.locationCountry ?? null,
             locationState: dto.locationState ?? null,
             locationCity: dto.locationCity ?? null,
+            owner: ownerName,
             status: 'sourcing',
             assignedToId: recruiterId,
         });
         await this.repo.save(jo);
-        this.logger.log(`Job order created: ${jo.id} ("${jo.title}") assigned to recruiter ${recruiterId}`);
+        this.logger.log(`Job order created: ${jo.id} ("${jo.title}") assigned to recruiter ${recruiterId}, owner: ${ownerName}`);
         return this.findOne(jo.id);
     }
 

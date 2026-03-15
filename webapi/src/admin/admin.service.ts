@@ -230,7 +230,7 @@ export class AdminService {
         return company;
     }
 
-    async createCompany(createCompanyDto: CreateCompanyDto) {
+    async createCompany(createCompanyDto: CreateCompanyDto, owner?: string) {
         const companyId = this.ulidService.generate();
         let clientId: string | null = null;
 
@@ -256,6 +256,7 @@ export class AdminService {
                 : createCompanyDto.location,
             keyTechnologies: createCompanyDto.keyTechnologies,
             clientId: clientId,
+            owner: owner || null,
         });
 
         await this.companiesRepository.save(newCompany);

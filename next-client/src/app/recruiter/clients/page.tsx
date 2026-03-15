@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { companiesClient } from "@/lib/api/companies";
+import { usersClient } from "@/lib/api/users";
+import type { User } from "@/lib/api/types";
 import {
   Building2,
   Plus,
@@ -33,6 +35,7 @@ function initials(name: string) {
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 export default function RecruiterClientsPage() {
   const [allRows, setAllRows] = useState<Row[]>([]);
+  const [clientUsers, setClientUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [query] = useState("");
   const [pageSize, setPageSize] = useState(10);
@@ -56,24 +59,24 @@ export default function RecruiterClientsPage() {
     clientAccount: "",
   });
 
-  const LOCATION_DATA: Record<string, Record<string, string[]>> = {
+  const LOCATION_DATA: Record<string, Record<string, { abbr: string; cities: string[] }>> = {
     "United States": {
-      "California": ["Los Angeles", "San Francisco", "San Diego", "San Jose"],
-      "New York": ["New York City", "Buffalo", "Rochester", "Albany"],
-      "Texas": ["Houston", "Austin", "Dallas", "San Antonio"],
-      "Washington": ["Seattle", "Spokane", "Tacoma"],
+      "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
+      "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
+      "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
+      "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
     },
     "Canada": {
-      "Ontario": ["Toronto", "Ottawa", "Waterloo", "Mississauga"],
-      "British Columbia": ["Vancouver", "Victoria", "Burnaby", "Kelowna"],
-      "Quebec": ["Montreal", "Quebec City", "Laval"],
-      "Alberta": ["Calgary", "Edmonton", "Banff"],
+      "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
+      "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
+      "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
+      "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
     }
   };
 
   const countries = Object.keys(LOCATION_DATA);
   const states = formData.country ? Object.keys(LOCATION_DATA[formData.country] || {}) : [];
-  const cities = formData.state ? (LOCATION_DATA[formData.country]?.[formData.state] || []) : [];
+  const cities = formData.state ? (LOCATION_DATA[formData.country]?.[formData.state]?.cities || []) : [];
 
   const loadCompanies = async () => {
     setLoading(true);
@@ -85,7 +88,7 @@ export default function RecruiterClientsPage() {
         email: company.email,
         contact: company.contact || "-",
         location: company.location || "-",
-        owner: "-",
+        owner: company.owner || "-",
         created: new Date(company.createdAt).toLocaleDateString(),
       }));
       setAllRows(rows);
@@ -96,8 +99,18 @@ export default function RecruiterClientsPage() {
     }
   };
 
+  const loadClientUsers = async () => {
+    try {
+      const response = await usersClient.listByRole("Client", { page: 1, limit: 100 });
+      setClientUsers(response.data);
+    } catch (error) {
+      console.error("Failed to load client users:", error);
+    }
+  };
+
   useEffect(() => {
     loadCompanies();
+    loadClientUsers();
   }, []);
 
   const handleOpenModal = (client?: Row) => {
@@ -133,7 +146,10 @@ export default function RecruiterClientsPage() {
 
     setSubmitting(true);
     try {
-      const location = [formData.country, formData.state, formData.city]
+      const stateAbbr = formData.state && formData.country
+        ? LOCATION_DATA[formData.country]?.[formData.state]?.abbr
+        : null;
+      const location = [formData.city, stateAbbr]
         .filter(Boolean)
         .join(", ");
 
@@ -263,7 +279,7 @@ export default function RecruiterClientsPage() {
                           {initials(r.name)}
                         </div>
                         <div>
-                          <Link href={`/recruiter/clients/${encodeURIComponent(r.name)}`} className="text-sm font-medium text-[var(--gray-900)] cursor-pointer hover:text-[var(--accent)] transition-colors">{r.name}</Link>
+                          <Link href={`/recruiter/clients/${r.id}`} className="text-sm font-medium text-[var(--gray-900)] cursor-pointer hover:text-[var(--accent)] transition-colors">{r.name}</Link>
                         </div>
                       </div>
                     </td>
@@ -408,8 +424,8 @@ export default function RecruiterClientsPage() {
                 <label className="text-sm font-medium text-[var(--gray-700)]">ClientAccount <span className="text-xs text-[var(--gray-400)] ml-1 font-normal">(Optional)</span></label>
                 <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer" value={formData.clientAccount} onChange={e => setFormData({ ...formData, clientAccount: e.target.value })}>
                   <option value="">Select a Client Account</option>
-                  {allRows.map(r => (
-                    <option key={r.id} value={r.name}>{r.name} ({r.contact})</option>
+                  {clientUsers.map(user => (
+                    <option key={user.id} value={user.id}>{user.nickname || user.email}</option>
                   ))}
                 </select>
               </div>

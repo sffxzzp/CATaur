@@ -44,6 +44,10 @@ export class Company {
     @Column({ type: 'char', length: 26, nullable: true })
     clientId: string | null;
 
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    owner: string | null;
+
     @ApiProperty()
     @CreateDateColumn()
     createdAt: Date;

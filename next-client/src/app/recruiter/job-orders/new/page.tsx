@@ -5,35 +5,61 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { Code, Eye, Briefcase, MapPin, Building2, CircleDollarSign, Loader2 } from "lucide-react";
-import { CLIENTS } from "@/data/recruiter";
+import { companiesClient } from "@/lib/api/companies";
+import { jobOrdersClient } from "@/lib/api/jobOrders";
+import type { Company } from "@/lib/api/types";
 
-const STORAGE_KEY = "ADDED_JOB_ORDERS";
 const DRAFT_KEY = "DRAFT_JOB_ORDER";
 
 type JobOrderInput = {
   title: string;
-  client: string;
-  location: string;
+  companyId: string;
+  country: string;
+  state: string;
+  city: string;
   department: string;
   salary: string;
-  status: "active" | "onhold" | "closed";
   openings: number | "";
-  type: string;
+  employmentType: string;
   workArrangement: string;
   description: string;
+  priority: string;
 };
 
 const defaultForm: JobOrderInput = {
   title: "",
-  client: "",
-  location: "",
+  companyId: "",
+  country: "",
+  state: "",
+  city: "",
   department: "",
   salary: "",
-  status: "active",
   openings: 1,
-  type: "Full-time",
+  employmentType: "Full-time",
   workArrangement: "Remote",
   description: "## Job Description\n\n- Responsibilities\n- Requirements\n\n",
+  priority: "medium",
+};
+
+const LOCATION_DATA: Record<string, { name: string; states: Record<string, { abbr: string; cities: string[] }> }> = {
+  "US": {
+    name: "United States",
+    states: {
+      "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
+      "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
+      "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
+      "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
+    }
+  },
+  "CA": {
+    name: "Canada",
+    states: {
+      "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
+      "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
+      "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
+      "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
+    }
+  }
 };
 
 export default function NewJobOrderPage() {
@@ -42,11 +68,21 @@ export default function NewJobOrderPage() {
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   const [form, setForm] = useState<JobOrderInput>(defaultForm);
   const [mounted, setMounted] = useState(false);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
 
   // Ref to prevent aggressive auto-saving while typing rapidly
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Location data
+  const countries = Object.keys(LOCATION_DATA);
+  const states = form.country ? Object.keys(LOCATION_DATA[form.country]?.states || {}) : [];
+  const cities = form.state ? (LOCATION_DATA[form.country]?.states?.[form.state]?.cities || []) : [];
+
   useEffect(() => {
+    // Load companies
+    loadCompanies();
+
     // Load draft on mount
     const draft = localStorage.getItem(DRAFT_KEY);
     if (draft) {
@@ -60,6 +96,18 @@ export default function NewJobOrderPage() {
     setMounted(true);
   }, []);
 
+  const loadCompanies = async () => {
+    try {
+      setLoadingCompanies(true);
+      const response = await companiesClient.list({ page: 1, limit: 100 });
+      setCompanies(response.data);
+    } catch (error) {
+      console.error("Failed to load companies:", error);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
   // Auto-save logic
   useEffect(() => {
     if (!mounted) return;
@@ -70,50 +118,44 @@ export default function NewJobOrderPage() {
     }, 1000); // 1-second debounce
   }, [form, mounted]);
 
-  const companyOptions = CLIENTS.map((c) => c.company);
-
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (saving || !form.title.trim() || !form.status) return; // Basic validation
+    if (saving || !form.title.trim() || !form.companyId) return;
     setSaving(true);
 
-    const now = new Date();
-    const id = `JO-${now.getFullYear().toString().slice(-2)}${(now.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}-${now
-        .getHours()
-        .toString()
-        .padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}`;
-
-    const record = {
-      id,
-      title: form.title.trim(),
-      client: form.client.trim() || companyOptions[0] || "New Client",
-      status: form.status,
-      openings: Number(form.openings) || 1,
-      priority: "medium", // Default priority since it wasn't requested in redesign
-      location: form.location.trim() || "Remote",
-      updatedAt: "Just now",
-      tags: form.department ? [form.department] : [],
-      applicants: 0,
-      description: form.description.trim(),
-      type: form.type,
-      workArrangement: form.workArrangement,
-      salary: form.salary,
-    };
-
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const list = raw ? (JSON.parse(raw) as any[]) : [];
-      list.unshift(record);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      // Build location string from country/state/city
+      const stateAbbr = form.state && form.country
+        ? LOCATION_DATA[form.country]?.states?.[form.state]?.abbr
+        : null;
+      const location = [form.city, stateAbbr]
+        .filter(Boolean)
+        .join(", ");
+
+      await jobOrdersClient.create({
+        title: form.title.trim(),
+        companyId: form.companyId,
+        location: location || undefined,
+        salary: form.salary.trim() || undefined,
+        openings: Number(form.openings) || 1,
+        priority: form.priority,
+        description: form.description.trim() || undefined,
+        employmentType: form.employmentType || undefined,
+        workArrangement: form.workArrangement || undefined,
+        tags: form.department ? [form.department] : undefined,
+        locationCountry: form.country || undefined,
+        locationState: stateAbbr || undefined,
+        locationCity: form.city || undefined,
+      });
 
       // Clear draft after successful creation
       localStorage.removeItem(DRAFT_KEY);
 
       // Redirect to list
       router.push("/recruiter/job-orders");
-    } catch {
+    } catch (error) {
+      console.error("Failed to create job order:", error);
+      alert("Failed to create job order. Please try again.");
       setSaving(false);
     }
   };
@@ -129,7 +171,7 @@ export default function NewJobOrderPage() {
         <div>
           <h1 className="text-2xl font-bold text-[var(--gray-900)] tracking-tight">Create Job Order</h1>
           <p className="text-sm text-[var(--gray-500)] mt-1">
-            Fill out the details for the new requisition. Title and Status are required.
+            Fill out the details for the new requisition. Title is required.
             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--accent-light)] text-[var(--accent)]">
               Auto-saving draft
             </span>
@@ -160,18 +202,23 @@ export default function NewJobOrderPage() {
             <div>
               <label className={labelClass}>
                 <Building2 className="w-4 h-4 text-[var(--gray-400)]" />
-                Company
+                Company <span className="text-[var(--danger)]">*</span>
               </label>
               <select
+                required
                 className={inpClass}
-                value={form.client}
-                onChange={(e) => setForm({ ...form, client: e.target.value })}
+                value={form.companyId}
+                onChange={(e) => setForm({ ...form, companyId: e.target.value })}
+                disabled={loadingCompanies}
               >
-                <option value="" disabled>Select a company</option>
-                {companyOptions.map((name) => (
-                  <option key={name} value={name}>{name}</option>
+                <option value="">Select a company</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>{company.name}</option>
                 ))}
               </select>
+              {loadingCompanies && (
+                <p className="text-xs text-[var(--gray-400)] mt-1">Loading companies...</p>
+              )}
             </div>
 
             <div>
@@ -179,12 +226,36 @@ export default function NewJobOrderPage() {
                 <MapPin className="w-4 h-4 text-[var(--gray-400)]" />
                 Location
               </label>
-              <input
-                className={inpClass}
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                placeholder="e.g., Calgary, CA"
-              />
+              <div className="grid grid-cols-3 gap-3">
+                <select
+                  className={inpClass}
+                  value={form.country}
+                  onChange={(e) => setForm({ ...form, country: e.target.value, state: "", city: "" })}
+                >
+                  <option value="">Country</option>
+                  {countries.map(code => (
+                    <option key={code} value={code}>{LOCATION_DATA[code].name}</option>
+                  ))}
+                </select>
+                <select
+                  disabled={!form.country}
+                  className={inpClass}
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value, city: "" })}
+                >
+                  <option value="">State / Province</option>
+                  {states.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select
+                  disabled={!form.state}
+                  className={inpClass}
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                >
+                  <option value="">City</option>
+                  {cities.map(cty => <option key={cty} value={cty}>{cty}</option>)}
+                </select>
+              </div>
             </div>
 
             <div>
@@ -214,18 +285,15 @@ export default function NewJobOrderPage() {
           {/* Right Column */}
           <div className="space-y-6">
             <div>
-              <label className={labelClass}>
-                Status <span className="text-[var(--danger)]">*</span>
-              </label>
+              <label className={labelClass}>Priority</label>
               <select
-                required
                 className={inpClass}
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value as any })}
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value })}
               >
-                <option value="active">Active</option>
-                <option value="onhold">On Hold</option>
-                <option value="closed">Closed</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
               </select>
             </div>
 
@@ -245,8 +313,8 @@ export default function NewJobOrderPage() {
               <label className={labelClass}>Type</label>
               <select
                 className={inpClass}
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value })}
+                value={form.employmentType}
+                onChange={(e) => setForm({ ...form, employmentType: e.target.value })}
               >
                 <option value="Full-time">Full-time</option>
                 <option value="Part-time">Part-time</option>
@@ -325,7 +393,7 @@ export default function NewJobOrderPage() {
             </Link>
             <button
               type="submit"
-              disabled={saving || !form.title.trim()}
+              disabled={saving || !form.title.trim() || !form.companyId}
               className="flex items-center gap-2 px-5 py-2 rounded-md font-semibold text-sm bg-[var(--accent)] text-white hover:bg-[#1e40af] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}

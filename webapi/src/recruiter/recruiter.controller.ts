@@ -75,6 +75,13 @@ export class RecruiterController {
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
     @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'companyId', required: false })
+    @ApiQuery({ name: 'employmentType', required: false })
+    @ApiQuery({ name: 'workArrangement', required: false })
+    @ApiQuery({ name: 'locationCountry', required: false })
+    @ApiQuery({ name: 'locationState', required: false })
+    @ApiQuery({ name: 'locationCity', required: false })
+    @ApiQuery({ name: 'sortBy', required: false, enum: ['recent', 'openings'] })
     @ApiOkResponse({ type: PaginatedJobOrdersResponseDto })
     listJobOrders(
         @GetUser() user: User,
@@ -82,10 +89,32 @@ export class RecruiterController {
         @Query('limit') limit = '20',
         @Query('status') status?: string,
         @Query('search') search?: string,
+        @Query('companyId') companyId?: string,
+        @Query('employmentType') employmentType?: string,
+        @Query('workArrangement') workArrangement?: string,
+        @Query('locationCountry') locationCountry?: string,
+        @Query('locationState') locationState?: string,
+        @Query('locationCity') locationCity?: string,
+        @Query('sortBy') sortBy?: 'recent' | 'openings',
     ): Promise<PaginatedResponse<JobOrder>> {
+        const where: any = { assignedToId: user.id };
+        if (companyId) {
+            where.companyId = companyId;
+        }
         return this.jobOrdersService.findAll(
-            { assignedToId: user.id },
-            { page: +page, limit: +limit, status, search },
+            where,
+            {
+                page: +page,
+                limit: +limit,
+                status,
+                search,
+                employmentTypes: employmentType ? [employmentType as any] : undefined,
+                workArrangements: workArrangement ? [workArrangement as any] : undefined,
+                locationCountry,
+                locationState,
+                locationCity,
+                sortBy: sortBy || 'recent',
+            },
         );
     }
 
@@ -126,6 +155,18 @@ export class RecruiterController {
         @Body() dto: UpdateJobOrderStatusDto,
     ): Promise<JobOrder> {
         return this.jobOrdersService.updateStatus(id, dto.status, { assignedToId: user.id });
+    }
+
+    @Delete('job-orders/:id')
+    @AuditLog('delete job order')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a job order (must be mine)' })
+    @ApiNoContentResponse({ description: 'Job order deleted successfully' })
+    async deleteJobOrder(@GetUser() user: User, @Param('id') id: string): Promise<void> {
+        // First verify the job order belongs to this recruiter
+        await this.jobOrdersService.findOne(id, { assignedToId: user.id });
+        // Then delete it
+        await this.jobOrdersService.delete(id);
     }
 
     // ── Applications ──────────────────────────────────────────────────────
@@ -260,8 +301,8 @@ export class RecruiterController {
     @AuditLog('create company')
     @ApiOperation({ summary: 'Create a company' })
     @ApiOkResponse({ type: CompanyResponseDto })
-    createCompany(@Body() dto: CreateCompanyDto): Promise<Company | null> {
-        return this.adminService.createCompany(dto);
+    createCompany(@GetUser() user: User, @Body() dto: CreateCompanyDto): Promise<Company | null> {
+        return this.adminService.createCompany(dto, user.nickname || user.email);
     }
 
     @Put('companies/:id')

@@ -5,7 +5,38 @@ export type AuthUser = {
   role: string;
 };
 
+export type User = {
+  id: string;
+  email: string;
+  nickname: string;
+  phone: string | null;
+  isActive: boolean;
+  createdAt: string;
+};
+
 export type JobOrder = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  location: string | null;
+  openings: number;
+  salary: string | null;
+  tags: string[] | null;
+  companyId: string | null;
+  employmentType: string | null;
+  workArrangement: string | null;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
+  assignedToId: string | null;
+  owner: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobOrder_OLD = {
   id: number;
   recruiter_id: number;
   title: string;
@@ -28,6 +59,7 @@ export type Company = {
   location: string | null;
   keyTechnologies: string | null;
   clientId: string | null;
+  owner: string | null;
   createdAt: string;
 };
 

@@ -14,6 +14,7 @@ import {
   DollarSign,
   AlignLeft,
   Loader2,
+  Clock,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -37,7 +38,6 @@ type APIJobOrder = {
     keyTechnologies: string;
   };
   assignedToId: string;
-<<<<<<< HEAD
   assignedTo?: {
     id: string;
     email: string;
@@ -45,10 +45,7 @@ type APIJobOrder = {
   };
   createdAt: string;
   updatedAt: string;
-  applicants?: number; // Keep this in case we attach it later
-=======
   applicants?: number;
->>>>>>> be10cf7 (feat: add search filters and stabilize recruiter e2e setup)
 };
 
 /* ── Status helpers ──────────────────────────────────────────────────────── */
@@ -110,24 +107,10 @@ export default function ClientOrderDetailPage() {
 
   useEffect(() => {
     setLoading(true);
-<<<<<<< HEAD
-    // Assuming the backend returns the object directly, or wrapped in data. We handle both:
-    request<any>(`/client/orders/${id}`)
-      .then((res) => {
-        // If it comes wrapped in standard { success: true, data: {...} } OR directly as the object
-        const payload = res.data ? res.data : res;
-
-        if (payload && payload.id) {
-          setJob(payload as APIJobOrder);
-        } else {
-          setError(res.message || "Failed to load Job Order details");
-        }
-=======
     request<APIJobOrder>(`/client/orders/${id}`)
       .then((res) => {
         setJob(res);
         setError(null);
->>>>>>> be10cf7 (feat: add search filters and stabilize recruiter e2e setup)
       })
       .catch((err) => {
         setError(err.message || "Job order not found or an error occurred.");
@@ -188,7 +171,6 @@ export default function ClientOrderDetailPage() {
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--gray-500)]">
-<<<<<<< HEAD
             {job?.company?.name && (
               <span className="flex items-center gap-1.5 font-medium text-[var(--gray-700)]">
                 <Briefcase className="h-4 w-4" />{job.company.name}
@@ -198,16 +180,6 @@ export default function ClientOrderDetailPage() {
               <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" />{job.location}</span>
             )}
             <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{job?.openings ?? 0} opening{(job?.openings ?? 0) !== 1 ? "s" : ""}</span>
-=======
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" />
-              {job?.location || "Unspecified Location"}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4" />
-              {job?.openings ?? 0} opening{(job?.openings ?? 0) !== 1 ? "s" : ""}
-            </span>
->>>>>>> be10cf7 (feat: add search filters and stabilize recruiter e2e setup)
           </div>
         </div>
       </div>

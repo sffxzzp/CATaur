@@ -101,6 +101,10 @@ export class JobOrder {
     @JoinColumn({ name: 'assignedToId' })
     assignedTo: User;
 
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    owner: string | null;
+
     @CreateDateColumn()
     createdAt: Date;
 
