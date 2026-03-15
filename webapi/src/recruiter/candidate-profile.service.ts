@@ -44,6 +44,11 @@ export class CandidateProfileService {
             return;
         }
 
+        // Candidates can always access their own profile
+        if (actor.id === candidateId) {
+            return;
+        }
+
         const exists = await this.appRepo.createQueryBuilder('app')
             .innerJoin(JobOrder, 'jo', 'jo.id = app.jobOrderId')
             .where('app.candidateId = :candidateId', { candidateId })
@@ -146,6 +151,7 @@ export class CandidateProfileService {
         if (dto.currentLocation !== undefined) candidate.currentLocation = dto.currentLocation ?? null;
         if (dto.noticePeriod !== undefined) candidate.noticePeriod = dto.noticePeriod ?? null;
         if (dto.availableDate !== undefined) candidate.availableDate = dto.availableDate ?? null;
+        if (dto.profileStatus !== undefined) candidate.profileStatus = dto.profileStatus ?? null;
 
         if (dto.phone !== undefined) {
             candidate.phone = dto.phone ?? null;

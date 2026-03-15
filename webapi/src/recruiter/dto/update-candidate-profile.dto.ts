@@ -48,5 +48,10 @@ export class UpdateCandidateProfileDto {
     @IsOptional()
     @IsDateString()
     availableDate?: string;
+
+    @ApiPropertyOptional({ description: 'Profile status (draft | active)' })
+    @IsOptional()
+    @IsString()
+    profileStatus?: string;
 }
 

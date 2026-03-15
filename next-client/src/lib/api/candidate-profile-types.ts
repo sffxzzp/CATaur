@@ -72,6 +72,7 @@ export interface UpdateCandidateProfileDto {
   currentLocation?: string;
   noticePeriod?: number;
   availableDate?: string;
+  profileStatus?: string;
 }
 
 export interface CreateSkillDto {

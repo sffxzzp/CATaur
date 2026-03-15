@@ -1,5 +1,5 @@
 import {
-    Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards, HttpCode, HttpStatus,
+    Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiExtraModels, ApiOkResponse, ApiProperty } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -24,6 +24,11 @@ import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { Candidate } from '../database/entities/candidate.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { Notification } from '../database/entities/notification.entity';
+import { CandidateProfileService } from '../recruiter/candidate-profile.service';
+import { UpdateCandidateProfileDto } from '../recruiter/dto/update-candidate-profile.dto';
+import { CreateSkillDto } from '../recruiter/dto/create-skill.dto';
+import { CreateWorkExperienceDto } from '../recruiter/dto/create-work-experience.dto';
+import { CreateEducationDto } from '../recruiter/dto/create-education.dto';
 
 class ResumeParseResponseDto {
     @ApiProperty()
@@ -103,6 +108,7 @@ export class CandidateController {
         private usersService: UsersService,
         private candidateResumeService: CandidateResumeService,
         private notificationsService: NotificationsService,
+        private candidateProfileService: CandidateProfileService,
     ) {}
 
     @Get('jobs')
@@ -237,8 +243,79 @@ export class CandidateController {
         return this.candidateResumeService.getResumeParse(user.id, parserId);
     }
 
-    // ── Notifications ─────────────────────────────────────────────────────
-    @Get('notifications')
+    // ── Self Profile (Extended) ────────────────────────────────────────────
+    @Get('my-profile')
+    @ApiOperation({ summary: 'Get my extended candidate profile (skills, work experience, education)' })
+    @ApiOkResponse({ schema: { type: 'object' } })
+    getMyProfile(@GetUser() user: User) {
+        return this.candidateProfileService.getProfile(user, user.id);
+    }
+
+    @Put('my-profile')
+    @ApiOperation({ summary: 'Update my extended candidate profile' })
+    @ApiOkResponse({ schema: { type: 'object' } })
+    updateMyProfile(@GetUser() user: User, @Body() dto: UpdateCandidateProfileDto) {
+        return this.candidateProfileService.updateProfile(user, user.id, dto);
+    }
+
+    @Post('my-profile/skills')
+    @ApiOperation({ summary: 'Add a skill to my profile' })
+    addMySkill(@GetUser() user: User, @Body() dto: CreateSkillDto) {
+        return this.candidateProfileService.addSkill(user, user.id, dto);
+    }
+
+    @Put('my-profile/skills/:skillId')
+    @ApiOperation({ summary: 'Update a skill in my profile' })
+    updateMySkill(@GetUser() user: User, @Param('skillId') skillId: string, @Body() dto: CreateSkillDto) {
+        return this.candidateProfileService.updateSkill(user, user.id, skillId, dto);
+    }
+
+    @Delete('my-profile/skills/:skillId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete a skill from my profile' })
+    async deleteMySkill(@GetUser() user: User, @Param('skillId') skillId: string): Promise<void> {
+        await this.candidateProfileService.deleteSkill(user, user.id, skillId);
+    }
+
+    @Post('my-profile/work-experience')
+    @ApiOperation({ summary: 'Add work experience to my profile' })
+    addMyWorkExperience(@GetUser() user: User, @Body() dto: CreateWorkExperienceDto) {
+        return this.candidateProfileService.addWorkExperience(user, user.id, dto);
+    }
+
+    @Put('my-profile/work-experience/:experienceId')
+    @ApiOperation({ summary: 'Update work experience in my profile' })
+    updateMyWorkExperience(@GetUser() user: User, @Param('experienceId') experienceId: string, @Body() dto: CreateWorkExperienceDto) {
+        return this.candidateProfileService.updateWorkExperience(user, user.id, experienceId, dto);
+    }
+
+    @Delete('my-profile/work-experience/:experienceId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete work experience from my profile' })
+    async deleteMyWorkExperience(@GetUser() user: User, @Param('experienceId') experienceId: string): Promise<void> {
+        await this.candidateProfileService.deleteWorkExperience(user, user.id, experienceId);
+    }
+
+    @Post('my-profile/education')
+    @ApiOperation({ summary: 'Add education to my profile' })
+    addMyEducation(@GetUser() user: User, @Body() dto: CreateEducationDto) {
+        return this.candidateProfileService.addEducation(user, user.id, dto);
+    }
+
+    @Put('my-profile/education/:educationId')
+    @ApiOperation({ summary: 'Update education in my profile' })
+    updateMyEducation(@GetUser() user: User, @Param('educationId') educationId: string, @Body() dto: CreateEducationDto) {
+        return this.candidateProfileService.updateEducation(user, user.id, educationId, dto);
+    }
+
+    @Delete('my-profile/education/:educationId')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @ApiOperation({ summary: 'Delete education from my profile' })
+    async deleteMyEducation(@GetUser() user: User, @Param('educationId') educationId: string): Promise<void> {
+        await this.candidateProfileService.deleteEducation(user, user.id, educationId);
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────    @Get('notifications')
     @ApiOperation({ summary: 'Get my notifications' })
     @ApiOkResponse({ type: [Notification] })
     getNotifications(@GetUser() user: User): Promise<Notification[]> {
