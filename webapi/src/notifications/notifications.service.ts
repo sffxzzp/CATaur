@@ -14,9 +14,14 @@ export class NotificationsService {
         private ulidService: UlidService,
     ) {}
 
-    async findAll(userId: string) {
+    async findAll(userId: string, status: 'all' | 'read' | 'unread' = 'all') {
+        const isRead = status === 'all' ? undefined : status === 'read';
+
         return this.repo.find({
-            where: { userId },
+            where: {
+                userId,
+                ...(isRead === undefined ? {} : { isRead }),
+            },
             order: { createdAt: 'DESC' },
             take: 50,
         });

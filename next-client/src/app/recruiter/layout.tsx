@@ -43,42 +43,56 @@ const FONT_SIZES = [
 
 /* ─── Notification Dropdown ──────────────────────────────────────────────── */
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    candidate: "Amelia Zhang",
-    job: "Mobile Engineer (iOS)",
-    message: "Client requested an offer. Note: \"Great communication skills during the interview. Please proceed with offer.\"",
-    time: "Just now",
-    unread: true,
-    type: "client_decision",
-  },
-  {
-    id: 2,
-    candidate: "Ethan Wong",
-    job: "Senior Backend Engineer (Go)",
-    message: "Accepted your interview invitation. See you on Mar 6, 2026 at 2:30 PM EST.",
-    time: "10 mins ago",
-    unread: true,
-    type: "interview_confirm",
-  },
-  {
-    id: 3,
-    candidate: "Amelia Zhang",
-    job: "Mobile Engineer (iOS)",
-    message: "Accepted your interview invitation. See you on Mar 4, 2026 at 11:00 AM EST.",
-    time: "2 hours ago",
-    unread: false,
-    type: "interview_confirm",
-  }
-];
+type NotificationItem = {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+function formatRelativeTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = Date.now() - date.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return "Just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} min${min > 1 ? "s" : ""} ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr > 1 ? "s" : ""} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} day${day > 1 ? "s" : ""} ago`;
+  return date.toLocaleDateString();
+}
+
+function toBadgeLabel(type: string) {
+  return type
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
-  const hasUnread = notifications.some(n => n.unread);
+  const hasUnread = notifications.some((n) => !n.isRead);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await request<NotificationItem[]>("/recruiter/notifications?status=unread");
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch {
+        setNotifications([]);
+      }
+    };
+    loadNotifications();
+  }, []);
 
   // Close on click-outside
   useEffect(() => {
@@ -89,11 +103,16 @@ function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const handleOpen = () => {
-    setOpen((o) => !o);
-    // Mark as read when opening
-    if (!open && hasUnread) {
-      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+  const handleOpen = async () => {
+    setOpen((prev) => !prev);
+  };
+
+  const handleReadAll = async () => {
+    if (!hasUnread) return;
+    try {
+      await request<void>("/recruiter/notifications/read-all", { method: "PATCH" });
+    } finally {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     }
   };
 
@@ -113,6 +132,13 @@ function NotificationDropdown() {
         <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] animate-scale-in z-50">
           <div className="border-b border-[var(--border)] px-4 py-3 flex justify-between items-center">
             <h3 className="text-sm font-semibold text-[var(--gray-900)]">Notifications</h3>
+            <button
+              onClick={handleReadAll}
+              disabled={!hasUnread}
+              className="text-xs font-medium text-[var(--accent)] disabled:text-[var(--gray-400)] hover:underline"
+            >
+              Read all
+            </button>
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
@@ -122,30 +148,27 @@ function NotificationDropdown() {
             ) : (
               <div className="divide-y divide-[var(--border-light)]">
                 {notifications.map((n) => (
-                  <div key={n.id} className={`p-4 transition-colors cursor-pointer ${n.unread ? "bg-[var(--accent-light)]/30 hover:bg-[var(--accent-light)]/50" : "hover:bg-[var(--gray-50)]"}`}>
+                  <div key={n.id} className={`p-4 transition-colors cursor-pointer ${!n.isRead ? "bg-[var(--accent-light)]/30 hover:bg-[var(--accent-light)]/50" : "hover:bg-[var(--gray-50)]"}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-0.5">
                           <p className="text-sm font-medium text-[var(--gray-900)]">
-                            {n.candidate}
+                            {n.title}
                           </p>
-                          {n.type === "client_decision" && (
+                          {n.type && (
                             <span className="inline-flex items-center rounded-full bg-[var(--status-green-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--status-green-text)]">
-                              Client Decision
+                              {toBadgeLabel(n.type)}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] font-medium text-[var(--accent)] mb-1">
-                          {n.job}
-                        </p>
                         <p className="text-xs text-[var(--gray-600)] leading-snug">
-                          {n.message}
+                          {n.body}
                         </p>
                         <p className="text-[10px] text-[var(--gray-400)] mt-2">
-                          {n.time}
+                          {formatRelativeTime(n.createdAt)}
                         </p>
                       </div>
-                      {n.unread && (
+                      {!n.isRead && (
                         <div className="h-2 w-2 rounded-full bg-[var(--accent)] mt-1 shrink-0" />
                       )}
                     </div>
