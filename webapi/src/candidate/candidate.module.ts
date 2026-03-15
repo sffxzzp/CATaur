@@ -5,6 +5,7 @@ import { JobOrdersModule } from '../job-orders/job-orders.module';
 import { ApplicationsModule } from '../applications/applications.module';
 import { UsersModule } from '../users/users.module';
 import { CandidateResumeService } from './candidate-resume.service';
+import { CandidateAssistantService } from './candidate-assistant.service';
 import { Candidate } from '../database/entities/candidate.entity';
 import { CandidateSkill } from '../database/entities/candidate-skill.entity';
 import { CandidateWorkExperience } from '../database/entities/candidate-work-experience.entity';
@@ -36,7 +37,7 @@ import { AdminModule } from '../admin/admin.module';
         ]),
     ],
     controllers: [CandidateController],
-    providers: [CandidateResumeService, CandidateProfileService],
+    providers: [CandidateResumeService, CandidateProfileService, CandidateAssistantService],
     exports: [CandidateResumeService],
 })
 export class CandidateModule {}

@@ -25,15 +25,19 @@ export class EncryptionService {
             throw new InternalServerErrorException('Encrypted payload is invalid');
         }
 
-        const key = this.getEncryptionKey();
-        const iv = payload.subarray(0, IV_LENGTH);
-        const tag = payload.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
-        const encrypted = payload.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
-        const decipher = crypto.createDecipheriv(AES_256_GCM_ALGORITHM, key, iv);
+        try {
+            const key = this.getEncryptionKey();
+            const iv = payload.subarray(0, IV_LENGTH);
+            const tag = payload.subarray(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
+            const encrypted = payload.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
+            const decipher = crypto.createDecipheriv(AES_256_GCM_ALGORITHM, key, iv);
 
-        decipher.setAuthTag(tag);
+            decipher.setAuthTag(tag);
 
-        return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+            return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+        } catch (err) {
+            throw new InternalServerErrorException('Encrypted payload is invalid');
+        }
     }
 
     encryptText(plainText: string): Buffer {
