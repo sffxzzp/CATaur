@@ -466,10 +466,7 @@ export class AuthService {
         await this.authAttempts.checkEmailActionAllowed(email, 'requestVerificationCode');
         const user = await this.usersService.findOneByEmail(email);
 
-        // For security, return success even if user doesn't exist
-        if (!user || !user.isActive) {
-            return;
-        }
+        // Send code even if user doesn't exist to support auto-registration
 
         const code = this.generateVerificationCode();
         const cacheKey = `verification_code:${email}`;
@@ -477,14 +474,16 @@ export class AuthService {
         // Store in Redis with 5-minute expiry (300000 ms)
         await this.cacheManager.set(cacheKey, code, 300000);
 
+        console.log(`DEBUG: Verification code for ${email}: ${code}`); // Added for testing
+
         // Send verification code email
         await this.emailService.sendVerificationCodeEmail(email, code);
     }
 
     async loginWithVerificationCode(email: string, code: string, captchaToken?: string): Promise<LoginResponseDto> {
         await this.enforceLoginProtections(email, captchaToken);
-        const user = await this.usersService.findOneByEmail(email);
-        if (!user || !user.isActive) {
+        const existingUser = await this.usersService.findOneByEmail(email);
+        if (existingUser && !existingUser.isActive) {
             await this.authAttempts.recordFailure(email);
             throw new UnauthorizedException('Invalid email or verification code');
         }
@@ -499,6 +498,30 @@ export class AuthService {
 
         // Delete the code after successful verification
         await this.cacheManager.del(cacheKey);
+
+        let user = await this.usersService.findOneByEmail(email);
+
+        if (!user) {
+            // Auto-register new user as Candidate
+            const nickname = email.split('@')[0];
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+            
+            user = await this.usersService.create({
+                email,
+                nickname,
+                passwordHash: hashedPassword,
+                isActive: true,
+                roles: [Role.CANDIDATE] as any,
+            });
+
+            // Initialize candidate profile
+            const candidate = this.candidateRepository.create({
+                id: user.id,
+                profileStatus: 'draft',
+            });
+            await this.candidateRepository.save(candidate);
+        }
 
         if (this.isTotpEnabled(user)) {
             return this.startTotpLogin(user);

@@ -145,30 +145,52 @@ function PasswordForm({ onSubmit, isPending, errorMsg }: { onSubmit: (email: str
 
 // ─── OTP form ─────────────────────────────────────────────────────────────────
 
-function OtpForm({ onSubmit }: { onSubmit: (email: string) => void }) {
+function OtpForm({ onSubmit, isPending, errorMsg }: { onSubmit: (email: string, code: string) => void, isPending?: boolean, errorMsg?: string | null }) {
     const [sent, setSent] = useState(false);
+    const [sending, setSending] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const emailRef = useRef<HTMLInputElement>(null);
+    const codeRef = useRef<HTMLInputElement>(null);
 
-    const sendCode = () => {
-        if (!emailRef.current?.value?.trim()) return;
-        setSent(true);
-        setCountdown(60);
-        const timer = setInterval(() => {
-            setCountdown((c) => {
-                if (c <= 1) { clearInterval(timer); return 0; }
-                return c - 1;
+    const sendCode = async () => {
+        const email = emailRef.current?.value?.trim() ?? "";
+        if (!email) return;
+        
+        setSending(true);
+        try {
+            await request("/auth/request-verification-code", {
+                method: "POST",
+                json: { email }
             });
-        }, 1000);
+            setSent(true);
+            setCountdown(60);
+            const timer = setInterval(() => {
+                setCountdown((c) => {
+                    if (c <= 1) { clearInterval(timer); return 0; }
+                    return c - 1;
+                });
+            }, 1000);
+        } catch (err: any) {
+            console.error("Send code error:", err);
+            // Error handling is managed by the parent via errorMsg usually, 
+            // but we can alert here or just let it fail.
+        } finally {
+            setSending(false);
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(emailRef.current?.value?.trim() ?? "");
+        onSubmit(emailRef.current?.value?.trim() ?? "", codeRef.current?.value?.trim() ?? "");
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            {errorMsg && (
+                <div className="rounded-md bg-red-50 p-3 text-sm text-red-600 font-medium">
+                    {errorMsg}
+                </div>
+            )}
             <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#374151]">Email address</label>
                 <div className="flex gap-2">
@@ -185,11 +207,13 @@ function OtpForm({ onSubmit }: { onSubmit: (email: string) => void }) {
                     <button
                         type="button"
                         onClick={sendCode}
-                        disabled={countdown > 0}
+                        disabled={countdown > 0 || sending}
                         className="flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1D4ED8] px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition hover:bg-[#EFF6FF] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {countdown > 0 ? (
-                            <><RefreshCw className="h-3.5 w-3.5 animate-spin" />{countdown}s</>
+                        {sending ? (
+                             <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        ) : countdown > 0 ? (
+                            <>{countdown}s</>
                         ) : (
                             sent ? "Resend" : "Send code"
                         )}
@@ -200,9 +224,11 @@ function OtpForm({ onSubmit }: { onSubmit: (email: string) => void }) {
             <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#374151]">Verification code</label>
                 <input
+                    ref={codeRef}
                     type="text"
                     inputMode="numeric"
                     maxLength={6}
+                    required
                     placeholder="6-digit code"
                     className={inputBase}
                     disabled={!sent}
@@ -214,10 +240,10 @@ function OtpForm({ onSubmit }: { onSubmit: (email: string) => void }) {
 
             <button
                 type="submit"
-                disabled={!sent}
+                disabled={!sent || isPending}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                Sign in <ArrowRight className="h-4 w-4" />
+                {isPending ? "Signing in..." : <>Sign in <ArrowRight className="h-4 w-4" /></>}
             </button>
         </form>
     );
@@ -273,12 +299,38 @@ export default function CandidateLoginPage() {
     );
 
     const handleOtpLogin = useCallback(
-        (email: string) => {
-            // Mock OTP for now, wait for another request to implement full OTP login
-            const redirect = params.get("redirect");
-            localStorage.setItem("candidateLoggedIn", "1");
-            if (email) localStorage.setItem("candidateEmail", email);
-            router.push(redirect || "/candidate");
+        async (email: string, code: string) => {
+            setIsPending(true);
+            setErrorMsg(null);
+            
+            try {
+                const data = await request("/auth/login/verification-code", {
+                    method: "POST",
+                    json: { email, code },
+                    skipDefaults: true
+                });
+                
+                if (data.mfa_required) {
+                    throw new Error("MFA is required but not yet supported.");
+                }
+                
+                if (data.access_token) {
+                    localStorage.setItem("authToken", data.access_token);
+                }
+                
+                localStorage.setItem("candidateLoggedIn", "1");
+                localStorage.setItem("candidateEmail", data.email || email);
+                localStorage.setItem("candidateName", data.email ? data.email.split('@')[0] : "Candidate");
+                
+                const redirect = params.get("redirect");
+                router.push(redirect || "/candidate");
+
+            } catch (err: any) {
+                console.error("OTP Login Error:", err);
+                setErrorMsg(err.message || "Invalid verification code");
+            } finally {
+                setIsPending(false);
+            }
         },
         [params, router]
     );
@@ -366,7 +418,7 @@ export default function CandidateLoginPage() {
                 {tab === "password" ? (
                     <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} errorMsg={errorMsg} />
                 ) : (
-                    <OtpForm onSubmit={handleOtpLogin} />
+                    <OtpForm onSubmit={handleOtpLogin} isPending={isPending} errorMsg={errorMsg} />
                 )}
 
                 {/* Create account */}
