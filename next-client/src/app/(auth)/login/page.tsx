@@ -246,13 +246,13 @@ function OtpForm({ onSubmit, isPending, onError }: { onSubmit: (email: string, c
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
-  const isCandidate = useMemo(() => {
+  const isManager = useMemo(() => {
     if (typeof window === "undefined") {
-      return true;
+      return false;
     }
 
     const hostname = window.location.hostname.toLowerCase();
-    return hostname.startsWith("candidate.") || hostname.includes(".candidate.");
+    return hostname === "manager.cataur.freedeeplearn.com";
   }, []);
 
   const [tab, setTab] = useState<"password" | "otp">("password");
@@ -262,9 +262,9 @@ export default function UnifiedLoginPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const { title, subtitle } = useMemo(() => {
-    if (isCandidate) return { title: "Sign in to CATaur", subtitle: "Find your next opportunity" };
-    return { title: "Management Portal", subtitle: "Sign in to access your workspace" };
-  }, [isCandidate]);
+    if (isManager) return { title: "Management Portal", subtitle: "Sign in to access your workspace" };
+    return { title: "Sign in to CATaur", subtitle: "Find your next opportunity" };
+  }, [isManager]);
 
   const processSuccessfulLogin = (data: any, email: string) => {
     if (data.mfa_required) {
@@ -275,7 +275,7 @@ export default function UnifiedLoginPage() {
       localStorage.setItem("authToken", data.access_token);
     }
 
-    const actualRole = data.roles?.[0] || (isCandidate ? "Candidate" : "Recruiter");
+    const actualRole = data.roles?.[0] || (isManager ? "Recruiter" : "Candidate");
 
     if (actualRole === "Candidate") {
       localStorage.setItem("candidateLoggedIn", "1");
@@ -320,7 +320,7 @@ export default function UnifiedLoginPage() {
         setIsPending(false);
       }
     },
-    [router, isCandidate]
+    [router, isManager]
   );
 
   const handleOtpLogin = useCallback(
@@ -343,7 +343,7 @@ export default function UnifiedLoginPage() {
         setIsPending(false);
       }
     },
-    [router, isCandidate]
+    [router, isManager]
   );
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
@@ -394,7 +394,7 @@ export default function UnifiedLoginPage() {
 
       <div className="space-y-5">
         {/* Social login ONLY for candidate */}
-        {isCandidate && (
+        {!isManager && (
           <>
             <div className="grid grid-cols-2 gap-3">
               <SocialButton icon={<GoogleIcon />} label="Google" onClick={() => handleSocialLogin("google")} />
@@ -404,7 +404,7 @@ export default function UnifiedLoginPage() {
           </>
         )}
 
-        {isCandidate ? (
+        {!isManager ? (
           <>
             {/* Tabs for Password vs OTP */}
             <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-1">
@@ -442,7 +442,7 @@ export default function UnifiedLoginPage() {
 
         {/* Role switcher & Sign up links */}
         <div className="mt-5 space-y-2 text-center text-xs text-[#6B7280]">
-          {isCandidate ? (
+          {!isManager ? (
             <>
               <p>
                 Don&apos;t have an account?{" "}
@@ -451,14 +451,7 @@ export default function UnifiedLoginPage() {
                 </Link>
               </p>
             </>
-          ) : (
-            <p>
-              Looking for a job?{" "}
-              <Link href="/login?role=candidate" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                Candidate sign in
-              </Link>
-            </p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

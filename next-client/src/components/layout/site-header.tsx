@@ -511,7 +511,7 @@ export function SiteHeader() {
           ) : (
             <div className="flex items-center gap-2">
               <Link
-                href="/login?role=candidate"
+                href="/login"
                 className="text-sm font-medium text-[var(--gray-600)] hover:text-[var(--accent)] transition"
               >
                 Log in
@@ -579,7 +579,7 @@ export function SiteHeader() {
               </>
             ) : (
               <Link
-                href="/login?role=candidate"
+                href="/login"
                 onClick={closeMenu}
                 className="flex items-center gap-2 text-sm font-medium text-[var(--gray-600)] hover:text-[var(--accent)] transition"
               >

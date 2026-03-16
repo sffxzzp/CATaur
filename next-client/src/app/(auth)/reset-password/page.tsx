@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
                         </p>
                     </div>
                     <Link
-                        href="/login?role=candidate"
+                        href="/login"
                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF]"
                     >
                         Sign in <ArrowRight className="h-4 w-4" />
@@ -163,7 +163,7 @@ export default function ResetPasswordPage() {
 
             <div className="mt-5 text-center">
                 <Link
-                    href="/login?role=candidate"
+                    href="/login"
                     className="text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                 >
                     Back to sign in
