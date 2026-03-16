@@ -48,8 +48,16 @@ export class Application {
 
     // ── Candidate Info ────────────────────────────────────
     @ApiProperty({ required: false, type: String })
-    @Column({ type: 'blob', nullable: true })
-    location: Buffer | string | null;
+    @Column({ type: 'varchar', length: 2, nullable: true })
+    locationCountry: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 64, nullable: true })
+    locationState: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 64, nullable: true })
+    locationCity: string | null;
 
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'longblob', nullable: true })

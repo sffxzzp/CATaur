@@ -46,8 +46,16 @@ export class Candidate {
     phone: string | null;
 
     @ApiProperty({ required: false, type: String })
-    @Column({ type: 'varchar', length: 255, nullable: true })
-    currentLocation: string | null;
+    @Column({ type: 'varchar', length: 2, nullable: true })
+    currentLocationCountry: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 64, nullable: true })
+    currentLocationState: string | null;
+
+    @ApiProperty({ required: false, type: String })
+    @Column({ type: 'varchar', length: 64, nullable: true })
+    currentLocationCity: string | null;
 
     @ApiProperty({ required: false, type: Number })
     @Column({ type: 'int', nullable: true })

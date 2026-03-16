@@ -30,7 +30,17 @@ export class CreateCompanyDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    location?: string;
+    locationCountry?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    locationState?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    locationCity?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

@@ -76,7 +76,9 @@ export class CandidateProfileService {
             preferredLocation: null,
             linkedin: null,
             phone: null,
-            currentLocation: null,
+            currentLocationCountry: null,
+            currentLocationState: null,
+            currentLocationCity: null,
             noticePeriod: null,
             availableDate: null,
             profileStatus: 'draft',
@@ -122,7 +124,9 @@ export class CandidateProfileService {
             linkedin: candidate.linkedin ?? null,
             resumeUrl: candidate.resumeUrl ?? null,
             portfolioUrl: candidate.portfolioUrl ?? null,
-            currentLocation: candidate.currentLocation ?? null,
+            currentLocationCountry: candidate.currentLocationCountry ?? null,
+            currentLocationState: candidate.currentLocationState ?? null,
+            currentLocationCity: candidate.currentLocationCity ?? null,
             noticePeriod: candidate.noticePeriod ?? null,
             availableDate: candidate.availableDate ?? null,
             profileStatus: candidate.profileStatus ?? null,
@@ -148,7 +152,9 @@ export class CandidateProfileService {
         if (dto.targetSalary !== undefined) candidate.targetSalary = dto.targetSalary ?? null;
         if (dto.preferredLocation !== undefined) candidate.preferredLocation = dto.preferredLocation ?? null;
         if (dto.linkedin !== undefined) candidate.linkedin = dto.linkedin ?? null;
-        if (dto.currentLocation !== undefined) candidate.currentLocation = dto.currentLocation ?? null;
+        if (dto.currentLocationCountry !== undefined) candidate.currentLocationCountry = dto.currentLocationCountry ?? null;
+        if (dto.currentLocationState !== undefined) candidate.currentLocationState = dto.currentLocationState ?? null;
+        if (dto.currentLocationCity !== undefined) candidate.currentLocationCity = dto.currentLocationCity ?? null;
         if (dto.noticePeriod !== undefined) candidate.noticePeriod = dto.noticePeriod ?? null;
         if (dto.availableDate !== undefined) candidate.availableDate = dto.availableDate ?? null;
         if (dto.profileStatus !== undefined) candidate.profileStatus = dto.profileStatus ?? null;

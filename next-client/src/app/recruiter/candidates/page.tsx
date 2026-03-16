@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import { recruiterCandidatesClient, type ImportCandidateInput } from "@/lib/api/recruiter-candidates";
 import type { Application, JobOrder } from "@/lib/api/types";
-import { LOCATION_DATA, type Country } from "@/lib/location-data";
+import { LocationSelector, formatLocation } from "@/components/location-selector";
 import {
   Search,
   MapPin,
@@ -65,7 +65,7 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
   onClose: () => void;
 }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", jobId: activeJobs[0]?.id ?? "" });
-  const [country, setCountry] = useState<Country | "">("");
+  const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [resume, setResume] = useState<File | null>(null);
@@ -79,12 +79,8 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
     }
   }, [activeJobs, form.jobId]);
 
-  const states = country ? Object.keys(LOCATION_DATA[country]) : [];
-  const cities = country && state ? LOCATION_DATA[country][state as keyof typeof LOCATION_DATA[typeof country]] || [] : [];
-
   const handleSubmit = () => {
     if (!valid) return;
-    const location = country && state && city ? `${city}, ${state}, ${country}` : undefined;
     onAdd({
       jobOrderId: form.jobId,
       candidates: [
@@ -92,7 +88,9 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
           name: form.name.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
-          location,
+          locationCountry: country || undefined,
+          locationState: state || undefined,
+          locationCity: city || undefined,
         },
       ],
     });
@@ -134,20 +132,14 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
           </div>
           <div className="space-y-1">
             <label className={lbl}>Location</label>
-            <div className="grid grid-cols-3 gap-2">
-              <select className={inp} value={country} onChange={e => { setCountry(e.target.value as Country); setState(""); setCity(""); }}>
-                <option value="">Country</option>
-                {Object.keys(LOCATION_DATA).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <select className={inp} value={state} onChange={e => { setState(e.target.value); setCity(""); }} disabled={!country}>
-                <option value="">State/Province</option>
-                {states.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <select className={inp} value={city} onChange={e => setCity(e.target.value)} disabled={!state}>
-                <option value="">City</option>
-                {cities.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
+            <LocationSelector
+              country={country}
+              state={state}
+              city={city}
+              onCountryChange={setCountry}
+              onStateChange={setState}
+              onCityChange={setCity}
+            />
           </div>
           <div className="space-y-1">
             <label className={lbl}>Resume (PDF)</label>
@@ -169,7 +161,7 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
 }
 
 /* ─── CSV Import Modal ─────────────────────────────────────────────────── */
-type CSVRow = { name: string; email: string; phone: string; location: string };
+type CSVRow = { name: string; email: string; phone: string; locationCountry: string; locationState: string; locationCity: string };
 
 function ImportCSVModal({ activeJobs, onImport, onClose }: {
   activeJobs: { id: string; title: string }[];
@@ -196,12 +188,21 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
     const ni = header.findIndex(h => h.includes("name"));
     const ei = header.findIndex(h => h.includes("email"));
     const pi = header.findIndex(h => h.includes("phone"));
-    const li = header.findIndex(h => h.includes("location"));
+    const ci = header.findIndex(h => h.includes("country"));
+    const si = header.findIndex(h => h.includes("state") || h.includes("province"));
+    const cti = header.findIndex(h => h.includes("city"));
     const parsed: CSVRow[] = [];
     for (let i = 1; i < lines.length; i++) {
       const c = lines[i];
       if (!c[ni]?.trim()) continue;
-      parsed.push({ name: c[ni] ?? "", email: c[ei] ?? "", phone: c[pi] ?? "", location: c[li] ?? "" });
+      parsed.push({
+        name: c[ni] ?? "",
+        email: c[ei] ?? "",
+        phone: c[pi] ?? "",
+        locationCountry: c[ci] ?? "",
+        locationState: c[si] ?? "",
+        locationCity: c[cti] ?? "",
+      });
     }
     setRows(parsed);
     if (parsed.length > 0) setStep("preview");
@@ -222,7 +223,9 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
       name: r.name,
       email: r.email,
       phone: r.phone || undefined,
-      location: r.location || undefined,
+      locationCountry: r.locationCountry || undefined,
+      locationState: r.locationState || undefined,
+      locationCity: r.locationCity || undefined,
     }));
     onImport({ jobOrderId: jobId, candidates });
     setStep("done");
@@ -261,7 +264,7 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
                 <p className="text-sm font-medium text-[var(--gray-700)]">Drag &amp; drop your CSV file here</p>
                 <p className="text-xs text-[var(--gray-400)] mt-1">or click to browse</p>
               </div>
-              <p className="text-[11px] text-[var(--gray-400)]">Expected columns: Name, Email, Phone, Location</p>
+              <p className="text-[11px] text-[var(--gray-400)]">Expected columns: Name, Email, Phone, Country, State/Province, City</p>
               <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
             </div>
           </div>
@@ -290,7 +293,7 @@ function ImportCSVModal({ activeJobs, onImport, onClose }: {
                     <span className="text-sm text-[var(--gray-700)] font-medium truncate">{r.name}</span>
                     <span className="text-sm text-[var(--gray-500)] truncate">{r.email}</span>
                     <span className="text-sm text-[var(--gray-500)] truncate">{r.phone}</span>
-                    <span className="text-sm text-[var(--gray-500)] truncate">{r.location || "—"}</span>
+                    <span className="text-sm text-[var(--gray-500)] truncate">{formatLocation(r.locationCity, r.locationState)}</span>
                   </div>
                 ))}
               </div>
@@ -520,7 +523,7 @@ export default function RecruiterCandidatesPage() {
             const name = c.candidate?.nickname || c.candidate?.email || "Candidate";
             const email = c.candidate?.email || "—";
             const role = c.jobOrder?.title || "—";
-            const loc = c.location || c.jobOrder?.location || "—";
+            const loc = formatLocation(c.locationCity, c.locationState);
             const phone = c.candidate?.phone || "—";
             const added = formatShortDate(c.createdAt as any);
             return (

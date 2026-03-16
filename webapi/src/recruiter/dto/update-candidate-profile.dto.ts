@@ -36,7 +36,17 @@ export class UpdateCandidateProfileDto {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    currentLocation?: string;
+    currentLocationCountry?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    currentLocationState?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    currentLocationCity?: string;
 
     @ApiPropertyOptional()
     @IsOptional()

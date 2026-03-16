@@ -56,7 +56,9 @@ export type Company = {
   contact: string | null;
   phone: string | null;
   website: string | null;
-  location: string | null;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
   keyTechnologies: string | null;
   clientId: string | null;
   owner: string | null;
@@ -69,8 +71,9 @@ export type Application = {
   candidateId: string;
   status: 'new' | 'interview' | 'offer' | 'closed';
   source: 'self_applied' | 'recruiter_import';
-  location: string | null;
-  availability: string | null;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
   recruiterNotes: string | null;
   interviewType: string | null;
   interviewDate: string | null;
@@ -88,7 +91,9 @@ export type Application = {
     candidate?: {
       resumeUrl: string | null;
       portfolioUrl: string | null;
-      currentLocation: string | null;
+      currentLocationCountry: string | null;
+      currentLocationState: string | null;
+      currentLocationCity: string | null;
       noticePeriod: number | null;
       availableDate: string | null;
       profileStatus: string | null;

@@ -169,9 +169,10 @@ export class CandidateResumeService {
         if (dto.applyMode === 'overwrite' || !candidate.portfolioUrl) {
             candidate.portfolioUrl = parsedData.basics.portfolioUrl;
         }
-        if (dto.applyMode === 'overwrite' || !candidate.currentLocation) {
-            candidate.currentLocation = parsedData.basics.location;
-        }
+        // Location parsing from resume is disabled - use manual entry instead
+        // if (dto.applyMode === 'overwrite' || !candidate.currentLocationCity) {
+        //     candidate.currentLocationCity = parsedData.basics.location;
+        // }
         if (dto.applyMode === 'overwrite' || candidate.noticePeriod === null || candidate.noticePeriod === undefined) {
             candidate.noticePeriod = parsedData.availability.noticePeriodDays;
         }
@@ -294,7 +295,9 @@ export class CandidateResumeService {
             id: userId,
             resumeUrl: null,
             portfolioUrl: null,
-            currentLocation: null,
+            currentLocationCountry: null,
+            currentLocationState: null,
+            currentLocationCity: null,
             noticePeriod: null,
             availableDate: null,
             profileStatus: 'draft',

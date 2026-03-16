@@ -72,13 +72,16 @@ export class ApplicationsService {
             });
         }
         if (location) {
-            // app.location is encrypted (BLOB) so we can't use SQL LIKE reliably.
-            // Filter in memory after decrypt to support location queries.
+            // Filter by location (city or state)
             const all = await qb.orderBy('app.createdAt', 'DESC').getMany();
             const normalized = location.trim().toLowerCase();
             const filtered = all
                 .map((a) => this.decryptApplication(a))
-                .filter((a) => String(a.location ?? '').toLowerCase().includes(normalized));
+                .filter((a) => {
+                    const city = (a.locationCity ?? '').toLowerCase();
+                    const state = (a.locationState ?? '').toLowerCase();
+                    return city.includes(normalized) || state.includes(normalized);
+                });
 
             const total = filtered.length;
             const start = (page - 1) * limit;
@@ -126,8 +129,9 @@ export class ApplicationsService {
             candidateId: dto.candidateId,
             status: 'new',
             source,
-            location: dto.location ? this.encryptionService.encryptText(dto.location) : dto.location ?? null,
-            availability: dto.availability ?? null,
+            locationCountry: dto.locationCountry ?? null,
+            locationState: dto.locationState ?? null,
+            locationCity: dto.locationCity ?? null,
             recruiterNotes: dto.recruiterNotes
                 ? this.encryptionService.encryptText(dto.recruiterNotes)
                 : dto.recruiterNotes ?? null,
@@ -160,8 +164,9 @@ export class ApplicationsService {
                 {
                     jobOrderId: dto.jobOrderId,
                     candidateId: candidate.id,
-                    location: c.location,
-                    availability: c.availability,
+                    locationCountry: c.locationCountry,
+                    locationState: c.locationState,
+                    locationCity: c.locationCity,
                 },
                 'recruiter_import',
             );
@@ -336,8 +341,9 @@ export class ApplicationsService {
     async updateApplicationCandidate(
         id: string,
         dto: {
-            location?: string;
-            availability?: string;
+            locationCountry?: string;
+            locationState?: string;
+            locationCity?: string;
             recruiterNotes?: string;
             status?: 'new' | 'interview' | 'offer' | 'closed';
             nickname?: string;
@@ -348,12 +354,9 @@ export class ApplicationsService {
     ) {
         const app = await this.getApplication(id, scope);
 
-        if (dto.location !== undefined) {
-            app.location = dto.location
-                ? this.encryptionService.encryptText(dto.location)
-                : dto.location;
-        }
-        if (dto.availability !== undefined) app.availability = dto.availability;
+        if (dto.locationCountry !== undefined) app.locationCountry = dto.locationCountry ?? null;
+        if (dto.locationState !== undefined) app.locationState = dto.locationState ?? null;
+        if (dto.locationCity !== undefined) app.locationCity = dto.locationCity ?? null;
         if (dto.recruiterNotes !== undefined) {
             app.recruiterNotes = dto.recruiterNotes
                 ? this.encryptionService.encryptText(dto.recruiterNotes)
@@ -436,19 +439,11 @@ export class ApplicationsService {
                 app.jobOrder.company.phone as unknown as Buffer,
             ) as any;
         }
-        if (app.jobOrder?.company?.location) {
-            app.jobOrder.company.location = this.encryptionService.decryptText(
-                app.jobOrder.company.location as unknown as Buffer,
-            ) as any;
-        }
 
         return app;
     }
 
     private decryptApplication(application: Application): Application {
-        application.location = Buffer.isBuffer(application.location)
-            ? (this.encryptionService.decryptText(application.location) as any)
-            : application.location;
         application.recruiterNotes = Buffer.isBuffer(application.recruiterNotes)
             ? (this.encryptionService.decryptText(application.recruiterNotes) as any)
             : application.recruiterNotes;
@@ -475,9 +470,6 @@ export class ApplicationsService {
         }
         if (application.jobOrder?.company?.phone && Buffer.isBuffer(application.jobOrder.company.phone)) {
             application.jobOrder.company.phone = this.encryptionService.decryptText(application.jobOrder.company.phone) as any;
-        }
-        if (application.jobOrder?.company?.location && Buffer.isBuffer(application.jobOrder.company.location)) {
-            application.jobOrder.company.location = this.encryptionService.decryptText(application.jobOrder.company.location) as any;
         }
         return application;
     }

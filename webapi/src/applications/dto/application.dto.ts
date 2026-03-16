@@ -14,7 +14,17 @@ export class CreateApplicationDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
-    location?: string;
+    locationCountry?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    locationState?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    locationCity?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()
@@ -100,5 +110,15 @@ export class BulkImportCandidateDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
-    location?: string;
+    locationCountry?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    locationState?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    locationCity?: string;
 }
