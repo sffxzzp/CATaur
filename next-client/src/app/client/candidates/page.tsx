@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import {
-  CANDIDATE_RECORDS,
-  JOB_ORDERS,
-  type ApplicationStatus,
-} from "@/data/recruiter";
+import { useEffect, useMemo, useState } from "react";
+import { request } from "@/lib/request";
+import { type ApplicationStatus } from "@/data/recruiter";
 import {
   Search,
   MapPin,
@@ -22,7 +19,42 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
+
+type APICandidate = {
+  id: string;
+  status: string;
+  source?: string;
+  locationCountry?: string;
+  locationState?: string;
+  locationCity?: string;
+  recruiterNotes?: string;
+  interviewType?: string;
+  interviewDate?: string;
+  interviewTime?: string;
+  interviewSubject?: string;
+  interviewContent?: string;
+  interviewSentAt?: string;
+  clientDecisionType?: string;
+  clientDecisionNote?: string;
+  clientDecisionAt?: string;
+
+  // Fallbacks in case the backend populates nested relations transparently
+  name?: string;
+  email?: string;
+  jobTitle?: string;
+  appliedAt?: string;
+  createdAt?: string;
+  candidate?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
+  jobOrder?: {
+    title?: string;
+  };
+};
 
 /* ─── Status config ──────────────────────────────────────────────────────── */
 const STATUS_CONFIG: Record<
@@ -43,9 +75,9 @@ function initials(name: string) {
 
 /* ─── Filter Tab ─────────────────────────────────────────────────────────── */
 function FilterTab({
-  label, count, active, Icon, onClick,
+  label, active, Icon, onClick, count,
 }: {
-  label: string; count: number; active: boolean;
+  label: string; active: boolean; count?: number;
   Icon: React.ComponentType<{ className?: string }>; onClick: () => void;
 }) {
   return (
@@ -58,9 +90,11 @@ function FilterTab({
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="text-sm font-medium">{label}</span>
-      <span className={`ml-auto text-xs font-semibold ${active ? "text-[var(--accent)]" : "text-[var(--gray-400)]"}`}>
-        {count}
-      </span>
+      {count !== undefined && (
+        <span className={`ml-auto text-xs font-semibold ${active ? "text-[var(--accent)]" : "text-[var(--gray-400)]"}`}>
+          {count}
+        </span>
+      )}
     </button>
   );
 }
@@ -70,39 +104,55 @@ const PAGE_SIZE = 10;
 
 export default function ClientCandidatesPage() {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">("all");
   const [jobFilter, setJobFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
-  const allJobs = useMemo(() => JOB_ORDERS, []);
+  const [list, setList] = useState<APICandidate[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
 
-  const counts = useMemo(() => {
-    const c: Record<ApplicationStatus, number> = { new: 0, interview: 0, offer: 0, closed: 0 };
-    CANDIDATE_RECORDS.forEach((r) => { c[r.status]++; });
-    return c;
+  const [allJobs, setAllJobs] = useState<any[]>([]);
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // Fetch Jobs for the dropdown filter
+  useEffect(() => {
+    request<any>(`/client/orders?limit=100`)
+      .then((res) => setAllJobs(res.data || []))
+      .catch(console.error);
   }, []);
 
-  const interviewCount = counts["interview"];
+  // Fetch Candidates
+  useEffect(() => {
+    setLoading(true);
+    const qs = new URLSearchParams();
+    qs.set("page", String(page));
+    qs.set("limit", String(pageSize));
+    if (statusFilter !== "all") qs.set("status", statusFilter);
+    if (jobFilter !== "all") qs.set("jobOrderId", jobFilter);
+    if (debouncedQuery) qs.set("search", debouncedQuery);
 
-  const filtered = useMemo(() => {
-    let rows = [...CANDIDATE_RECORDS];
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      rows = rows.filter((r) => r.name.toLowerCase().includes(q) || r.jobTitle.toLowerCase().includes(q));
-    }
-    if (statusFilter !== "all") rows = rows.filter((r) => r.status === statusFilter);
-    if (jobFilter !== "all") rows = rows.filter((r) => r.jobId === jobFilter);
-    return rows;
-  }, [query, statusFilter, jobFilter]);
+    request<any>(`/client/candidates?${qs.toString()}`)
+      .then((res) => {
+        setList(res.data || []);
+        setTotal(res.total || 0);
+        setTotalPages(res.totalPages || Math.ceil((res.total || 0) / pageSize) || 1);
+      })
+      .catch((err) => console.error("Failed to fetch candidates:", err))
+      .finally(() => setLoading(false));
+  }, [page, pageSize, statusFilter, jobFilter, debouncedQuery]);
 
-  useMemo(() => { setPage(1); }, [query, statusFilter, jobFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const startIdx = filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const endIdx = Math.min(safePage * pageSize, filtered.length);
+  const safePage = Math.min(page, Math.max(1, totalPages));
+  const startIdx = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const endIdx = Math.min(safePage * pageSize, total);
 
   const pageNumbers = useMemo(() => {
     const pages: (number | "...")[] = [];
@@ -127,36 +177,16 @@ export default function ClientCandidatesPage() {
         </div>
       </div>
 
-      {/* Action nudge: interview-stage candidates pending decision */}
-      {interviewCount > 0 && (
-        <div className="flex items-center justify-between rounded-md border border-[var(--status-amber-text)]/25 bg-[var(--status-amber-bg)] px-4 py-3">
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-[var(--status-amber-text)] shrink-0" />
-            <p className="text-sm text-[var(--status-amber-text)]">
-              <span className="font-semibold">{interviewCount} candidate{interviewCount > 1 ? "s" : ""}</span>
-              {" "}have completed interviews — ready for your decision.
-            </p>
-          </div>
-          <Link
-            href="/client/decisions"
-            className="flex items-center gap-1 shrink-0 text-xs font-medium text-[var(--status-amber-text)] hover:underline"
-          >
-            Go to Decisions <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      )}
-
-      {/* Status Filter Tabs */}
+      {/* Filter Tabs - Counts removed since we use server-side pagination now */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        <FilterTab label="All" count={CANDIDATE_RECORDS.length} active={statusFilter === "all"} Icon={Users} onClick={() => setStatusFilter("all")} />
+        <FilterTab label="All" active={statusFilter === "all"} Icon={Users} onClick={() => { setStatusFilter("all"); setPage(1); }} />
         {STATUS_ORDER.map((s) => (
           <FilterTab
             key={s}
             label={STATUS_CONFIG[s].label}
-            count={counts[s]}
             active={statusFilter === s}
             Icon={STATUS_CONFIG[s].Icon}
-            onClick={() => setStatusFilter((prev) => (prev === s ? "all" : s))}
+            onClick={() => { setStatusFilter((prev) => (prev === s ? "all" : s)); setPage(1); }}
           />
         ))}
       </div>
@@ -177,19 +207,18 @@ export default function ClientCandidatesPage() {
           <Briefcase className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
           <select
             value={jobFilter}
-            onChange={(e) => setJobFilter(e.target.value)}
-            className="h-9 appearance-none rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-8 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer"
+            onChange={(e) => { setJobFilter(e.target.value); setPage(1); }}
+            className="h-9 appearance-none max-w-[200px] rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-8 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer"
           >
             <option value="all">All Job Orders</option>
             {allJobs.map((j) => (
-              <option key={j.id} value={j.id}>{j.title} ({j.id})</option>
+              <option key={j.id} value={j.id}>{j.title}</option>
             ))}
           </select>
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
         </div>
         <p className="ml-auto text-sm text-[var(--gray-400)] hidden sm:block">
-          <span className="font-medium text-[var(--gray-600)]">{filtered.length}</span> of{" "}
-          <span className="font-medium text-[var(--gray-600)]">{CANDIDATE_RECORDS.length}</span>
+          <span className="font-medium text-[var(--gray-600)]">{total}</span> total candidates
         </p>
       </div>
 
@@ -203,34 +232,47 @@ export default function ClientCandidatesPage() {
         </div>
 
         {/* Rows */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
+            <Loader2 className="h-7 w-7 animate-spin" />
+            <p className="text-sm">Loading candidates...</p>
+          </div>
+        ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Users className="h-7 w-7" />
             <p className="text-sm">No candidates match your filters.</p>
           </div>
         ) : (
-          pageItems.map((c) => {
-            const sc = STATUS_CONFIG[c.status];
+          list.map((c) => {
+            const sc = STATUS_CONFIG[c.status as ApplicationStatus] || STATUS_CONFIG.new;
+
+            // Computed safe fields
+            const fullName = c.name || (c.candidate ? `${c.candidate.firstName} ${c.candidate.lastName}`.trim() : "Unknown Candidate");
+            const cEmail = c.email || c.candidate?.email || "No email";
+            const jTitle = c.jobTitle || c.jobOrder?.title || "Unknown Position";
+            const locationStr = [c.locationCity, c.locationState, c.locationCountry].filter(Boolean).join(", ") || c.source || "Unknown Location";
+            const applyDate = c.appliedAt || c.createdAt || c.interviewSentAt ? new Date(c.appliedAt || c.createdAt || c.interviewSentAt!).toLocaleDateString() : "N/A";
+
             return (
               <Link
-                key={c.id}
-                href={`/client/candidates/${encodeURIComponent(c.id)}`}
+                key={c.id || Math.random().toString()}
+                href={`/client/candidates/${encodeURIComponent(c.id || "")}`}
                 className={`flex flex-col lg:grid lg:grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] lg:items-center gap-2 lg:gap-4 border-b border-[var(--border-light)] px-5 py-3 transition-colors last:border-0 hover:bg-[var(--gray-50)] ${c.status === "closed" ? "opacity-55" : ""}`}
               >
                 {/* Candidate */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${c.status === "interview" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]" : "bg-[var(--gray-200)] text-[var(--gray-600)]"}`}>
-                    {initials(c.name)}
+                    {initials(fullName)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-[var(--gray-900)] truncate">{c.name}</p>
-                    <p className="text-xs text-[var(--gray-400)] truncate">{c.email}</p>
+                    <p className="text-sm font-medium text-[var(--gray-900)] truncate">{fullName}</p>
+                    <p className="text-xs text-[var(--gray-400)] truncate">{cEmail}</p>
                   </div>
                 </div>
 
                 {/* Applied For */}
                 <div className="min-w-0">
-                  <p className="text-sm text-[var(--gray-700)] truncate">{c.jobTitle}</p>
+                  <p className="text-sm text-[var(--gray-700)] truncate">{jTitle}</p>
                 </div>
 
                 {/* Status badge */}
@@ -242,12 +284,12 @@ export default function ClientCandidatesPage() {
                 </div>
 
                 {/* Applied date */}
-                <span className="text-sm text-[var(--gray-500)]">{c.appliedAt}</span>
+                <span className="text-sm text-[var(--gray-500)]">{applyDate}</span>
 
                 {/* Location */}
                 <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                  <span className="truncate">{c.location}</span>
+                  <span className="truncate">{locationStr}</span>
                 </div>
               </Link>
             );
@@ -255,7 +297,7 @@ export default function ClientCandidatesPage() {
         )}
 
         {/* Pagination */}
-        {filtered.length > 0 && (
+        {total > 0 && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[var(--border)] px-5 py-3">
             <div className="flex items-center gap-2 text-xs text-[var(--gray-500)]">
               <span>Rows</span>
@@ -269,7 +311,7 @@ export default function ClientCandidatesPage() {
               <span>
                 <span className="font-medium text-[var(--gray-700)]">{startIdx}–{endIdx}</span>
                 {" "}of{" "}
-                <span className="font-medium text-[var(--gray-700)]">{filtered.length}</span>
+                <span className="font-medium text-[var(--gray-700)]">{total}</span>
               </span>
             </div>
             <div className="flex items-center gap-1">
