@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useRef, useCallback, useMemo } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, RefreshCw, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -246,11 +246,14 @@ function OtpForm({ onSubmit, isPending, onError }: { onSubmit: (email: string, c
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
-  const params = useSearchParams();
-  const role = params.get("role") || "candidate";
+  const isCandidate = useMemo(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
 
-  const isCandidate = role === "candidate";
-  const isManagement = !isCandidate;
+    const hostname = window.location.hostname.toLowerCase();
+    return hostname.startsWith("candidate.") || hostname.includes(".candidate.");
+  }, []);
 
   const [tab, setTab] = useState<"password" | "otp">("password");
 
@@ -317,7 +320,7 @@ export default function UnifiedLoginPage() {
         setIsPending(false);
       }
     },
-    [params, router, isCandidate]
+    [router, isCandidate]
   );
 
   const handleOtpLogin = useCallback(
@@ -340,7 +343,7 @@ export default function UnifiedLoginPage() {
         setIsPending(false);
       }
     },
-    [params, router, isCandidate]
+    [router, isCandidate]
   );
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
@@ -401,34 +404,40 @@ export default function UnifiedLoginPage() {
           </>
         )}
 
-        {/* Tabs for Password vs OTP */}
-        <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-1">
-          <button
-            type="button"
-            onClick={() => setTab("password")}
-            className={cn(
-              "flex-1 rounded-md py-1.5 text-xs font-medium transition",
-              tab === "password" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
-            )}
-          >
-            Password
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("otp")}
-            className={cn(
-              "flex-1 rounded-md py-1.5 text-xs font-medium transition",
-              tab === "otp" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
-            )}
-          >
-            Verification code
-          </button>
-        </div>
+        {isCandidate ? (
+          <>
+            {/* Tabs for Password vs OTP */}
+            <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-1">
+              <button
+                type="button"
+                onClick={() => setTab("password")}
+                className={cn(
+                  "flex-1 rounded-md py-1.5 text-xs font-medium transition",
+                  tab === "password" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
+                )}
+              >
+                Password
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("otp")}
+                className={cn(
+                  "flex-1 rounded-md py-1.5 text-xs font-medium transition",
+                  tab === "otp" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
+                )}
+              >
+                Verification code
+              </button>
+            </div>
 
-        {tab === "password" ? (
-          <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
+            {tab === "password" ? (
+              <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
+            ) : (
+              <OtpForm onSubmit={handleOtpLogin} isPending={isPending} onError={(msg) => setErrorMsg(msg)} />
+            )}
+          </>
         ) : (
-          <OtpForm onSubmit={handleOtpLogin} isPending={isPending} onError={(msg) => setErrorMsg(msg)} />
+          <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
         )}
 
         {/* Role switcher & Sign up links */}
@@ -439,12 +448,6 @@ export default function UnifiedLoginPage() {
                 Don&apos;t have an account?{" "}
                 <Link href="/register" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
                   Create one
-                </Link>
-              </p>
-              <p className="pt-2">
-                Client or Staff?{" "}
-                <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                  Management sign in
                 </Link>
               </p>
             </>
