@@ -110,9 +110,7 @@ export class RecruiterController {
         @Query('sortBy') sortBy?: 'recent' | 'openings',
         @Query('recruiterId') recruiterId?: string,
     ): Promise<PaginatedResponse<JobOrder>> {
-        const where: any = this.isAdmin(user)
-            ? (recruiterId ? { assignedToId: recruiterId } : {})
-            : { assignedToId: user.id };
+        const where: any = {};
         if (companyId) {
             where.companyId = companyId;
         }
@@ -142,45 +140,42 @@ export class RecruiterController {
     }
 
     @Get('job-orders/:id')
-    @ApiOperation({ summary: 'Get a job order by ID (must be mine)' })
+    @ApiOperation({ summary: 'Get a job order by ID' })
     @ApiOkResponse({ type: JobOrderResponseDto })
     getJobOrder(@GetUser() user: User, @Param('id') id: string): Promise<JobOrder> {
-        return this.jobOrdersService.findOne(id, { assignedToId: user.id });
+        return this.jobOrdersService.findOne(id);
     }
 
     @Put('job-orders/:id')
     @AuditLog('update job order')
-    @ApiOperation({ summary: 'Update a job order (must be mine)' })
+    @ApiOperation({ summary: 'Update a job order' })
     @ApiOkResponse({ type: JobOrderResponseDto })
     updateJobOrder(
         @GetUser() user: User,
         @Param('id') id: string,
         @Body() dto: UpdateJobOrderDto,
     ): Promise<JobOrder> {
-        return this.jobOrdersService.update(id, dto, { assignedToId: user.id });
+        return this.jobOrdersService.update(id, dto);
     }
 
     @Patch('job-orders/:id/status')
     @AuditLog('update job order status')
-    @ApiOperation({ summary: 'Update job order status (must be mine)' })
+    @ApiOperation({ summary: 'Update job order status' })
     @ApiOkResponse({ type: JobOrderResponseDto })
     updateJobOrderStatus(
         @GetUser() user: User,
         @Param('id') id: string,
         @Body() dto: UpdateJobOrderStatusDto,
     ): Promise<JobOrder> {
-        return this.jobOrdersService.updateStatus(id, dto.status, { assignedToId: user.id });
+        return this.jobOrdersService.updateStatus(id, dto.status);
     }
 
     @Delete('job-orders/:id')
     @AuditLog('delete job order')
     @HttpCode(HttpStatus.NO_CONTENT)
-    @ApiOperation({ summary: 'Delete a job order (must be mine)' })
+    @ApiOperation({ summary: 'Delete a job order' })
     @ApiNoContentResponse({ description: 'Job order deleted successfully' })
     async deleteJobOrder(@GetUser() user: User, @Param('id') id: string): Promise<void> {
-        // First verify the job order belongs to this recruiter
-        await this.jobOrdersService.findOne(id, { assignedToId: user.id });
-        // Then delete it
         await this.jobOrdersService.delete(id);
     }
 
@@ -205,11 +200,8 @@ export class RecruiterController {
         @Query('location') location?: string,
         @Query('recruiterId') recruiterId?: string,
     ): Promise<PaginatedResponse<Application>> {
-        const scope = this.isAdmin(user)
-            ? (recruiterId ? { assignedToId: recruiterId } : {})
-            : { assignedToId: user.id };
         return this.applicationsService.findAll(
-            scope,
+            {},
             {
                 page: +page,
                 limit: +limit,
@@ -222,13 +214,10 @@ export class RecruiterController {
     }
 
     @Get('applications/:id')
-    @ApiOperation({ summary: 'Get an application by ID (must belong to my job order)' })
+    @ApiOperation({ summary: 'Get an application by ID' })
     @ApiOkResponse({ type: Application })
     getApplication(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
-        if (this.isAdmin(user)) {
-            return this.applicationsService.findOne(id);
-        }
-        return this.applicationsService.findOne(id, { assignedToId: user.id });
+        return this.applicationsService.findOne(id);
     }
 
     @Post('applications')
@@ -236,10 +225,6 @@ export class RecruiterController {
     @ApiOperation({ summary: 'Manually add a candidate to a job order' })
     @ApiOkResponse({ type: Application })
     async createApplication(@GetUser() user: User, @Body() dto: CreateApplicationDto): Promise<Application> {
-        // Verify the job order belongs to this recruiter (Admin can bypass)
-        if (!this.isAdmin(user)) {
-            await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
-        }
         return this.applicationsService.create(dto, 'recruiter_import');
     }
 
@@ -252,10 +237,7 @@ export class RecruiterController {
         @Param('id') id: string,
         @Body() dto: UpdateApplicationStatusDto,
     ): Promise<Application> {
-        if (this.isAdmin(user)) {
-            return this.applicationsService.updateStatus(id, dto);
-        }
-        return this.applicationsService.updateStatus(id, dto, { assignedToId: user.id });
+        return this.applicationsService.updateStatus(id, dto);
     }
 
     // ── Candidates ────────────────────────────────────────────────────────
@@ -354,12 +336,6 @@ export class RecruiterController {
     @ApiOperation({ summary: 'Bulk-import candidates into a job order' })
     @ApiOkResponse({ type: Application, isArray: true })
     async bulkImport(@GetUser() user: User, @Body() dto: BulkImportDto): Promise<Application[]> {
-        // Verify the job order belongs to this recruiter (Admin can bypass)
-        if (this.isAdmin(user)) {
-            await this.jobOrdersService.findOne(dto.jobOrderId);
-        } else {
-            await this.jobOrdersService.findOne(dto.jobOrderId, { assignedToId: user.id });
-        }
         return this.applicationsService.bulkImport(dto);
     }
 
@@ -536,17 +512,17 @@ export class RecruiterController {
 
     // ── Reports ───────────────────────────────────────────────────
     @Get('reports/job-orders')
-    @ApiOperation({ summary: 'Job order stats for my assigned orders' })
+    @ApiOperation({ summary: 'Job order stats' })
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' } } } })
     reportJobOrders(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number> }> {
-        return this.reportsService.getJobOrderStats({ assignedToId: user.id });
+        return this.reportsService.getJobOrderStats({});
     }
 
     @Get('reports/applications')
-    @ApiOperation({ summary: 'Application stats for my job orders' })
+    @ApiOperation({ summary: 'Application stats' })
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' }, bySource: { type: 'object' } } } })
     reportApplications(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number>; bySource: Record<string, number> }> {
-        return this.reportsService.getApplicationStats({ assignedToId: user.id });
+        return this.reportsService.getApplicationStats({});
     }
 
     @Get('reports/top-job-orders')
@@ -567,7 +543,7 @@ export class RecruiterController {
         },
     })
     reportTopJobOrders(@GetUser() user: User, @Query('limit') limit = '5'): Promise<Array<{ id: string; title: string; status: string; applicationCount: number }>> {
-        return this.reportsService.getTopJobOrders({ assignedToId: user.id }, +limit);
+        return this.reportsService.getTopJobOrders({}, +limit);
     }
 
     @Get('reports/activity')
@@ -587,7 +563,7 @@ export class RecruiterController {
         },
     })
     reportActivity(@GetUser() user: User, @Query('days') days = '30'): Promise<Array<{ date: string; jobOrders: number; applications: number }>> {
-        return this.reportsService.getActivityTimeline({ assignedToId: user.id }, +days);
+        return this.reportsService.getActivityTimeline({}, +days);
     }
 
     // ── Dashboard ─────────────────────────────────────────────────

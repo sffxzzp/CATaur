@@ -52,13 +52,9 @@ export class JobOrdersService {
         } = opts;
 
         const qb = this.repo.createQueryBuilder('jo')
-            .leftJoinAndSelect('jo.company', 'company')
-            .leftJoinAndSelect('jo.assignedTo', 'assignedTo');
+            .leftJoinAndSelect('jo.company', 'company');
 
-        // Apply caller-supplied scope (e.g. assignedToId / companyId)
-        if (where.assignedToId) {
-            qb.andWhere('jo.assignedToId = :assignedToId', { assignedToId: where.assignedToId });
-        }
+        // Apply caller-supplied scope (e.g. companyId)
         if (where.companyId) {
             qb.andWhere('jo.companyId = :companyId', { companyId: where.companyId });
         }
@@ -110,7 +106,7 @@ export class JobOrdersService {
     async findOne(id: string, where: FindOptionsWhere<JobOrder> = {}): Promise<JobOrder> {
         const jo = await this.repo.findOne({
             where: { id, ...where },
-            relations: ['company', 'assignedTo'],
+            relations: ['company'],
         });
         if (!jo) throw new NotFoundException('Job order not found');
         return this.decryptJobOrder(jo);
@@ -142,7 +138,6 @@ export class JobOrdersService {
             locationCity: dto.locationCity ?? null,
             owner: ownerName,
             status: 'active',
-            assignedToId: recruiterId,
         });
         await this.repo.save(jo);
         this.logger.log(`Job order created: ${jo.id} ("${jo.title}") assigned to recruiter ${recruiterId}, owner: ${ownerName}`);

@@ -50,9 +50,7 @@ export class CandidateProfileService {
         }
 
         const exists = await this.appRepo.createQueryBuilder('app')
-            .innerJoin(JobOrder, 'jo', 'jo.id = app.jobOrderId')
             .where('app.candidateId = :candidateId', { candidateId })
-            .andWhere('jo.assignedToId = :rid', { rid: actor.id })
             .select('app.id')
             .limit(1)
             .getOne();

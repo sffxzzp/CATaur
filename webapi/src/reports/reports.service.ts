@@ -29,7 +29,6 @@ export interface ActivityPoint {
 }
 
 export interface ReportScope {
-    assignedToId?: string;
     companyIds?: string[];
 }
 
@@ -50,9 +49,7 @@ export class ReportsService {
             .select('jo.status', 'status')
             .addSelect('COUNT(*)', 'count');
 
-        if (scope.assignedToId) {
-            qb.where('jo.assignedToId = :rid', { rid: scope.assignedToId });
-        } else if (scope.companyIds?.length) {
+        if (scope.companyIds?.length) {
             qb.where('jo.companyId IN (:...cids)', { cids: scope.companyIds });
         }
 
@@ -76,9 +73,7 @@ export class ReportsService {
         const qb = this.applicationRepo.createQueryBuilder('app')
             .leftJoin('app.jobOrder', 'jobOrder');
 
-        if (scope.assignedToId) {
-            qb.where('jobOrder.assignedToId = :rid', { rid: scope.assignedToId });
-        } else if (scope.companyIds?.length) {
+        if (scope.companyIds?.length) {
             qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
         }
 
@@ -110,9 +105,7 @@ export class ReportsService {
             .orderBy('applicationCount', 'DESC')
             .limit(limit);
 
-        if (scope.assignedToId) {
-            qb.where('jobOrder.assignedToId = :rid', { rid: scope.assignedToId });
-        } else if (scope.companyIds?.length) {
+        if (scope.companyIds?.length) {
             qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
         }
 
@@ -140,9 +133,7 @@ export class ReportsService {
             .groupBy('date')
             .orderBy('date', 'ASC');
 
-        if (scope.assignedToId) {
-            joQb.andWhere('jo.assignedToId = :rid', { rid: scope.assignedToId });
-        } else if (scope.companyIds?.length) {
+        if (scope.companyIds?.length) {
             joQb.andWhere('jo.companyId IN (:...cids)', { cids: scope.companyIds });
         }
 
@@ -155,9 +146,7 @@ export class ReportsService {
             .groupBy('date')
             .orderBy('date', 'ASC');
 
-        if (scope.assignedToId) {
-            appQb.andWhere('jobOrder.assignedToId = :rid', { rid: scope.assignedToId });
-        } else if (scope.companyIds?.length) {
+        if (scope.companyIds?.length) {
             appQb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
         }
 

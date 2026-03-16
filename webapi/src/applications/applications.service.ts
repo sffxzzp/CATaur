@@ -40,12 +40,11 @@ export class ApplicationsService {
 
     /**
      * scope:
-     *   Recruiter → { jobOrder: { assignedToId: recruiterId } }
      *   Client    → { jobOrder: { companyId: In([...]) } }
      *   Admin     → {}
      */
     async findAll(
-        scope: Partial<{ assignedToId: string; companyIds: string[]; candidateId: string }>,
+        scope: Partial<{ companyIds: string[]; candidateId: string }>,
         opts: { page?: number; limit?: number; status?: string; jobOrderId?: string; search?: string; location?: string } = {},
     ) {
         const { page = 1, limit = 20, status, jobOrderId, search, location } = opts;
@@ -55,9 +54,6 @@ export class ApplicationsService {
             .leftJoinAndSelect('app.jobOrder', 'jobOrder')
             .leftJoinAndSelect('jobOrder.company', 'company');
 
-        if (scope.assignedToId) {
-            qb.andWhere('jobOrder.assignedToId = :rid', { rid: scope.assignedToId });
-        }
         if (scope.companyIds?.length) {
             qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
         }
@@ -113,7 +109,7 @@ export class ApplicationsService {
 
     async findOne(
         id: string,
-        scope: Partial<{ assignedToId: string; companyIds: string[] }> = {},
+        scope: Partial<{ companyIds: string[] }> = {},
     ): Promise<Application> {
         const app = await this.getApplication(id, scope);
         return this.decryptApplication(app);
@@ -179,7 +175,7 @@ export class ApplicationsService {
     async updateStatus(
         id: string,
         dto: UpdateApplicationStatusDto,
-        scope: Partial<{ assignedToId: string; companyIds: string[] }> = {},
+        scope: Partial<{ companyIds: string[] }> = {},
     ): Promise<Application> {
         const app = await this.getApplication(id, scope);
         const prevStatus = app.status;
@@ -297,16 +293,6 @@ export class ApplicationsService {
         app.clientDecisionAt = new Date();
         await this.repo.save(app);
 
-        // Notify the recruiter
-        if (app.jobOrder?.assignedToId) {
-            await this.notificationsService.create(
-                app.jobOrder.assignedToId,
-                'client_decision',
-                'Client Decision Received',
-                `Client decision "${dto.type}" for ${app.candidate?.nickname ?? 'candidate'}.`,
-                app.id,
-            );
-        }
         this.logger.log(`Client decision "${dto.type}" received for application ${id}`);
         return this.decryptApplication(app);
     }
@@ -315,11 +301,11 @@ export class ApplicationsService {
         recruiterId: string,
         opts: { page?: number; limit?: number; status?: string; jobOrderId?: string; search?: string; location?: string } = {},
     ) {
-        return this.findAll({ assignedToId: recruiterId }, opts);
+        return this.findAll({}, opts);
     }
 
     async findRecruiterCandidateById(recruiterId: string, id: string) {
-        return this.findOne(id, { assignedToId: recruiterId });
+        return this.findOne(id, {});
     }
 
     async updateRecruiterCandidate(
@@ -335,7 +321,7 @@ export class ApplicationsService {
             phone?: string;
         },
     ) {
-        return this.updateApplicationCandidate(id, dto, { assignedToId: recruiterId });
+        return this.updateApplicationCandidate(id, dto, {});
     }
 
     async updateApplicationCandidate(
@@ -350,7 +336,7 @@ export class ApplicationsService {
             email?: string;
             phone?: string;
         },
-        scope: Partial<{ assignedToId: string; companyIds: string[] }> = {},
+        scope: Partial<{ companyIds: string[] }> = {},
     ) {
         const app = await this.getApplication(id, scope);
 
@@ -399,7 +385,7 @@ export class ApplicationsService {
 
     private async getApplication(
         id: string,
-        scope: Partial<{ assignedToId: string; companyIds: string[] }> = {},
+        scope: Partial<{ companyIds: string[] }> = {},
     ): Promise<Application> {
         const app = await this.repo.findOne({
             where: { id },
@@ -407,9 +393,6 @@ export class ApplicationsService {
         });
         if (!app) throw new NotFoundException('Application not found');
 
-        if (scope.assignedToId && app.jobOrder?.assignedToId !== scope.assignedToId) {
-            throw new NotFoundException('Application not found');
-        }
         if (scope.companyIds?.length && !scope.companyIds.includes(app.jobOrder?.companyId ?? '')) {
             throw new NotFoundException('Application not found');
         }

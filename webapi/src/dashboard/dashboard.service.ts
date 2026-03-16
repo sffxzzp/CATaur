@@ -58,7 +58,7 @@ export class DashboardService {
         };
     }
 
-    /** Recruiter dashboard — scoped to their assigned job orders */
+    /** Recruiter dashboard — all job orders and applications */
     async getRecruiterDashboard(recruiterId: string) {
         const [
             myJobOrders,
@@ -67,33 +67,15 @@ export class DashboardService {
             awaitingDecision,
             recentApplications,
         ] = await Promise.all([
-            this.jobOrderRepo.count({ where: { assignedToId: recruiterId } }),
-            this.applicationRepo
-                .createQueryBuilder('app')
-                .leftJoin('app.jobOrder', 'jo')
-                .where('jo.assignedToId = :rid', { rid: recruiterId })
-                .getCount(),
-            this.applicationRepo
-                .createQueryBuilder('app')
-                .leftJoin('app.jobOrder', 'jo')
-                .where('jo.assignedToId = :rid', { rid: recruiterId })
-                .andWhere('app.status = :s', { s: 'interview' })
-                .getCount(),
-            this.applicationRepo
-                .createQueryBuilder('app')
-                .leftJoin('app.jobOrder', 'jo')
-                .where('jo.assignedToId = :rid', { rid: recruiterId })
-                .andWhere('app.status = :s', { s: 'offer' })
-                .getCount(),
-            this.applicationRepo
-                .createQueryBuilder('app')
-                .leftJoin('app.jobOrder', 'jo')
-                .leftJoinAndSelect('app.candidate', 'candidate')
-                .leftJoinAndSelect('app.jobOrder', 'jobOrder')
-                .where('jo.assignedToId = :rid', { rid: recruiterId })
-                .orderBy('app.createdAt', 'DESC')
-                .limit(5)
-                .getMany(),
+            this.jobOrderRepo.count(),
+            this.applicationRepo.count(),
+            this.applicationRepo.count({ where: { status: 'interview' } }),
+            this.applicationRepo.count({ where: { status: 'offer' } }),
+            this.applicationRepo.find({
+                order: { createdAt: 'DESC' },
+                take: 5,
+                relations: ['candidate', 'jobOrder'],
+            }),
         ]);
 
         this.logger.log(`getRecruiterDashboard recruiterId=${recruiterId} → jobOrders=${myJobOrders} applications=${myApplications}`);
