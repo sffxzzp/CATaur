@@ -48,7 +48,7 @@ export class Application {
 
     // ── Candidate Info ────────────────────────────────────
     @ApiProperty({ required: false, type: String })
-    @Column({ type: 'varchar', length: 2, nullable: true })
+    @Column({ type: 'varchar', length: 64, nullable: true })
     locationCountry: string | null;
 
     @ApiProperty({ required: false, type: String })

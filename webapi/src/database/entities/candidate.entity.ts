@@ -46,7 +46,7 @@ export class Candidate {
     phone: string | null;
 
     @ApiProperty({ required: false, type: String })
-    @Column({ type: 'varchar', length: 2, nullable: true })
+    @Column({ type: 'varchar', length: 64, nullable: true })
     currentLocationCountry: string | null;
 
     @ApiProperty({ required: false, type: String })
