@@ -13,7 +13,7 @@ const inputBase =
 export default function ResetPasswordPage() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
-    
+
     const [showPw, setShowPw] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
         const form = e.currentTarget;
         const pw = (form.elements.namedItem("password") as HTMLInputElement).value;
         const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
-        
+
         if (!token) {
             setError("Reset token is missing. Please check your email link.");
             return;
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
 
         setError("");
         setLoading(true);
-        
+
         try {
             await request("/auth/reset-password", {
                 method: "POST",
@@ -74,7 +74,7 @@ export default function ResetPasswordPage() {
                         </p>
                     </div>
                     <Link
-                        href="/candidate-login"
+                        href="/login?role=candidate"
                         className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF]"
                     >
                         Sign in <ArrowRight className="h-4 w-4" />
@@ -163,7 +163,7 @@ export default function ResetPasswordPage() {
 
             <div className="mt-5 text-center">
                 <Link
-                    href="/candidate-login"
+                    href="/login?role=candidate"
                     className="text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                 >
                     Back to sign in

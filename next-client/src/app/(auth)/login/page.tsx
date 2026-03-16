@@ -2,22 +2,80 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState, useRef } from "react";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, RefreshCw, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { request } from "@/lib/request";
+import { auth, googleProvider, githubProvider } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
 const inputBase =
   "w-full rounded-lg border border-[#D1D5DB] bg-white px-3.5 py-2.5 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15";
 
-// ─── Staff login form (email + password) ──────────────────────────────────────
+// ─── Social login button ───────────────────────────────────────────────────────
 
-function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: string) => void; loading: boolean }) {
+function SocialButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-[#D1D5DB] bg-white px-4 py-2.5 text-sm font-medium text-[#374151] transition hover:border-[#9CA3AF] hover:bg-[#F9FAFB]"
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+// ─── Google SVG ───────────────────────────────────────────────────────────────
+
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908C16.658 14.252 17.64 11.945 17.64 9.2z" fill="#4285F4" />
+    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853" />
+    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05" />
+    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335" />
+  </svg>
+);
+
+// ─── GitHub SVG ─────────────────────────────────────────────────────────────
+const GitHubIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path
+      d="M9 0C4.03 0 0 4.03 0 9c0 3.97 2.58 7.35 6.16 8.54.45.08.62-.2.62-.43v-1.51c-2.5.54-3.03-1.2-3.03-1.2-.41-1.04-.99-1.32-.99-1.32-.82-.56.06-.55.06-.55.91.06 1.39.93 1.39.93.81 1.38 2.11.98 2.63.75.08-.58.32-.98.57-1.21-1.99-.23-4.09-.99-4.09-4.43 0-.98.35-1.78.93-2.41-.09-.23-.4-1.14.09-2.38 0 0 .75-.24 2.47.92.71-.2 1.48-.3 2.24-.3.76 0 1.53.1 2.24.3 1.72-1.16 2.47-.92 2.47-.92.49 1.24.18 2.15.09 2.38.58.63.93 1.43.93 2.41 0 3.45-2.11 4.2-4.11 4.42.32.28.61.82.61 1.66v2.47c0 .23.16.51.62.43A8.997 8.997 0 0018 9c0-4.97-4.03-9-9-9z"
+      fill="#181717"
+    />
+  </svg>
+);
+
+// ─── Divider ──────────────────────────────────────────────────────────────────
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-px flex-1 bg-[#E5E7EB]" />
+      <span className="text-xs text-[#9CA3AF]">{label}</span>
+      <div className="h-px flex-1 bg-[#E5E7EB]" />
+    </div>
+  );
+}
+
+// ─── Password form ────────────────────────────────────────────────────────────
+
+function PasswordForm({ onSubmit, isPending }: { onSubmit: (email: string, pw: string) => void, isPending?: boolean }) {
+  const [showPw, setShowPw] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const pwRef = useRef<HTMLInputElement>(null);
-  const [showPw, setShowPw] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +84,6 @@ function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: s
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Email */}
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[#374151]">Email address</label>
         <div className="relative">
@@ -42,9 +99,13 @@ function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: s
         </div>
       </div>
 
-      {/* Password */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[#374151]">Password</label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-[#374151]">Password</label>
+          <Link href="/forgot-password" className="text-xs font-medium text-[#1D4ED8] hover:underline underline-offset-2">
+            Forgot password?
+          </Link>
+        </div>
         <div className="relative">
           <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
           <input
@@ -54,7 +115,6 @@ function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: s
             required
             placeholder="Enter password"
             className={cn(inputBase, "pl-9 pr-9")}
-            disabled={loading}
           />
           <button
             type="button"
@@ -69,10 +129,114 @@ function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: s
 
       <button
         type="submit"
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF] disabled:opacity-50"
+        disabled={isPending}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF] disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? "Signing in…" : "Sign in"} <ArrowRight className="h-4 w-4" />
+        {isPending ? "Signing in..." : <>Sign in <ArrowRight className="h-4 w-4" /></>}
+      </button>
+    </form>
+  );
+}
+
+// ─── OTP form ─────────────────────────────────────────────────────────────────
+
+function OtpForm({ onSubmit, isPending, onError }: { onSubmit: (email: string, code: string) => void, isPending?: boolean, onError: (msg: string) => void }) {
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
+
+  const sendCode = async () => {
+    const email = emailRef.current?.value?.trim() ?? "";
+    if (!email) {
+      onError("Please enter your email first.");
+      return;
+    }
+
+    setSending(true);
+    try {
+      await request("/auth/request-verification-code", {
+        method: "POST",
+        json: { email },
+        skipDefaults: true
+      });
+      setSent(true);
+      setCountdown(60);
+      const timer = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) { clearInterval(timer); return 0; }
+          return c - 1;
+        });
+      }, 1000);
+    } catch (err: any) {
+      console.error("Send code error:", err);
+      onError(err.message || "Failed to send verification code.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(emailRef.current?.value?.trim() ?? "", codeRef.current?.value?.trim() ?? "");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-[#374151]">Email address</label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+            <input
+              ref={emailRef}
+              type="email"
+              required
+              placeholder="you@example.com"
+              className={cn(inputBase, "pl-9")}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={sendCode}
+            disabled={countdown > 0 || sending}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-[#1D4ED8] px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition hover:bg-[#EFF6FF] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            ) : countdown > 0 ? (
+              <>{countdown}s</>
+            ) : (
+              sent ? "Resend" : "Send code"
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-[#374151]">Verification code</label>
+        <input
+          ref={codeRef}
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          required
+          placeholder="6-digit code"
+          className={inputBase}
+          disabled={!sent}
+        />
+        {!sent && (
+          <p className="text-xs text-[#9CA3AF]">Enter your email and click Send code first.</p>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        disabled={!sent || isPending}
+        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E40AF] disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isPending ? "Signing in..." : <>Sign in <ArrowRight className="h-4 w-4" /></>}
       </button>
     </form>
   );
@@ -80,65 +244,131 @@ function StaffLoginForm({ onSubmit, loading }: { onSubmit: (email: string, pw: s
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function StaffLoginPage() {
+export default function UnifiedLoginPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const role = params.get("role") ?? "recruiter";
+  const role = params.get("role") || "candidate";
 
-  const { title, subtitle } = useMemo(() => {
-    switch (role) {
-      case "client":
-        return { title: "Client Portal", subtitle: "Review submitted candidates and decisions" };
-      default:
-        return { title: "Recruiter Console", subtitle: "Sign in to manage job orders and pipelines" };
-    }
-  }, [role]);
+  const isCandidate = role === "candidate";
+  const isClient = role === "client";
+  const isRecruiterOrAdmin = role === "recruiter" || role === "admin";
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"password" | "otp">("password");
+
+  const [isPending, setIsPending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const handleLogin = useCallback(
+  const { title, subtitle } = useMemo(() => {
+    if (isCandidate) return { title: "Sign in to CATaur", subtitle: "Find your next opportunity" };
+    if (isClient) return { title: "Client Portal", subtitle: "Review submitted candidates and decisions" };
+    return { title: "Recruiter Console", subtitle: "Sign in to manage job orders and pipelines" };
+  }, [isCandidate, isClient]);
+
+  const processSuccessfulLogin = (data: any, email: string) => {
+    if (data.mfa_required) {
+      throw new Error("MFA is required but not yet supported.");
+    }
+
+    if (data.access_token) {
+      localStorage.setItem("authToken", data.access_token);
+    }
+
+    const actualRole = data.roles?.[0] || (isCandidate ? "Candidate" : "Recruiter");
+
+    if (actualRole === "Candidate") {
+      localStorage.setItem("candidateLoggedIn", "1");
+      localStorage.setItem("candidateEmail", data.email || email);
+      localStorage.setItem("candidateName", data.email ? data.email.split('@')[0] : "Candidate");
+    } else if (actualRole === "Client") {
+      localStorage.setItem("clientLoggedIn", "1");
+    } else {
+      const isAdmin = actualRole === "Admin";
+      localStorage.setItem("userRole", isAdmin ? "admin" : "recruiter");
+      localStorage.setItem("recruiterLoggedIn", "1");
+    }
+
+    setSuccessMsg("Login successful! Redirecting...");
+
+    // Redirect logic: check params first, then role
+    const defaultRedirect = actualRole === "Candidate" ? "/candidate" : (actualRole === "Client" ? "/client" : "/recruiter");
+    const redirectUrl = params.get("redirect") || defaultRedirect;
+
+    setTimeout(() => {
+      router.push(redirectUrl);
+    }, 1000);
+  };
+
+  const handlePasswordLogin = useCallback(
     async (email: string, pw: string) => {
-      setLoading(true);
-      setError(null);
+      setIsPending(true);
+      setErrorMsg(null);
       setSuccessMsg(null);
+
       try {
-        const res = await request("/auth/login/password", {
+        const data = await request("/auth/login/password", {
           method: "POST",
           json: { email, password: pw },
-          skipDefaults: true,
+          skipDefaults: true
         });
-
-        // Save token & role
-        localStorage.setItem("authToken", res?.access_token);
-        const actualRole = res?.roles?.[0]; // "Admin", "Recruiter", "Client"
-
-        const redirect = params.get("redirect");
-        const redirectUrl = (actualRole === "Client" ? "/client" : "/recruiter");
-
-        if (actualRole === "Client") {
-          localStorage.setItem("clientLoggedIn", "1");
-        } else {
-          const isAdmin = actualRole === "Admin";
-          localStorage.setItem("userRole", isAdmin ? "admin" : "recruiter");
-          localStorage.setItem("recruiterLoggedIn", "1");
-        }
-
-        // Show success message and delay redirect slightly to let user see it
-        setSuccessMsg("Login successful! Redirecting...");
-
-        setTimeout(() => {
-          router.push(redirectUrl);
-        }, 1000);
+        processSuccessfulLogin(data, email);
       } catch (err: any) {
-        setError(err.message ?? "Invalid email or password.");
+        console.error("Login Error:", err);
+        setErrorMsg(err.message || "Invalid email or password");
       } finally {
-        setLoading(false);
+        setIsPending(false);
       }
     },
-    [params, router]
+    [params, router, isCandidate]
   );
+
+  const handleOtpLogin = useCallback(
+    async (email: string, code: string) => {
+      setIsPending(true);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+
+      try {
+        const data = await request("/auth/login/verification-code", {
+          method: "POST",
+          json: { email, code },
+          skipDefaults: true
+        });
+        processSuccessfulLogin(data, email);
+      } catch (err: any) {
+        console.error("OTP Login Error:", err);
+        setErrorMsg(err.message || "Invalid verification code");
+      } finally {
+        setIsPending(false);
+      }
+    },
+    [params, router, isCandidate]
+  );
+
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    setIsPending(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const firebaseProvider = provider === 'google' ? googleProvider : githubProvider;
+      const result = await signInWithPopup(auth, firebaseProvider);
+      const idToken = await result.user.getIdToken();
+
+      const endpoint = provider === 'google' ? "/auth/login/google" : "/auth/login/github";
+      const data = await request(endpoint, {
+        method: "POST",
+        json: { idToken },
+        skipDefaults: true
+      });
+      processSuccessfulLogin(data, result.user.email || 'social-login');
+    } catch (err: any) {
+      console.error(`${provider} Login Error:`, err);
+      setErrorMsg(err.message || `${provider} Login failed`);
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-[0_4px_24px_-4px_rgba(12,24,55,0.12)]">
@@ -148,9 +378,9 @@ export default function StaffLoginPage() {
         <p className="mt-1 text-sm text-[#6B7280]">{subtitle}</p>
       </div>
 
-      {error && (
+      {errorMsg && (
         <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
-          {error}
+          {errorMsg}
         </div>
       )}
 
@@ -161,26 +391,94 @@ export default function StaffLoginPage() {
         </div>
       )}
 
-      <StaffLoginForm onSubmit={handleLogin} loading={loading} />
-
-      {/* Role switcher */}
-      <p className="mt-5 text-center text-xs text-[#6B7280]">
-        {role === "client" ? (
+      <div className="space-y-5">
+        {/* Social login ONLY for candidate */}
+        {isCandidate && (
           <>
-            Recruiter?{" "}
-            <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-              Sign in here
-            </Link>
-          </>
-        ) : (
-          <>
-            Client?{" "}
-            <Link href="/login?role=client" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-              Sign in here
-            </Link>
+            <div className="grid grid-cols-2 gap-3">
+              <SocialButton icon={<GoogleIcon />} label="Google" onClick={() => handleSocialLogin("google")} />
+              <SocialButton icon={<GitHubIcon />} label="GitHub" onClick={() => handleSocialLogin("github")} />
+            </div>
+            <Divider label="or sign in with email" />
           </>
         )}
-      </p>
+
+        {/* Tabs for Password vs OTP */}
+        <div className="flex rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] p-1">
+          <button
+            type="button"
+            onClick={() => setTab("password")}
+            className={cn(
+              "flex-1 rounded-md py-1.5 text-xs font-medium transition",
+              tab === "password" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
+            )}
+          >
+            Password
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("otp")}
+            className={cn(
+              "flex-1 rounded-md py-1.5 text-xs font-medium transition",
+              tab === "otp" ? "bg-white text-[#111827] shadow-sm" : "text-[#6B7280] hover:text-[#374151]"
+            )}
+          >
+            Verification code
+          </button>
+        </div>
+
+        {tab === "password" ? (
+          <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
+        ) : (
+          <OtpForm onSubmit={handleOtpLogin} isPending={isPending} onError={(msg) => setErrorMsg(msg)} />
+        )}
+
+        {/* Role switcher & Sign up links */}
+        <div className="mt-5 space-y-2 text-center text-xs text-[#6B7280]">
+          {isCandidate ? (
+            <>
+              <p>
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                  Create one
+                </Link>
+              </p>
+              <p className="pt-2">
+                Client or Recruiter?{" "}
+                <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                  Staff sign in
+                </Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <p>
+                Looking for a job?{" "}
+                <Link href="/login?role=candidate" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                  Candidate sign in
+                </Link>
+              </p>
+              <p className="pt-2">
+                {isClient ? (
+                  <>
+                    Recruiter?{" "}
+                    <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                      Recruiter sign in
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    Client?{" "}
+                    <Link href="/login?role=client" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                      Client sign in
+                    </Link>
+                  </>
+                )}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

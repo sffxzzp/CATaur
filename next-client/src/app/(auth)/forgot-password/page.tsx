@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
         setError("");
         setLoading(true);
         setEmail(val);
-        
+
         try {
             await request("/auth/request-password-reset", {
                 method: "POST",
@@ -120,7 +120,7 @@ export default function ForgotPasswordPage() {
                     <div className="h-px w-full bg-[#E5E7EB]" />
 
                     <Link
-                        href="/candidate-login"
+                        href="/login?role=candidate"
                         className="flex items-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                     >
                         <ArrowLeft className="h-3.5 w-3.5" />
@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
 
             <div className="mt-5 text-center">
                 <Link
-                    href="/candidate-login"
+                    href="/login?role=candidate"
                     className="flex items-center justify-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition"
                 >
                     <ArrowLeft className="h-3.5 w-3.5" />

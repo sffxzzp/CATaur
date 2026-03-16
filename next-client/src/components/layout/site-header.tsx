@@ -219,9 +219,9 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
     if (token) {
       request("/candidate/profile").then((res) => {
         if (res && res.data && res.data.email) {
-           setCandidateEmail(res.data.email);
+          setCandidateEmail(res.data.email);
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, []);
 
@@ -511,7 +511,7 @@ export function SiteHeader() {
           ) : (
             <div className="flex items-center gap-2">
               <Link
-                href="/candidate-login"
+                href="/login?role=candidate"
                 className="text-sm font-medium text-[var(--gray-600)] hover:text-[var(--accent)] transition"
               >
                 Log in
@@ -579,7 +579,7 @@ export function SiteHeader() {
               </>
             ) : (
               <Link
-                href="/candidate-login"
+                href="/login?role=candidate"
                 onClick={closeMenu}
                 className="flex items-center gap-2 text-sm font-medium text-[var(--gray-600)] hover:text-[var(--accent)] transition"
               >

@@ -50,7 +50,7 @@ export function GuestGate({ children }: { children: React.ReactNode }) {
                     You need to be signed in to access this page.
                 </p>
                 <Link
-                    href={`/candidate-login?redirect=${redirect}`}
+                    href={`/login?role=candidate&redirect=${redirect}`}
                     className="mt-6 inline-flex items-center gap-2 rounded bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
                 >
                     Sign in to continue
@@ -127,7 +127,7 @@ export function LoginToApplyModal({
                         Create Account
                     </Link>
                     <Link
-                        href={`/candidate-login?redirect=${redirect}`}
+                        href={`/login?role=candidate&redirect=${redirect}`}
                         className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
                     >
                         Sign In
