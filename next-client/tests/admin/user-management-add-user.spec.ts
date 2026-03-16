@@ -5,7 +5,8 @@ function uniqueEmail(prefix = 'e2e.user') {
 }
 
 /**
- * ✅ 登录 Recruiter/Admin（你们现在是 recruiter/admin 同一个账号）
+ * Log in as Recruiter/Admin
+ * Currently recruiter and admin use the same account
  */
 async function loginRecruiterAdmin(page: Page) {
   await page.goto('/login?role=recruiter');
@@ -13,48 +14,50 @@ async function loginRecruiterAdmin(page: Page) {
   await page.locator('#password').fill('123');
   await page.getByRole('button', { name: /^Sign in$/ }).click();
 
-  // 登录后可能到 /recruiter 或 /administer
+  // After login the page may go to /recruiter or /administer
   await expect(page).toHaveURL(/\/recruiter|\/administer/i);
 }
 
 /**
- * ✅ 打开 User Management 页面
+ * Open the User Management page
  */
 async function openUserManagement(page: Page) {
-  // 左侧菜单通常是 link 或 button，直接点文字最稳
+  // Click the menu item on the left side
   await page.getByText(/user management/i).click();
   await expect(page.getByText(/user management/i)).toBeVisible({ timeout: 8000 });
 }
 
 /**
- * ✅ 打开 Add User 弹窗，并返回弹窗容器 Locator
- * 关键：不依赖 role=dialog，而是用“Add User 标题”定位弹窗范围
+ * Open the Add User modal window
+ * Return the modal container locator
+ * We use the "Add User" title to find the modal
  */
 async function openAddUserModal(page: Page): Promise<Locator> {
-  // 1) 点击右上角按钮 Add User（这个就是按钮）
+  // Click the Add User button
   await page.getByRole('button', { name: /^Add User$/i }).click();
 
-  // 2) ✅ 只锁定弹窗标题（heading），避免和按钮撞名
+  // Find the modal title
   const title = page.getByRole('heading', { name: /^Add User$/i });
   await expect(title).toBeVisible({ timeout: 8000 });
 
-  // 3) 用标题往上找弹窗容器
+  // Go up in the DOM to find the modal container
   const modal = title.locator('xpath=ancestor::*[self::div or self::section][2]');
   await expect(modal).toBeVisible({ timeout: 8000 });
 
-  // 4) 确认弹窗里有输入框（证明 scope 对）
+  // Make sure the modal contains input fields
   await expect(modal.locator('input').first()).toBeVisible({ timeout: 8000 });
 
   return modal;
 }
 
 /**
- * ✅ 填 Add User 表单（按你截图的 placeholder）
+ * Fill the Add User form
+ * Based on the placeholders in the UI:
  * - Account Name: "e.g. Jane Smith"
  * - Email: "user@example.com"
  * - Phone: "+1 416-555-0000"
- * - Password: type=password
- * - Role: 下拉（Radix/Select 都兼容）
+ * - Password: password field
+ * - Role: dropdown menu
  */
 async function fillAddUserForm(modal: Locator, opts: {
   name: string;
@@ -63,17 +66,17 @@ async function fillAddUserForm(modal: Locator, opts: {
   phone: string;
   password: string;
 }) {
-  // 1) Account Name
+  // Fill Account Name
   await modal.locator('input[placeholder*="Jane"]').fill(opts.name);
 
-  // 2) Role（下拉）
-  // 可能是 <select> 或 Radix trigger button
+  // Select Role (dropdown)
   const roleSelect = modal.locator('select').first();
+
   if (await roleSelect.count()) {
+    // If it is a normal HTML select
     await roleSelect.selectOption({ label: opts.roleText });
   } else {
-    // Radix 常见：一个按钮/输入触发器
-    // 你截图里默认显示 Recruiter，所以我们找弹窗内“Role”下面那个触发器：
+    // If it is a custom dropdown (Radix UI style)
     const roleTrigger =
       modal.getByRole('combobox').first()
         .or(modal.locator('button').filter({ hasText: /recruiter|client/i }).first())
@@ -81,31 +84,32 @@ async function fillAddUserForm(modal: Locator, opts: {
 
     await roleTrigger.click();
 
-    // 选项通常渲染在 body portal 外，所以用 page 范围找
+    // Options may appear outside the modal (portal)
     const page = modal.page();
     await page.getByText(new RegExp(`^${opts.roleText}$`, 'i')).click();
   }
 
-  // 3) Email
+  // Fill Email
   await modal.locator('input[placeholder*="user@"]').fill(opts.email);
 
-  // 4) Phone
+  // Fill Phone
   await modal.locator('input[placeholder*="+1"]').fill(opts.phone);
 
-  // 5) Password
+  // Fill Password
   await modal.locator('input[type="password"]').fill(opts.password);
 
-  // Status 默认 Active，不用动（如要测试 Disabled 再加）
+  // Status is Active by default, no need to change
 }
 
 /**
- * ✅ 点击 Confirm
+ * Click the Confirm button to create the user
  */
 async function confirmAddUser(modal: Locator) {
   await modal.getByRole('button', { name: /confirm/i }).click();
 }
 
 test.describe('Admin - User Management (Add User)', () => {
+
   test('TC-UM-ADD-001 - Admin can add a Recruiter user', async ({ page }) => {
     const email = uniqueEmail('e2e.recruiter');
     const password = 'Password123!';
@@ -125,7 +129,7 @@ test.describe('Admin - User Management (Add User)', () => {
 
     await confirmAddUser(modal);
 
-    // ✅ 断言：列表出现新邮箱
+    // Verify the new email appears in the user list
     await expect(page.getByText(email)).toBeVisible({ timeout: 10000 });
   });
 
@@ -150,4 +154,5 @@ test.describe('Admin - User Management (Add User)', () => {
 
     await expect(page.getByText(email)).toBeVisible({ timeout: 10000 });
   });
+
 });

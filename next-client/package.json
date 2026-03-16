@@ -11,7 +11,14 @@
     "test:login": "npx playwright test tests/auth/login.spec.ts --project=chromium --headed",
     "test:logout": "npx playwright test tests/auth/logout.spec.ts --project=chromium --headed",
     "test:register": "npx playwright test tests/auth/register.spec.ts --project=chromium --headed",
-    "test:admin-users": "npx playwright test tests/admin/user-management-add-user.spec.ts --project=chromium --headed"
+    "test:admin-users": "npx playwright test tests/admin/user-management-add-user.spec.ts --project=chromium --headed",
+    "test:forgot": "npx playwright test tests/auth/forgot-password.spec.ts --project=chromium --headed",
+    "test:candidate-nav": "npx playwright test tests/candidate/navigation.spec.ts --project=chromium --headed",
+    "test:candidate-jobs": "npx playwright test tests/candidate/job-search.spec.ts --project=chromium --headed",
+    "test:candidate-details": "npx playwright test tests/candidate/job-details.spec.ts --project=chromium --headed",
+    "test:candidate-applications": "npx playwright test tests/candidate/applications.spec.ts --project=chromium --headed",
+    "test:candidate-profile": "npx playwright test tests/candidate/profile.spec.ts --project=chromium --headed",
+    "test:candidate-home": "npx playwright test tests/candidate/home.spec.ts --project=chromium --headed"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
