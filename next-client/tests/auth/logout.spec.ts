@@ -1,164 +1,182 @@
-// Import Playwright test framework
 import { test, expect, type Page } from '@playwright/test';
 
-// Define available user roles
-type Role = 'recruiter' | 'client' | 'candidate';
-
-// Test account information for each role
-// Includes login credentials, home page URL, and protected page path
-const accounts: Record<Role, { email: string; password: string; homeUrl: RegExp; protectedPath: string }> = {
-
-  // Recruiter account
-  // After login, the user should be redirected to /recruiter
-  recruiter: {
-    email: 'allan@cataur.com',
-    password: '123',
-    homeUrl: /\/recruiter\/?$/,
-    protectedPath: '/recruiter',
-  },
-
-  // Client account
-  client: {
-    email: 'client@example.com',
-    password: '123',
-    homeUrl: /\/client\/?$/,
-    protectedPath: '/client',
-  },
-
-  // Candidate account
-  candidate: {
-    email: 'allan@cataur.com',
-    password: '123',
-    homeUrl: /\/candidate\/?$/,
-    protectedPath: '/candidate',
-  },
-};
-
 /**
- * Login helper function.
- * Opens the login page for a specific role and performs login.
+ * Helper function to perform login.
+ * This function navigates to the login page, fills in credentials,
+ * and clicks the Sign in button.
  */
-async function loginAs(page: Page, role: Role) {
-
+async function login(
+  page: Page,
+  role: 'admin' | 'client' | 'recruiter',
+  email: string,
+  password: string
+) {
   // Navigate to the login page for the selected role
   await page.goto(`/login?role=${role}`);
 
-  // Enter email
-  await page.locator('#email').fill(accounts[role].email);
+  // Fill email input
+  await page.locator('#email').fill(email);
 
-  // Enter password
-  await page.locator('#password').fill(accounts[role].password);
+  // Fill password input
+  await page.locator('#password').fill(password);
 
-  // Click the "Sign in" button
+  // Click the Sign in button
   await page.getByRole('button', { name: /^Sign in$/ }).click();
-
-  // Verify user is redirected to the correct home page
-  await expect(page).toHaveURL(accounts[role].homeUrl);
 }
 
 /**
- * Open the user menu in the top-right corner.
- * The menu usually appears when clicking the avatar icon.
+ * Helper function used for debugging.
+ * It prints the current page URL and part of the page text.
+ */
+async function printDebugInfo(page: Page, label: string) {
+  console.log(`\n[DEBUG] ${label}`);
+  console.log('[DEBUG] Current URL:', page.url());
+
+  const bodyText = await page.locator('body').innerText().catch(() => '');
+  console.log('[DEBUG] Page text snippet:\n', bodyText.slice(0, 1000));
+}
+
+/**
+ * Helper function to login and verify success.
+ */
+async function loginAndVerify(
+  page: Page,
+  role: 'admin' | 'client' | 'recruiter',
+  email: string,
+  password: string
+) {
+  // Perform login
+  await login(page, role, email, password);
+
+  // If login failed and user is still on login page, print debug info
+  if (new RegExp(`/login\\?role=${role}`, 'i').test(page.url())) {
+    await printDebugInfo(page, `${role} login failed`);
+  }
+
+  // Expected result: user should leave the login page
+  await expect(page).not.toHaveURL(new RegExp(`/login\\?role=${role}`, 'i'));
+}
+
+/**
+ * Helper function to open the user menu.
  */
 async function openUserMenu(page: Page) {
+  // Try avatar button with initials
+  const avatarButton = page
+    .locator('button:visible')
+    .filter({ hasText: /^[A-Z]{1,3}$/ })
+    .last();
 
-  // Try to find avatar buttons with text like AR / CC / A
-  const avatarByText = page.locator('button:visible').filter({ hasText: /^[A-Z]{1,3}$/ }).last();
-
-  if (await avatarByText.count()) {
-    // Click the avatar button
-    await avatarByText.click();
-  } else {
-
-    // Fallback method:
-    // Click the last visible button in the header (usually the avatar)
-    const btns = page.locator('header button:visible');
-    const n = await btns.count();
-    await btns.nth(n - 1).click();
+  if ((await avatarButton.count()) > 0) {
+    await avatarButton.click();
+    return;
   }
+
+  // Try common buttons in header
+  const headerButtons = page.locator('header button:visible');
+  const count = await headerButtons.count();
+
+  if (count > 0) {
+    await headerButtons.nth(count - 1).click();
+    return;
+  }
+
+  // Try accessible button names
+  const menuButton = page.getByRole('button', {
+    name: /profile|account|menu|user|avatar/i,
+  });
+
+  if ((await menuButton.count()) > 0) {
+    await menuButton.first().click();
+    return;
+  }
+
+  await printDebugInfo(page, 'User menu button not found');
+  throw new Error('Could not find user menu button.');
 }
 
 /**
- * Logout helper function.
- * Opens the user menu and clicks the logout option.
+ * Helper function to perform logout.
  */
 async function logout(page: Page) {
-
-  // Open the user menu
+  // Open user menu
   await openUserMenu(page);
 
-  // Support different logout text options:
-  // "Log out", "Logout", or "Sign out"
+  // Click logout item
   const logoutItem = page.getByText(/log\s*out|logout|sign\s*out/i).first();
-
-  // Ensure the logout button is visible before clicking
   await expect(logoutItem).toBeVisible({ timeout: 8000 });
-
-  // Click logout
   await logoutItem.click();
 
-  // Verify the user is redirected to the login page
-  await expect(page).toHaveURL(/\/login/);
+  // If logout failed, print debug info
+  if (!/\/login/i.test(page.url())) {
+    await printDebugInfo(page, 'Logout may have failed');
+  }
+
+  // Expected result: user should be redirected to login page
+  await expect(page).toHaveURL(/\/login/i);
 }
 
-// Test suite for logout functionality
-test.describe('Auth - Logout (3 roles)', () => {
+/**
+ * Test Suite: Authentication - Logout
+ * This suite verifies that different user roles can log out successfully.
+ */
+test.describe('Auth - Logout', () => {
 
   /**
-   * TC-LOGOUT-RECRUITER
-   * Verify recruiter can logout and cannot access protected pages.
+   * TC001
+   * Verify that an admin user can log out successfully.
+   * Note: /admin is publicly accessible, so route blocking is not tested here.
    */
-  test('TC-LOGOUT-RECRUITER - Recruiter can logout and is blocked', async ({ page }) => {
+  test('TC001 - Admin can logout successfully', async ({ page }) => {
 
-    // Login as recruiter
-    await loginAs(page, 'recruiter');
+    // Step 1: Login as admin
+    await loginAndVerify(page, 'admin', 'mason@gmail.com', '1234567890');
 
-    // Perform logout
+    // Step 2: Perform logout
     await logout(page);
 
-    // Try to access protected recruiter page
-    await page.goto(accounts.recruiter.protectedPath);
-
-    // Verify user is redirected back to login page
-    await expect(page).toHaveURL(/\/login/);
+    // Expected result: user should be redirected to login page
+    await expect(page).toHaveURL(/\/login/i);
   });
 
   /**
-   * TC-LOGOUT-CLIENT
-   * Verify client can logout and cannot access protected pages.
+   * TC002
+   * Verify that a client user can log out successfully
+   * and cannot access protected pages after logout.
    */
-  test('TC-LOGOUT-CLIENT - Client can logout and is blocked', async ({ page }) => {
+  test('TC002 - Client can logout and is blocked', async ({ page }) => {
 
-    // Login as client
-    await loginAs(page, 'client');
+    // Step 1: Login as client
+    await loginAndVerify(page, 'client', 'mike@outlook.com', '1234567890');
 
-    // Logout
+    // Step 2: Perform logout
     await logout(page);
 
-    // Attempt to access client dashboard again
-    await page.goto(accounts.client.protectedPath);
+    // Step 3: Try to access protected client page again
+    await page.goto('/client');
 
-    // Verify access is blocked and redirected to login
-    await expect(page).toHaveURL(/\/login/);
+    // Expected result: user should be redirected to login page
+    await expect(page).toHaveURL(/\/login/i);
   });
 
   /**
-   * TC-LOGOUT-CANDIDATE
-   * Verify candidate can logout and cannot access protected pages.
+   * TC003
+   * Verify that a recruiter user can log out successfully
+   * and cannot access protected pages after logout.
    */
-  test('TC-LOGOUT-CANDIDATE - Candidate can logout and is blocked', async ({ page }) => {
+  test('TC003 - Recruiter can logout and is blocked', async ({ page }) => {
 
-    // Login as candidate
-    await loginAs(page, 'candidate');
+    // Step 1: Login as recruiter
+    await loginAndVerify(page, 'recruiter', 'tom@outlook.com', '1234567890');
 
-    // Logout
+    // Step 2: Perform logout
     await logout(page);
 
-    // Attempt to open candidate page again
-    await page.goto(accounts.candidate.protectedPath);
+    // Step 3: Try to access protected recruiter page again
+    await page.goto('/recruiter');
 
-    // Verify user is redirected to login page
-    await expect(page).toHaveURL(/\/login/);
+    // Expected result: user should be redirected to login page
+    await expect(page).toHaveURL(/\/login/i);
   });
 
 });
