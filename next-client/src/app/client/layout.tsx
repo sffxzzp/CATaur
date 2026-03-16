@@ -5,6 +5,7 @@ import { Bell, ChevronRight, Menu, User, Type, Sun, Moon, LogOut, Check } from "
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { request } from "@/lib/request";
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/client": { title: "Dashboard", subtitle: "Overview of your hiring pipeline" },
@@ -36,7 +37,7 @@ const FONT_SIZES = [
 
 /* ─── Avatar Dropdown ────────────────────────────────────────────────────── */
 
-function AvatarDropdown({ userName }: { userName: string }) {
+function AvatarDropdown({ userName, email }: { userName: string; email: string }) {
   const [open, setOpen] = useState(false);
   const [fontIdx, setFontIdx] = useState(1);
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -102,7 +103,7 @@ function AvatarDropdown({ userName }: { userName: string }) {
           {/* User info */}
           <div className="border-b border-[var(--border)] px-4 py-3">
             <p className="text-sm font-semibold text-[var(--gray-900)]">{userName}</p>
-            <p className="text-xs text-[var(--gray-500)]">client@example.com</p>
+            <p className="text-xs text-[var(--gray-500)]">{email}</p>
           </div>
 
           {/* Font Size */}
@@ -166,13 +167,144 @@ function AvatarDropdown({ userName }: { userName: string }) {
   );
 }
 
-/* ─── Notification Button ─────────────────────────────────────────────────── */
+/* ─── Notification Dropdown ──────────────────────────────────────────────── */
 
-function NotificationButton() {
+type NotificationItem = {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+function formatRelativeTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diff = Date.now() - date.getTime();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return "Just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} min${min > 1 ? "s" : ""} ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hour${hr > 1 ? "s" : ""} ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 7) return `${day} day${day > 1 ? "s" : ""} ago`;
+  return date.toLocaleDateString();
+}
+
+function toBadgeLabel(type: string) {
+  return type
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function NotificationDropdown() {
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const hasUnread = notifications.some((n) => !n.isRead);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const data = await request<NotificationItem[]>("/client/notifications?status=unread");
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch {
+        setNotifications([]);
+      }
+    };
+    loadNotifications();
+  }, []);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const handleOpen = async () => {
+    setOpen((prev) => !prev);
+  };
+
+  const handleReadAll = async () => {
+    if (!hasUnread) return;
+    try {
+      await request<void>("/client/notifications/read-all", { method: "PATCH" });
+    } finally {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    }
+  };
+
   return (
-    <button className="relative flex h-8 w-8 items-center justify-center rounded-md text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)] transition-colors">
-      <Bell className="h-[18px] w-[18px]" />
-    </button>
+    <div ref={ref} className="relative">
+      <button
+        onClick={handleOpen}
+        className="relative flex h-8 w-8 items-center justify-center rounded-md text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)] transition-colors"
+      >
+        <Bell className="h-[18px] w-[18px]" />
+        {hasUnread && (
+          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--danger)] ring-2 ring-[var(--surface)]" />
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] animate-scale-in z-50">
+          <div className="border-b border-[var(--border)] px-4 py-3 flex justify-between items-center">
+            <h3 className="text-sm font-semibold text-[var(--gray-900)]">Notifications</h3>
+            <button
+              onClick={handleReadAll}
+              disabled={!hasUnread}
+              className="text-xs font-medium text-[var(--accent)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed cursor-pointer hover:underline"
+            >
+              Read all
+            </button>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-[var(--gray-500)]">
+                No new notifications
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--border-light)]">
+                {notifications.map((n) => (
+                  <div key={n.id} className={`p-4 transition-colors cursor-pointer ${!n.isRead ? "bg-[var(--accent-light)]/30 hover:bg-[var(--accent-light)]/50" : "hover:bg-[var(--gray-50)]"}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-sm font-medium text-[var(--gray-900)]">
+                            {n.title}
+                          </p>
+                          {n.type && (
+                            <span className="inline-flex items-center rounded-full bg-[var(--status-green-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--status-green-text)]">
+                              {toBadgeLabel(n.type)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[var(--gray-600)] leading-snug">
+                          {n.body}
+                        </p>
+                        <p className="text-[10px] text-[var(--gray-400)] mt-2">
+                          {formatRelativeTime(n.createdAt)}
+                        </p>
+                      </div>
+                      {!n.isRead && (
+                        <div className="h-2 w-2 rounded-full bg-[var(--accent)] mt-1 shrink-0" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -183,7 +315,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
-  const userName = "Client Contact";
+  const [userName, setUserName] = useState("Client Contact");
+  const [email, setEmail] = useState("-");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -196,6 +329,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
     setAuthorized(true);
   }, [pathname]);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const user = await request<{ nickname?: string; email?: string }>("/users/me");
+        setUserName(user?.nickname || "Client Contact");
+        setEmail(user?.email || "-");
+      } catch {
+        setUserName("Client Contact");
+        setEmail("-");
+      }
+    };
+    loadCurrentUser();
+  }, []);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -251,12 +398,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificationButton />
+            <NotificationDropdown />
 
             <div className="ml-1 h-6 w-px bg-[var(--gray-200)]" />
 
             <div className="ml-1">
-              <AvatarDropdown userName={userName} />
+              <AvatarDropdown userName={userName} email={email} />
             </div>
           </div>
         </header>
