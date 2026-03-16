@@ -164,6 +164,14 @@ export class AuthService {
     }
 
     async loginWithGoogle(idToken: string): Promise<LoginResponseDto> {
+        return this.loginWithFirebaseToken(idToken);
+    }
+
+    async loginWithGithub(idToken: string): Promise<LoginResponseDto> {
+        return this.loginWithFirebaseToken(idToken);
+    }
+
+    private async loginWithFirebaseToken(idToken: string): Promise<LoginResponseDto> {
         const { email, name } = await this.firebaseService.verifyIdToken(idToken);
         let user = await this.usersService.findOneByEmail(email);
 

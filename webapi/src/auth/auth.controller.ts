@@ -20,6 +20,7 @@ import { TotpSetupVerifyDto } from './dto/totp-setup-verify.dto';
 import { TotpLoginDto } from './dto/totp-login.dto';
 import { TotpDisableDto } from './dto/totp-disable.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { GithubLoginDto } from './dto/github-login.dto';
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 
 import { User } from '../database/entities/user.entity';
@@ -117,6 +118,13 @@ export class AuthController {
     @ApiResponse({ status: 200, type: LoginResponseDto, description: 'Login successful' })
     async loginWithGoogle(@Body() googleLoginDto: GoogleLoginDto): Promise<LoginResponseDto> {
         return this.authService.loginWithGoogle(googleLoginDto.idToken);
+    }
+
+    @Post('login/github')
+    @ApiOperation({ summary: 'Login with GitHub via Firebase' })
+    @ApiResponse({ status: 200, type: LoginResponseDto, description: 'Login successful' })
+    async loginWithGithub(@Body() githubLoginDto: GithubLoginDto): Promise<LoginResponseDto> {
+        return this.authService.loginWithGithub(githubLoginDto.idToken);
     }
 
     @Post('request-password-reset')

@@ -6,7 +6,7 @@ import { useCallback, useRef, useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { request } from "@/lib/request";
-import { auth, googleProvider } from "@/lib/firebase";
+import { auth, googleProvider, githubProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -38,10 +38,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const LinkedInIcon = () => (
+const GitHubIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <rect width="18" height="18" rx="3" fill="#0A66C2" />
-    <path d="M4.5 7.2H6.6V13.5H4.5V7.2ZM5.55 6.3C4.87 6.3 4.5 5.91 4.5 5.4C4.5 4.89 4.88 4.5 5.565 4.5C6.25 4.5 6.6 4.89 6.6 5.4C6.6 5.91 6.23 6.3 5.55 6.3ZM13.5 13.5H11.4V10.2C11.4 9.36 11.07 8.82 10.35 8.82C9.81 8.82 9.495 9.18 9.345 9.525C9.3 9.63 9.285 9.78 9.285 9.945V13.5H7.185V7.2H9.285V8.115C9.585 7.65 10.11 7.05 11.07 7.05C12.255 7.05 13.5 7.74 13.5 9.93V13.5Z" fill="white" />
+    <path
+      d="M9 0C4.03 0 0 4.03 0 9c0 3.97 2.58 7.35 6.16 8.54.45.08.62-.2.62-.43v-1.51c-2.5.54-3.03-1.2-3.03-1.2-.41-1.04-.99-1.32-.99-1.32-.82-.56.06-.55.06-.55.91.06 1.39.93 1.39.93.81 1.38 2.11.98 2.63.75.08-.58.32-.98.57-1.21-1.99-.23-4.09-.99-4.09-4.43 0-.98.35-1.78.93-2.41-.09-.23-.4-1.14.09-2.38 0 0 .75-.24 2.47.92.71-.2 1.48-.3 2.24-.3.76 0 1.53.1 2.24.3 1.72-1.16 2.47-.92 2.47-.92.49 1.24.18 2.15.09 2.38.58.63.93 1.43.93 2.41 0 3.45-2.11 4.2-4.11 4.42.32.28.61.82.61 1.66v2.47c0 .23.16.51.62.43A8.997 8.997 0 0018 9c0-4.97-4.03-9-9-9z"
+      fill="#181717"
+    />
   </svg>
 );
 
@@ -139,10 +141,35 @@ export default function RegisterPage() {
     [params, router]
   );
 
-  const handleSocial = (email: string) => {
-    localStorage.setItem("candidateLoggedIn", "1");
-    localStorage.setItem("candidateEmail", email);
-    router.push("/candidate");
+  const handleSocial = async (provider: 'google' | 'github') => {
+    setPwError("");
+    try {
+      const firebaseProvider = provider === 'google' ? googleProvider : githubProvider;
+      const result = await signInWithPopup(auth, firebaseProvider);
+      const idToken = await result.user.getIdToken();
+
+      const endpoint = provider === 'google' ? "/auth/login/google" : "/auth/login/github";
+      const data = await request(endpoint, {
+        method: "POST",
+        json: { idToken },
+        skipDefaults: true
+      });
+
+      if (data.access_token) {
+        localStorage.setItem("authToken", data.access_token);
+      }
+
+      localStorage.setItem("candidateLoggedIn", "1");
+      localStorage.setItem("candidateEmail", data.email);
+      localStorage.setItem("candidateName", data.email.split('@')[0]);
+
+      const redirect = params.get("redirect");
+      router.push(redirect || "/candidate");
+
+    } catch (err: any) {
+      console.error(`${provider} Social Sign Up Error:`, err);
+      setPwError(err.message || `${provider} Sign up failed`);
+    }
   };
 
   return (
@@ -156,8 +183,8 @@ export default function RegisterPage() {
       <div className="space-y-5">
         {/* Social */}
         <div className="grid grid-cols-2 gap-3">
-          <SocialButton icon={<GoogleIcon />} label="Google" onClick={() => handleSocial("google-user@gmail.com")} />
-          <SocialButton icon={<LinkedInIcon />} label="LinkedIn" onClick={() => handleSocial("linkedin-user@linkedin.com")} />
+          <SocialButton icon={<GoogleIcon />} label="Google" onClick={() => handleSocial("google")} />
+          <SocialButton icon={<GitHubIcon />} label="GitHub" onClick={() => handleSocial("github")} />
         </div>
 
         <Divider label="or sign up with email" />
