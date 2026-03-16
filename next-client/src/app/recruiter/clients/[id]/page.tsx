@@ -9,6 +9,7 @@ import { usersClient } from "@/lib/api/users";
 import type { Company, JobOrder, User } from "@/lib/api/types";
 import { ArrowLeft, Phone, Mail, MapPin, Globe, Users, Code2, Briefcase, ChevronRight, X } from "lucide-react";
 import { LocationSelector, formatLocation } from "@/components/location-selector";
+import { toast } from "sonner";
 
 export default function ClientDetails({ params }: { params: Promise<{ id: string }> }) {
   const [company, setCompany] = useState<Company | null>(null);
@@ -77,7 +78,7 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
   const handleSubmit = async () => {
     if (!company || !formData.name || !formData.email) {
-      alert("Name and Email are required");
+      toast.error("Name and Email are required");
       return;
     }
     setSubmitting(true);
@@ -105,8 +106,9 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
         setClientUser(null);
       }
       setIsModalOpen(false);
+      toast.success("Company updated successfully");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to save company");
+      toast.error(error instanceof Error ? error.message : "Failed to save company");
     } finally {
       setSubmitting(false);
     }

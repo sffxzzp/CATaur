@@ -7,6 +7,7 @@ import {
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
     X, Users2,
 } from "lucide-react";
+import { toast } from "sonner";
 import UserFormModal, { type ModalState, type UserFormData, type Role } from "./user-form-modal";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
@@ -147,6 +148,8 @@ export default function UsersPage() {
                 })
                 .catch(err => console.error("Refresh failed:", err))
                 .finally(() => setLoading(false));
+
+            toast.success(editingId ? "User updated successfully" : "User created successfully");
         } catch (err: any) {
             // Rethrow so the modal can catch it and display the error banner
             throw err;
@@ -165,8 +168,9 @@ export default function UsersPage() {
                 .then(res => { setList(res.data); setTotal(res.total); setTotalPages(res.totalPages); })
                 .catch(err => console.error("Refresh failed:", err))
                 .finally(() => setLoading(false));
+            toast.success("User deleted successfully.");
         } catch (err: any) {
-            alert(err.message ?? "Failed to delete user.");
+            toast.error(err.message ?? "Failed to delete user.");
         }
     };
 

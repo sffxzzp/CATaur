@@ -9,6 +9,7 @@ import { companiesClient } from "@/lib/api/companies";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import type { Company } from "@/lib/api/types";
 import { LocationSelector } from "@/components/location-selector";
+import { toast } from "sonner";
 
 const DRAFT_KEY = "DRAFT_JOB_ORDER";
 
@@ -119,9 +120,10 @@ export default function NewJobOrderPage() {
 
       // Redirect to list
       router.push("/recruiter/job-orders");
+      toast.success("Job order created successfully.");
     } catch (error) {
       console.error("Failed to create job order:", error);
-      alert("Failed to create job order. Please try again.");
+      toast.error("Failed to create job order. Please try again.");
       setSaving(false);
     }
   };

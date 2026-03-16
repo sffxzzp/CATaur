@@ -217,9 +217,10 @@ export default function RecruiterJobOrdersPage() {
       await jobOrdersClient.update(jobId, { status: newStatus });
       setStatusConfirmModal({ isOpen: false, jobId: "", jobTitle: "", newStatus: "active" });
       loadData(); // Reload data
+      toast.success("Status updated successfully.");
     } catch (error) {
       console.error("Failed to update job order status:", error);
-      alert("Failed to update status. Please try again.");
+      toast.error("Failed to update status. Please try again.");
     }
   };
 
@@ -270,7 +271,7 @@ export default function RecruiterJobOrdersPage() {
 
   const handleEditSubmit = async () => {
     if (!editModal.job || !editForm.title.trim()) {
-      alert("Title is required");
+      toast.error("Title is required");
       return;
     }
 
@@ -293,9 +294,10 @@ export default function RecruiterJobOrdersPage() {
 
       setEditModal({ isOpen: false, job: null });
       loadData(); // Reload data
+      toast.success("Job order updated successfully.");
     } catch (error) {
       console.error("Failed to update job order:", error);
-      alert("Failed to update job order. Please try again.");
+      toast.error("Failed to update job order. Please try again.");
     } finally {
       setSubmitting(false);
     }

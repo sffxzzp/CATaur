@@ -6,6 +6,7 @@ import { companiesClient } from "@/lib/api/companies";
 import { usersClient } from "@/lib/api/users";
 import type { User } from "@/lib/api/types";
 import { formatLocation } from "@/components/location-selector";
+import { toast } from "sonner";
 import {
   Building2,
   Plus,
@@ -147,7 +148,7 @@ export default function RecruiterClientsPage() {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.email) {
-      alert("Name and Email are required");
+      toast.error("Name and Email are required");
       return;
     }
 
@@ -183,8 +184,9 @@ export default function RecruiterClientsPage() {
 
       setIsModalOpen(false);
       await loadCompanies();
+      toast.success(editingClient ? "Company updated successfully" : "Company created successfully");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to save company");
+      toast.error(error instanceof Error ? error.message : "Failed to save company");
     } finally {
       setSubmitting(false);
     }
@@ -198,8 +200,9 @@ export default function RecruiterClientsPage() {
     try {
       await companiesClient.delete(id);
       await loadCompanies();
+      toast.success("Company deleted successfully");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to delete company");
+      toast.error(error instanceof Error ? error.message : "Failed to delete company");
     }
   };
 
