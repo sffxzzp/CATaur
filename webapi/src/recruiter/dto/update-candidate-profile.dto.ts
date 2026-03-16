@@ -50,6 +50,11 @@ export class UpdateCandidateProfileDto {
 
     @ApiPropertyOptional()
     @IsOptional()
+    @IsString()
+    currentLocation?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsInt()
     @Min(0)
     noticePeriod?: number;
