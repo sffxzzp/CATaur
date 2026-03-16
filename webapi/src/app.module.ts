@@ -94,7 +94,7 @@ import { NotificationsModule } from './notifications/notifications.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // Enable sync for now to fix E2E tests missing tables/columns
+        synchronize: false, // Enable sync for now to fix E2E tests missing tables/columns
       }),
       inject: [ConfigService],
     }),
