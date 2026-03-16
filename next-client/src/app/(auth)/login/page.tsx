@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useCallback, useMemo } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, RefreshCw, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -72,7 +72,7 @@ function Divider({ label }: { label: string }) {
 
 // ─── Password form ────────────────────────────────────────────────────────────
 
-function PasswordForm({ onSubmit, isPending }: { onSubmit: (email: string, pw: string) => void, isPending?: boolean }) {
+function PasswordForm({ onSubmit, isPending, isManager }: { onSubmit: (email: string, pw: string) => void, isPending?: boolean, isManager?: boolean }) {
   const [showPw, setShowPw] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const pwRef = useRef<HTMLInputElement>(null);
@@ -102,9 +102,11 @@ function PasswordForm({ onSubmit, isPending }: { onSubmit: (email: string, pw: s
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <label className="text-xs font-medium text-[#374151]">Password</label>
-          <Link href="/forgot-password" className="text-xs font-medium text-[#1D4ED8] hover:underline underline-offset-2">
-            Forgot password?
-          </Link>
+          {!isManager && (
+            <Link href="/forgot-password" className="text-xs font-medium text-[#1D4ED8] hover:underline underline-offset-2">
+              Forgot password?
+            </Link>
+          )}
         </div>
         <div className="relative">
           <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
@@ -246,12 +248,18 @@ function OtpForm({ onSubmit, isPending, onError }: { onSubmit: (email: string, c
 
 export default function UnifiedLoginPage() {
   const router = useRouter();
+  const params = useSearchParams();
+  const role = params.get("role") || "candidate";
+
   const isManager = useMemo(() => {
     if (typeof window === "undefined") {
       return false;
     }
 
     const hostname = window.location.hostname.toLowerCase();
+    if (hostname === "localhost") {
+      return role !== "candidate";
+    }
     return hostname === "manager.cataur.freedeeplearn.com";
   }, []);
 
@@ -431,13 +439,13 @@ export default function UnifiedLoginPage() {
             </div>
 
             {tab === "password" ? (
-              <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
+              <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} isManager={isManager} />
             ) : (
               <OtpForm onSubmit={handleOtpLogin} isPending={isPending} onError={(msg) => setErrorMsg(msg)} />
             )}
           </>
         ) : (
-          <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} />
+          <PasswordForm onSubmit={handlePasswordLogin} isPending={isPending} isManager={isManager} />
         )}
 
         {/* Role switcher & Sign up links */}
