@@ -37,10 +37,7 @@ export class DashboardService {
             this.companyRepo.count(),
             this.jobOrderRepo.count(),
             this.applicationRepo.count(),
-            this.jobOrderRepo.count({ where: [
-                { status: 'sourcing' },
-                { status: 'interview' },
-            ] as any }),
+            this.jobOrderRepo.count({ where: { status: 'active' } }),
             this.applicationRepo.count({ where: { status: 'offer' } }),
             this.applicationRepo.find({
                 order: { createdAt: 'DESC' },
@@ -129,7 +126,7 @@ export class DashboardService {
             this.jobOrderRepo
                 .createQueryBuilder('jo')
                 .where('jo.companyId IN (:...cids)', { cids: companyIds })
-                .andWhere('jo.status IN (:...statuses)', { statuses: ['sourcing', 'interview'] })
+                .andWhere('jo.status = :status', { status: 'active' })
                 .getCount(),
             this.applicationRepo
                 .createQueryBuilder('app')

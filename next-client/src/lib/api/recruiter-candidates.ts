@@ -6,7 +6,6 @@ export type ImportCandidateInput = {
   email: string;
   phone?: string;
   location?: string;
-  availability?: string;
 };
 
 export const recruiterCandidatesClient = {

@@ -19,11 +19,6 @@ export class CreateApplicationDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
-    availability?: string;
-
-    @ApiProperty({ required: false })
-    @IsOptional()
-    @IsString()
     recruiterNotes?: string;
 }
 
@@ -106,9 +101,4 @@ export class BulkImportCandidateDto {
     @IsOptional()
     @IsString()
     location?: string;
-
-    @ApiProperty({ required: false })
-    @IsOptional()
-    @IsString()
-    availability?: string;
 }

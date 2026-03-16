@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { request } from "@/lib/request";
 
 type CurrentUser = {
+    id?: string;
     nickname?: string | null;
     phone?: string | null;
     email?: string | null;
@@ -14,6 +15,26 @@ type CurrentUser = {
 };
 
 const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop";
+
+function getAvatarKey(userId: string) {
+    return `avatar_${userId}`;
+}
+
+function saveAvatarToLocal(userId: string, dataUrl: string) {
+    try {
+        localStorage.setItem(getAvatarKey(userId), dataUrl);
+    } catch (e) {
+        console.error('Failed to save avatar', e);
+    }
+}
+
+function loadAvatarFromLocal(userId: string): string | null {
+    try {
+        return localStorage.getItem(getAvatarKey(userId));
+    } catch (e) {
+        return null;
+    }
+}
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<"basic" | "password">("basic");
@@ -42,6 +63,7 @@ export default function ProfilePage() {
     const [pwdMsg, setPwdMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const [avatarPreview, setAvatarPreview] = useState<string>(DEFAULT_AVATAR);
+    const [userId, setUserId] = useState<string>("");
 
     useEffect(() => {
         let mounted = true;
@@ -53,6 +75,9 @@ export default function ProfilePage() {
                     return;
                 }
 
+                const uid = user?.id || "";
+                setUserId(uid);
+
                 setBasicInfo({
                     nickname: user?.nickname ?? "",
                     phone: user?.phone ?? "",
@@ -63,7 +88,9 @@ export default function ProfilePage() {
                     phone: user?.phone ?? "",
                     email: user?.email ?? "",
                 });
-                setAvatarPreview(user?.avatarUrl || DEFAULT_AVATAR);
+
+                const localAvatar = loadAvatarFromLocal(uid);
+                setAvatarPreview(localAvatar || user?.avatarUrl || DEFAULT_AVATAR);
                 setCreatedAt(user?.createdAt ?? null);
             } catch {
                 if (!mounted) {
@@ -82,9 +109,15 @@ export default function ProfilePage() {
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            setAvatarPreview(url);
+        if (file && userId) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const dataUrl = reader.result as string;
+                setAvatarPreview(dataUrl);
+                saveAvatarToLocal(userId, dataUrl);
+                window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { avatarUrl: dataUrl } }));
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -310,7 +343,9 @@ export default function ProfilePage() {
                                     </p>
                                 )}
                                 <div className="pt-4 flex gap-3">
-                                    <Button type="submit" disabled={basicSaving} className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24 disabled:cursor-not-allowed disabled:opacity-70">{basicSaving ? "Saving..." : "Save"}</Button>
+                                    <Button type="submit" disabled={basicSaving} className="bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] text-white px-6 w-24 disabled:cursor-not-allowed disabled:opacity-70">
+                                        {basicSaving ? "Saving..." : "Save"}
+                                    </Button>
                                 </div>
                             </form>
                         ) : (

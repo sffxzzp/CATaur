@@ -11,7 +11,7 @@ import { User } from './user.entity';
 import { Company } from './company.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
-export type JobOrderStatus = 'sourcing' | 'interview' | 'offer' | 'filled' | 'paused';
+export type JobOrderStatus = 'active' | 'onhold' | 'closed';
 export type JobOrderPriority = 'high' | 'medium' | 'low';
 export type JobOrderEmploymentType = 'Full-time' | 'Part-time' | 'Contract' | 'Temporary' | 'Internship' | 'Permanent';
 export type JobOrderWorkArrangement = 'Remote' | 'Hybrid' | 'Onsite';
@@ -34,7 +34,7 @@ export class JobOrder {
     @Column({
         type: 'varchar',
         length: 20,
-        default: 'sourcing',
+        default: 'active',
     })
     status: JobOrderStatus;
 

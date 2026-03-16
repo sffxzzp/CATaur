@@ -36,6 +36,7 @@ function getBreadcrumbs(pathname: string) {
 }
 
 const FONT_SIZES = [
+  { label: "X-Small", value: 0.75 },
   { label: "Small", value: 0.875 },
   { label: "Medium", value: 1 },
   { label: "Large", value: 1.125 },
@@ -191,6 +192,7 @@ function AvatarDropdown() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [nickname, setNickname] = useState("Recruiter");
   const [email, setEmail] = useState("-");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   // Init from localStorage
@@ -214,15 +216,28 @@ function AvatarDropdown() {
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
-        const user = await request<{ nickname?: string; email?: string }>("/users/me");
+        const user = await request<{ id?: string; nickname?: string; email?: string; avatarUrl?: string }>("/users/me");
         setNickname(user?.nickname || "Recruiter");
         setEmail(user?.email || "-");
+
+        const uid = user?.id || "";
+        const localAvatar = uid ? localStorage.getItem(`avatar_${uid}`) : null;
+        setAvatarUrl(localAvatar || user?.avatarUrl || null);
       } catch {
         setNickname("Recruiter");
         setEmail("-");
+        setAvatarUrl(null);
       }
     };
     loadCurrentUser();
+
+    const handleAvatarUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ avatarUrl: string }>;
+      setAvatarUrl(customEvent.detail.avatarUrl);
+    };
+
+    window.addEventListener('avatarUpdated', handleAvatarUpdate);
+    return () => window.removeEventListener('avatarUpdated', handleAvatarUpdate);
   }, []);
 
   // Close on click-outside
@@ -266,9 +281,13 @@ function AvatarDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white transition-shadow hover:ring-2 hover:ring-[var(--accent-ring)] hover:ring-offset-1"
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white transition-shadow hover:ring-2 hover:ring-[var(--accent-ring)] hover:ring-offset-1 overflow-hidden"
       >
-        {avatarLabel}
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+        ) : (
+          avatarLabel
+        )}
       </button>
 
       {open && (

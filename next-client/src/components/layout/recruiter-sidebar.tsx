@@ -70,7 +70,7 @@ export function RecruiterSidebar({
           onClick={onClose}
           title={collapsed ? item.label : undefined}
           className={cn(
-            "group relative flex items-center gap-3 rounded-md px-3 py-2 text-[13px] font-medium transition-colors",
+            "group relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
             collapsed && "lg:justify-center lg:px-0",
             active
               ? "bg-[var(--accent-light)] text-[var(--accent)]"
@@ -135,11 +135,11 @@ export function RecruiterSidebar({
             {/* Name + role badge */}
             {!collapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="text-[12px] font-semibold text-[var(--gray-900)] leading-tight truncate">
+                <span className="text-sm font-semibold text-[var(--gray-900)] leading-tight truncate">
                   {isAdmin ? "Allan Admin" : "Allan Recruiter"}
                 </span>
                 <span className={cn(
-                  "mt-0.5 inline-flex self-start items-center rounded px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide leading-5",
+                  "mt-0.5 inline-flex self-start items-center rounded px-1.5 py-0 text-xs font-semibold uppercase tracking-wide leading-5",
                   isAdmin
                     ? "bg-[var(--status-green-bg)] text-[var(--status-green-text)]"
                     : "bg-[var(--accent-light)] text-[var(--accent)]"
@@ -170,7 +170,7 @@ export function RecruiterSidebar({
           {isAdmin && (
             <>
               <div className={cn("mt-4 mb-1 px-3", collapsed && "lg:hidden")}>
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--gray-400)]">
+                <span className="text-xs font-semibold uppercase tracking-widest text-[var(--gray-400)]">
                   Administration
                 </span>
               </div>

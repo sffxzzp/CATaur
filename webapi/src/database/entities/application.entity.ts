@@ -52,10 +52,6 @@ export class Application {
     location: Buffer | string | null;
 
     @ApiProperty({ required: false, type: String })
-    @Column({ type: 'varchar', length: 100, nullable: true })
-    availability: string | null;
-
-    @ApiProperty({ required: false, type: String })
     @Column({ type: 'longblob', nullable: true })
     recruiterNotes: Buffer | string | null;
 

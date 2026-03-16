@@ -134,7 +134,7 @@ export class ReportsService {
 
         // Job orders
         const joQb = this.jobOrderRepo.createQueryBuilder('jo')
-            .select("DATE(jo.createdAt)", 'date')
+            .select("DATE_FORMAT(jo.createdAt, '%Y-%m-%d')", 'date')
             .addSelect('COUNT(*)', 'count')
             .where('jo.createdAt >= :since', { since: sinceStr })
             .groupBy('date')
@@ -149,7 +149,7 @@ export class ReportsService {
         // Applications
         const appQb = this.applicationRepo.createQueryBuilder('app')
             .leftJoin('app.jobOrder', 'jobOrder')
-            .select("DATE(app.createdAt)", 'date')
+            .select("DATE_FORMAT(app.createdAt, '%Y-%m-%d')", 'date')
             .addSelect('COUNT(*)', 'count')
             .where('app.createdAt >= :since', { since: sinceStr })
             .groupBy('date')

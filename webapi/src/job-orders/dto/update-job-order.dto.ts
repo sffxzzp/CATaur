@@ -74,7 +74,7 @@ export class UpdateJobOrderDto {
 }
 
 export class UpdateJobOrderStatusDto {
-    @ApiProperty({ enum: ['sourcing', 'interview', 'offer', 'filled', 'paused'] })
-    @IsIn(['sourcing', 'interview', 'offer', 'filled', 'paused'])
+    @ApiProperty({ enum: ['active', 'onhold', 'closed'] })
+    @IsIn(['active', 'onhold', 'closed'])
     status: string;
 }

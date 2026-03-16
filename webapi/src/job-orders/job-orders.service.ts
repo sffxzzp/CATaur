@@ -141,7 +141,7 @@ export class JobOrdersService {
             locationState: dto.locationState ?? null,
             locationCity: dto.locationCity ?? null,
             owner: ownerName,
-            status: 'sourcing',
+            status: 'active',
             assignedToId: recruiterId,
         });
         await this.repo.save(jo);
