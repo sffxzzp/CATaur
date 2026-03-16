@@ -7,6 +7,7 @@ import { jobOrdersClient } from "@/lib/api/jobOrders";
 import { companiesClient } from "@/lib/api/companies";
 import type { JobOrder, Company } from "@/lib/api/types";
 import { toast } from "sonner";
+import { LocationSelector } from "@/components/location-selector";
 import {
   Search,
   Plus,
@@ -137,31 +138,6 @@ export default function RecruiterJobOrdersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
 
-  const LOCATION_DATA: Record<string, { name: string; states: Record<string, { abbr: string; cities: string[] }> }> = {
-    "US": {
-      name: "United States",
-      states: {
-        "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
-        "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
-        "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
-        "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
-      }
-    },
-    "CA": {
-      name: "Canada",
-      states: {
-        "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
-        "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
-        "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
-        "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
-      }
-    }
-  };
-
-  const countries = Object.keys(LOCATION_DATA);
-  const states = editForm.country ? Object.keys(LOCATION_DATA[editForm.country]?.states || {}) : [];
-  const cities = editForm.state ? (LOCATION_DATA[editForm.country]?.states?.[editForm.state]?.cities || []) : [];
-
   useEffect(() => {
     loadData();
     loadAllCompanies();
@@ -270,26 +246,10 @@ export default function RecruiterJobOrdersPage() {
   };
 
   const handleEditClick = (job: JobOrderWithCompany) => {
-    // Parse location to extract country/state/city
-    let country = job.locationCountry || "";
-    let state = "";
-    let city = "";
-
-    // If we have locationState and locationCity, use them
-    if (job.locationState && job.locationCity) {
-      // Find the country code and state name from the abbreviation
-      for (const [countryCode, countryData] of Object.entries(LOCATION_DATA)) {
-        for (const [stateName, stateData] of Object.entries(countryData.states)) {
-          if (stateData.abbr === job.locationState) {
-            country = countryCode;
-            state = stateName;
-            city = job.locationCity;
-            break;
-          }
-        }
-        if (state) break;
-      }
-    }
+    // Use the location fields directly
+    const country = job.locationCountry || "";
+    const state = job.locationState || "";
+    const city = job.locationCity || "";
 
     setEditForm({
       title: job.title,
@@ -316,18 +276,9 @@ export default function RecruiterJobOrdersPage() {
 
     setSubmitting(true);
     try {
-      // Build location string from country/state/city
-      const stateAbbr = editForm.state && editForm.country
-        ? LOCATION_DATA[editForm.country]?.states?.[editForm.state]?.abbr
-        : null;
-      const location = [editForm.city, stateAbbr]
-        .filter(Boolean)
-        .join(", ");
-
       await jobOrdersClient.update(editModal.job.id, {
         title: editForm.title.trim(),
         companyId: editForm.companyId || undefined,
-        location: location || undefined,
         salary: editForm.salary.trim() || undefined,
         openings: Number(editForm.openings) || 1,
         priority: editForm.priority,
@@ -336,7 +287,7 @@ export default function RecruiterJobOrdersPage() {
         workArrangement: editForm.workArrangement || undefined,
         tags: editForm.department ? [editForm.department] : undefined,
         locationCountry: editForm.country || undefined,
-        locationState: stateAbbr || undefined,
+        locationState: editForm.state || undefined,
         locationCity: editForm.city || undefined,
       });
 
@@ -731,36 +682,14 @@ export default function RecruiterJobOrdersPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Location (Country / State / City)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <select
-                    className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer"
-                    value={editForm.country}
-                    onChange={(e) => setEditForm({ ...editForm, country: e.target.value, state: "", city: "" })}
-                  >
-                    <option value="">Country</option>
-                    {countries.map(code => (
-                      <option key={code} value={code}>{LOCATION_DATA[code].name}</option>
-                    ))}
-                  </select>
-                  <select
-                    disabled={!editForm.country}
-                    className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer"
-                    value={editForm.state}
-                    onChange={(e) => setEditForm({ ...editForm, state: e.target.value, city: "" })}
-                  >
-                    <option value="">State / Province</option>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <select
-                    disabled={!editForm.state}
-                    className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer"
-                    value={editForm.city}
-                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                  >
-                    <option value="">City</option>
-                    {cities.map(cty => <option key={cty} value={cty}>{cty}</option>)}
-                  </select>
-                </div>
+                <LocationSelector
+                  country={editForm.country}
+                  state={editForm.state}
+                  city={editForm.city}
+                  onCountryChange={(c) => setEditForm({ ...editForm, country: c, state: "", city: "" })}
+                  onStateChange={(s) => setEditForm({ ...editForm, state: s, city: "" })}
+                  onCityChange={(c) => setEditForm({ ...editForm, city: c })}
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

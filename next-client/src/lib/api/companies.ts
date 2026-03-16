@@ -24,6 +24,9 @@ export const companiesClient = {
     phone?: string;
     website?: string;
     location?: string;
+    locationCountry?: string;
+    locationState?: string;
+    locationCity?: string;
     keyTechnologies?: string;
     clientAccountId?: string;
   }) =>
@@ -38,6 +41,9 @@ export const companiesClient = {
     phone?: string;
     website?: string;
     location?: string;
+    locationCountry?: string;
+    locationState?: string;
+    locationCity?: string;
     keyTechnologies?: string;
     clientAccountId?: string;
   }) =>

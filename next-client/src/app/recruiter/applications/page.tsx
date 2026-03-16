@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { applicationsClient } from "@/lib/api/applications";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import type { Application, JobOrder } from "@/lib/api/types";
+import { formatLocation } from "@/components/location-selector";
 import {
     Search,
     MapPin,
@@ -454,7 +455,7 @@ export default function RecruiterApplicationsPage() {
                         const candidateName = c.candidate?.nickname || c.candidate?.email || 'Unknown';
                         const candidateEmail = c.candidate?.email || '';
                         const jobTitle = c.jobOrder?.title || 'Position';
-                        const location = c.location || c.candidate?.candidate?.currentLocation || 'N/A';
+                        const location = formatLocation(c.locationCity, c.locationState);
                         const appliedAt = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const source = c.source === 'self_applied' ? 'Self-applied' : 'Recruiter Import';
 

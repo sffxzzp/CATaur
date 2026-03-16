@@ -397,7 +397,7 @@ export default function RecruiterCandidatesPage() {
   const locations = useMemo(() => {
     const locs = [...new Set(
       candidates
-        .map(c => c.location)
+        .map(c => formatLocation(c.locationCity || null, c.locationState || null))
         .filter((l): l is string => typeof l === "string" && Boolean(l.trim()) && l !== "—"),
     )].sort();
     return locs;

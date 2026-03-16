@@ -8,21 +8,7 @@ import { jobOrdersClient } from "@/lib/api/jobOrders";
 import { usersClient } from "@/lib/api/users";
 import type { Company, JobOrder, User } from "@/lib/api/types";
 import { ArrowLeft, Phone, Mail, MapPin, Globe, Users, Code2, Briefcase, ChevronRight, X } from "lucide-react";
-
-const LOCATION_DATA: Record<string, Record<string, { abbr: string; cities: string[] }>> = {
-  "United States": {
-    "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
-    "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
-    "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
-    "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
-  },
-  "Canada": {
-    "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
-    "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
-    "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
-    "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
-  }
-};
+import { LocationSelector, formatLocation } from "@/components/location-selector";
 
 export default function ClientDetails({ params }: { params: Promise<{ id: string }> }) {
   const [company, setCompany] = useState<Company | null>(null);
@@ -38,10 +24,6 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
     name: "", contact: "", email: "", phone: "", website: "",
     country: "", state: "", city: "", keyTechnologies: "", clientAccount: "",
   });
-
-  const countries = Object.keys(LOCATION_DATA);
-  const states = formData.country ? Object.keys(LOCATION_DATA[formData.country] || {}) : [];
-  const cities = formData.state ? (LOCATION_DATA[formData.country]?.[formData.state]?.cities || []) : [];
 
   useEffect(() => {
     params.then(p => setCompanyId(p.id));
@@ -78,31 +60,15 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
   const handleOpenEdit = () => {
     if (!company) return;
-    let country = "", state = "", city = "";
-    if (company.location) {
-      const parts = company.location.split(", ");
-      if (parts.length >= 2) {
-        const cityPart = parts[0];
-        const stateAbbrPart = parts[1];
-        outer: for (const [c, statesMap] of Object.entries(LOCATION_DATA)) {
-          for (const [s, stateData] of Object.entries(statesMap)) {
-            if (stateData.abbr === stateAbbrPart && stateData.cities.includes(cityPart)) {
-              country = c; state = s; city = cityPart;
-              break outer;
-            }
-          }
-        }
-      }
-    }
     setFormData({
       name: company.name,
       contact: company.contact || "",
       email: company.email,
       phone: company.phone || "",
       website: company.website || "",
-      country,
-      state,
-      city,
+      country: company.locationCountry || "",
+      state: company.locationState || "",
+      city: company.locationCity || "",
       keyTechnologies: company.keyTechnologies || "",
       clientAccount: company.clientId || "",
     });
@@ -116,18 +82,15 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
     }
     setSubmitting(true);
     try {
-      const stateAbbr = formData.state && formData.country
-        ? LOCATION_DATA[formData.country]?.[formData.state]?.abbr
-        : null;
-      const location = [formData.city, stateAbbr].filter(Boolean).join(", ");
-
       await companiesClient.update(company.id, {
         name: formData.name,
         email: formData.email,
         contact: formData.contact || undefined,
         phone: formData.phone || undefined,
         website: formData.website || undefined,
-        location: location || undefined,
+        locationCountry: formData.country || undefined,
+        locationState: formData.state || undefined,
+        locationCity: formData.city || undefined,
         keyTechnologies: formData.keyTechnologies || undefined,
         clientAccountId: formData.clientAccount || undefined,
       });
@@ -192,9 +155,9 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
               <div className="flex-1">
                 <h1 className="text-2xl font-bold tracking-tight text-[var(--gray-900)]">{company.name}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--gray-600)]">
-                  {company.location && (
+                  {formatLocation(company.locationCity, company.locationState) && (
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-[var(--gray-400)]" /> {company.location}
+                      <MapPin className="h-4 w-4 text-[var(--gray-400)]" /> {formatLocation(company.locationCity, company.locationState)}
                     </div>
                   )}
                   {company.website && (
@@ -357,20 +320,14 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Location (Country / State / City)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <select className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer" value={formData.country} onChange={e => setFormData({ ...formData, country: e.target.value, state: "", city: "" })}>
-                    <option value="">Country</option>
-                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <select disabled={!formData.country} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer" value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value, city: "" })}>
-                    <option value="">State / Province</option>
-                    {states.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <select disabled={!formData.state} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] disabled:bg-[var(--gray-50)] disabled:cursor-not-allowed cursor-pointer" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })}>
-                    <option value="">City</option>
-                    {cities.map(cty => <option key={cty} value={cty}>{cty}</option>)}
-                  </select>
-                </div>
+                <LocationSelector
+                  country={formData.country}
+                  state={formData.state}
+                  city={formData.city}
+                  onCountryChange={(c) => setFormData({ ...formData, country: c, state: "", city: "" })}
+                  onStateChange={(s) => setFormData({ ...formData, state: s, city: "" })}
+                  onCityChange={(c) => setFormData({ ...formData, city: c })}
+                />
               </div>
 
               <div className="space-y-1.5">

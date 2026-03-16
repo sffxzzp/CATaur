@@ -8,6 +8,7 @@ import { applicationsClient } from "@/lib/api/applications";
 import { candidateProfileClient } from "@/lib/api/candidate-profile";
 import type { Application } from "@/lib/api/types";
 import type { CandidateProfileExtended } from "@/lib/api/candidate-profile-types";
+import { formatLocation } from "@/components/location-selector";
 import {
   AlertCircle,
   ArrowLeft,
@@ -122,7 +123,7 @@ function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
   const name = app.candidate?.nickname || app.candidate?.email || "Candidate";
   const email = app.candidate?.email || "—";
   const jobTitle = app.jobOrder?.title || "";
-  const location = (app.location as any) || app.jobOrder?.location || "";
+  const location = formatLocation(app.locationCity || null, app.locationState || null) || formatLocation(app.jobOrder?.locationCity || null, app.jobOrder?.locationState || null) || "";
 
   const clientDecision = app.clientDecisionType ? {
     type: app.clientDecisionType as any,

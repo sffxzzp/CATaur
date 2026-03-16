@@ -9,6 +9,7 @@ import { candidateProfileClient } from "@/lib/api/candidate-profile";
 import { recruiterCandidatesClient } from "@/lib/api/recruiter-candidates";
 import type { Application } from "@/lib/api/types";
 import type { CandidateProfileExtended } from "@/lib/api/candidate-profile-types";
+import { formatLocation } from "@/components/location-selector";
 import {
   type ApplicationStatus,
   type CandidateRecord,
@@ -69,7 +70,7 @@ function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
   const name = app.candidate?.nickname || app.candidate?.email || "Candidate";
   const email = app.candidate?.email || "—";
   const jobTitle = app.jobOrder?.title || "—";
-  const location = (app.location || app.jobOrder?.location || "—") as string;
+  const location = formatLocation(app.locationCity || null, app.locationState || null) || formatLocation(app.jobOrder?.locationCity || null, app.jobOrder?.locationState || null) || "—";
 
   let clientDecision: ClientDecision | undefined;
   if (app.clientDecisionType && app.clientDecisionAt) {
@@ -101,7 +102,7 @@ function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
     status: app.status as any,
     appliedAt: formatShortDate(app.createdAt as any),
     location,
-    availability: app.availability || "—",
+    availability: "—",
     lastContact: app.interviewSentAt ? formatShortDate(app.interviewSentAt as any) : "—",
     source: app.source as any,
     recruiterNotes: app.recruiterNotes ?? undefined,

@@ -569,7 +569,7 @@ export default function ProfilePage() {
 
   // ─── Derived display values ────────────────────────────────────────────────
   const displayName = profile?.nickname || "Your Name";
-  const displayEmail = profile?.email || localStorage.getItem("candidateEmail") || "";
+  const displayEmail = profile?.email || (typeof window !== "undefined" ? localStorage.getItem("candidateEmail") : "") || "";
   const displayPhone = profile?.phone || "";
   const displayLocation = profile?.currentLocation || "";
   const displayLinkedin = profile?.linkedin || "";

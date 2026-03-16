@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from "react";
 import { companiesClient } from "@/lib/api/companies";
 import { usersClient } from "@/lib/api/users";
 import type { User } from "@/lib/api/types";
+import { formatLocation } from "@/components/location-selector";
 import {
   Building2,
   Plus,
@@ -87,9 +88,9 @@ export default function RecruiterClientsPage() {
         name: company.name,
         email: company.email,
         contact: company.contact || "-",
-        location: company.location || "-",
+        location: formatLocation(company.locationCity, company.locationState),
         owner: company.owner || "-",
-        created: new Date(company.createdAt).toLocaleDateString(),
+        created: new Date(company.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       }));
       setAllRows(rows);
     } catch (error) {
@@ -119,32 +120,15 @@ export default function RecruiterClientsPage() {
       setIsModalOpen(true);
       try {
         const company = await companiesClient.getById(client.id);
-        // Parse "City, StateAbbr" back to country/state/city
-        let country = "", state = "", city = "";
-        if (company.location) {
-          const parts = company.location.split(", ");
-          if (parts.length >= 2) {
-            const cityPart = parts[0];
-            const stateAbbrPart = parts[1];
-            outer: for (const [c, statesMap] of Object.entries(LOCATION_DATA)) {
-              for (const [s, stateData] of Object.entries(statesMap)) {
-                if (stateData.abbr === stateAbbrPart && stateData.cities.includes(cityPart)) {
-                  country = c; state = s; city = cityPart;
-                  break outer;
-                }
-              }
-            }
-          }
-        }
         setFormData({
           name: company.name,
           contact: company.contact || "",
           email: company.email,
           phone: company.phone || "",
           website: company.website || "",
-          country,
-          state,
-          city,
+          country: company.locationCountry || "",
+          state: company.locationState || "",
+          city: company.locationCity || "",
           keyTechnologies: company.keyTechnologies || "",
           clientAccount: company.clientId || "",
         });
@@ -169,13 +153,6 @@ export default function RecruiterClientsPage() {
 
     setSubmitting(true);
     try {
-      const stateAbbr = formData.state && formData.country
-        ? LOCATION_DATA[formData.country]?.[formData.state]?.abbr
-        : null;
-      const location = [formData.city, stateAbbr]
-        .filter(Boolean)
-        .join(", ");
-
       if (editingClient) {
         await companiesClient.update(editingClient.id, {
           name: formData.name,
@@ -183,7 +160,9 @@ export default function RecruiterClientsPage() {
           contact: formData.contact || undefined,
           phone: formData.phone || undefined,
           website: formData.website || undefined,
-          location: location || undefined,
+          locationCountry: formData.country || undefined,
+          locationState: formData.state || undefined,
+          locationCity: formData.city || undefined,
           keyTechnologies: formData.keyTechnologies || undefined,
           clientAccountId: formData.clientAccount || undefined,
         });
@@ -194,7 +173,9 @@ export default function RecruiterClientsPage() {
           contact: formData.contact || undefined,
           phone: formData.phone || undefined,
           website: formData.website || undefined,
-          location: location || undefined,
+          locationCountry: formData.country || undefined,
+          locationState: formData.state || undefined,
+          locationCity: formData.city || undefined,
           keyTechnologies: formData.keyTechnologies || undefined,
           clientAccountId: formData.clientAccount || undefined,
         });

@@ -8,6 +8,7 @@ import { Code, Eye, Briefcase, MapPin, Building2, CircleDollarSign, Loader2 } fr
 import { companiesClient } from "@/lib/api/companies";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import type { Company } from "@/lib/api/types";
+import { LocationSelector } from "@/components/location-selector";
 
 const DRAFT_KEY = "DRAFT_JOB_ORDER";
 
@@ -41,27 +42,6 @@ const defaultForm: JobOrderInput = {
   priority: "medium",
 };
 
-const LOCATION_DATA: Record<string, { name: string; states: Record<string, { abbr: string; cities: string[] }> }> = {
-  "US": {
-    name: "United States",
-    states: {
-      "California": { abbr: "CA", cities: ["Los Angeles", "San Francisco", "San Diego", "San Jose"] },
-      "New York": { abbr: "NY", cities: ["New York City", "Buffalo", "Rochester", "Albany"] },
-      "Texas": { abbr: "TX", cities: ["Houston", "Austin", "Dallas", "San Antonio"] },
-      "Washington": { abbr: "WA", cities: ["Seattle", "Spokane", "Tacoma"] },
-    }
-  },
-  "CA": {
-    name: "Canada",
-    states: {
-      "Ontario": { abbr: "ON", cities: ["Toronto", "Ottawa", "Waterloo", "Mississauga"] },
-      "British Columbia": { abbr: "BC", cities: ["Vancouver", "Victoria", "Burnaby", "Kelowna"] },
-      "Quebec": { abbr: "QC", cities: ["Montreal", "Quebec City", "Laval"] },
-      "Alberta": { abbr: "AB", cities: ["Calgary", "Edmonton", "Banff"] },
-    }
-  }
-};
-
 export default function NewJobOrderPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -73,11 +53,6 @@ export default function NewJobOrderPage() {
 
   // Ref to prevent aggressive auto-saving while typing rapidly
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Location data
-  const countries = Object.keys(LOCATION_DATA);
-  const states = form.country ? Object.keys(LOCATION_DATA[form.country]?.states || {}) : [];
-  const cities = form.state ? (LOCATION_DATA[form.country]?.states?.[form.state]?.cities || []) : [];
 
   useEffect(() => {
     // Load companies
@@ -124,18 +99,12 @@ export default function NewJobOrderPage() {
     setSaving(true);
 
     try {
-      // Build location string from country/state/city
-      const stateAbbr = form.state && form.country
-        ? LOCATION_DATA[form.country]?.states?.[form.state]?.abbr
-        : null;
-      const location = [form.city, stateAbbr]
-        .filter(Boolean)
-        .join(", ");
-
       await jobOrdersClient.create({
         title: form.title.trim(),
         companyId: form.companyId,
-        location: location || undefined,
+        locationCountry: form.country || undefined,
+        locationState: form.state || undefined,
+        locationCity: form.city || undefined,
         salary: form.salary.trim() || undefined,
         openings: Number(form.openings) || 1,
         priority: form.priority,
@@ -143,9 +112,6 @@ export default function NewJobOrderPage() {
         employmentType: form.employmentType || undefined,
         workArrangement: form.workArrangement || undefined,
         tags: form.department ? [form.department] : undefined,
-        locationCountry: form.country || undefined,
-        locationState: stateAbbr || undefined,
-        locationCity: form.city || undefined,
       });
 
       // Clear draft after successful creation
@@ -226,36 +192,14 @@ export default function NewJobOrderPage() {
                 <MapPin className="w-4 h-4 text-[var(--gray-400)]" />
                 Location
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                <select
-                  className={inpClass}
-                  value={form.country}
-                  onChange={(e) => setForm({ ...form, country: e.target.value, state: "", city: "" })}
-                >
-                  <option value="">Country</option>
-                  {countries.map(code => (
-                    <option key={code} value={code}>{LOCATION_DATA[code].name}</option>
-                  ))}
-                </select>
-                <select
-                  disabled={!form.country}
-                  className={inpClass}
-                  value={form.state}
-                  onChange={(e) => setForm({ ...form, state: e.target.value, city: "" })}
-                >
-                  <option value="">State / Province</option>
-                  {states.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <select
-                  disabled={!form.state}
-                  className={inpClass}
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                >
-                  <option value="">City</option>
-                  {cities.map(cty => <option key={cty} value={cty}>{cty}</option>)}
-                </select>
-              </div>
+              <LocationSelector
+                country={form.country}
+                state={form.state}
+                city={form.city}
+                onCountryChange={(c) => setForm({ ...form, country: c, state: "", city: "" })}
+                onStateChange={(s) => setForm({ ...form, state: s, city: "" })}
+                onCityChange={(c) => setForm({ ...form, city: c })}
+              />
             </div>
 
             <div>
