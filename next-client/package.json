@@ -18,7 +18,11 @@
     "test:candidate-details": "npx playwright test tests/candidate/job-details.spec.ts --project=chromium --headed",
     "test:candidate-applications": "npx playwright test tests/candidate/applications.spec.ts --project=chromium --headed",
     "test:candidate-profile": "npx playwright test tests/candidate/profile.spec.ts --project=chromium --headed",
-    "test:candidate-home": "npx playwright test tests/candidate/home.spec.ts --project=chromium --headed"
+    "test:candidate-home": "npx playwright test tests/candidate/home.spec.ts --project=chromium --headed",
+    "test:candidate-job-search": "npx playwright test tests/candidate/job-search.spec.ts --project=chromium --headed",
+    "test:candidate-navigation": "npx playwright test tests/candidate/navigation.spec.ts --project=chromium --headed",
+    "test:candidate-profile-flow": "npx playwright test tests/candidate/profile-flow.spec.ts --project=chromium --headed"
+    
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.11",
