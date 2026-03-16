@@ -250,8 +250,7 @@ export default function UnifiedLoginPage() {
   const role = params.get("role") || "candidate";
 
   const isCandidate = role === "candidate";
-  const isClient = role === "client";
-  const isRecruiterOrAdmin = role === "recruiter" || role === "admin";
+  const isManagement = !isCandidate;
 
   const [tab, setTab] = useState<"password" | "otp">("password");
 
@@ -261,9 +260,8 @@ export default function UnifiedLoginPage() {
 
   const { title, subtitle } = useMemo(() => {
     if (isCandidate) return { title: "Sign in to CATaur", subtitle: "Find your next opportunity" };
-    if (isClient) return { title: "Client Portal", subtitle: "Review submitted candidates and decisions" };
-    return { title: "Recruiter Console", subtitle: "Sign in to manage job orders and pipelines" };
-  }, [isCandidate, isClient]);
+    return { title: "Management Portal", subtitle: "Sign in to access your workspace" };
+  }, [isCandidate]);
 
   const processSuccessfulLogin = (data: any, email: string) => {
     if (data.mfa_required) {
@@ -292,7 +290,7 @@ export default function UnifiedLoginPage() {
 
     // Redirect logic: check params first, then role
     const defaultRedirect = actualRole === "Candidate" ? "/candidate" : (actualRole === "Client" ? "/client" : "/recruiter");
-    const redirectUrl = params.get("redirect") || defaultRedirect;
+    const redirectUrl = defaultRedirect;
 
     setTimeout(() => {
       router.push(redirectUrl);
@@ -444,38 +442,19 @@ export default function UnifiedLoginPage() {
                 </Link>
               </p>
               <p className="pt-2">
-                Client or Recruiter?{" "}
+                Client or Staff?{" "}
                 <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                  Staff sign in
+                  Management sign in
                 </Link>
               </p>
             </>
           ) : (
-            <>
-              <p>
-                Looking for a job?{" "}
-                <Link href="/login?role=candidate" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                  Candidate sign in
-                </Link>
-              </p>
-              <p className="pt-2">
-                {isClient ? (
-                  <>
-                    Recruiter?{" "}
-                    <Link href="/login?role=recruiter" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                      Recruiter sign in
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    Client?{" "}
-                    <Link href="/login?role=client" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
-                      Client sign in
-                    </Link>
-                  </>
-                )}
-              </p>
-            </>
+            <p>
+              Looking for a job?{" "}
+              <Link href="/login?role=candidate" className="font-semibold text-[#1D4ED8] hover:underline underline-offset-2">
+                Candidate sign in
+              </Link>
+            </p>
           )}
         </div>
       </div>
