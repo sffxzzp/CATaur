@@ -131,8 +131,29 @@ export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setApplied(getAppliedSet().has(slug));
-  }, [slug]);
+
+    const checkApplied = async () => {
+      if (isGuest) {
+        setApplied(getAppliedSet().has(slug));
+        return;
+      }
+
+      try {
+        const res = await request("/candidate/applications?page=1&limit=1000");
+        const result = res as any;
+        if (result?.data && Array.isArray(result.data)) {
+          const hasApplied = result.data.some((app: any) => app.jobOrderId === jobId);
+          setApplied(hasApplied);
+        } else {
+          setApplied(getAppliedSet().has(slug));
+        }
+      } catch {
+        setApplied(getAppliedSet().has(slug));
+      }
+    };
+
+    checkApplied();
+  }, [slug, jobId, isGuest]);
 
   const handleApply = async () => {
     if (isGuest) {

@@ -70,7 +70,7 @@ function arrangementStyle(arrangement: WorkArrangement): string {
 
 // ─── Job Card ─────────────────────────────────────────────────────────────────
 
-function JobCard({ job, isGuest }: { job: (typeof JOBS)[0]; isGuest: boolean }) {
+function JobCard({ job, isGuest, isApplied }: { job: (typeof JOBS)[0]; isGuest: boolean; isApplied: boolean }) {
   const badge = arrangementStyle(job.workArrangement);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -139,7 +139,11 @@ function JobCard({ job, isGuest }: { job: (typeof JOBS)[0]; isGuest: boolean }) 
               <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
-          {isGuest ? (
+          {isApplied ? (
+            <Button variant="outline" size="sm" disabled className="cursor-not-allowed bg-[#F9FAFB] text-[#9CA3AF]">
+              Applied
+            </Button>
+          ) : isGuest ? (
             <Button variant="primary" size="sm" onClick={() => setShowLoginModal(true)}>
               Apply Now
             </Button>
@@ -228,30 +232,40 @@ export default function JobSearchPage() {
   const [sortBy, setSortBy] = useState<SortOption>("Most Recent");
 
   // API state
-  const [apiJobs, setApiJobs] = useState<Job[]>([]); // No more fake fallback
+  const [apiJobs, setApiJobs] = useState<Job[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
-        const res = await request("/candidate/jobs?page=1&limit=100");
-        const result = res as any;
-        if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
-          setApiJobs(result.data.map(mapApiJob));
-        } else {
-          setApiJobs([]);
+        const [jobsRes, applicationsRes] = await Promise.all([
+          request("/candidate/jobs?page=1&limit=100"),
+          isGuest ? Promise.resolve(null) : request("/candidate/applications?page=1&limit=1000").catch(() => null),
+        ]);
+
+        const jobsResult = jobsRes as any;
+        if (jobsResult?.data && Array.isArray(jobsResult.data)) {
+          setApiJobs(jobsResult.data.map(mapApiJob));
+        }
+
+        if (applicationsRes) {
+          const appsResult = applicationsRes as any;
+          if (appsResult?.data && Array.isArray(appsResult.data)) {
+            const ids = new Set<string>(appsResult.data.map((app: any) => app.jobOrderId).filter(Boolean));
+            setAppliedJobIds(ids);
+          }
         }
       } catch (err: any) {
         console.error("Failed to load jobs", err);
         setError(err?.message || "Failed to load jobs");
-        setApiJobs([]);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchJobs();
-  }, []);
+    fetchData();
+  }, [isGuest]);
 
   const handleCountryChange = (v: string) => {
     setSelectedCountry(v as CountryCode | "");
@@ -443,7 +457,7 @@ export default function JobSearchPage() {
       {filteredJobs.length > 0 ? (
         <div className="space-y-3">
           {filteredJobs.map((job) => (
-            <JobCard key={job.slug} job={job} isGuest={isGuest} />
+            <JobCard key={job.slug} job={job} isGuest={isGuest} isApplied={appliedJobIds.has(job.slug)} />
           ))}
         </div>
       ) : (
