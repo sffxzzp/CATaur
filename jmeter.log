@@ -1,0 +1,466 @@
+2026-03-10 20:38:45,699 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-03-10 20:38:45,713 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2026-03-10 20:38:45,713 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: Version 5.6.3
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: java.version=21.0.10
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: os.arch=aarch64
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: os.version=26.2
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: java.awt.headless=null
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-03-10 20:38:45,716 INFO o.a.j.JMeter: Available Processors =10
+2026-03-10 20:38:45,722 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-03-10 20:38:45,722 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-03-10 20:38:45,722 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2026-03-10 20:38:45,722 INFO o.a.j.JMeter: user.dir  =/Users/carletts/CATaur
+2026-03-10 20:38:45,722 INFO o.a.j.JMeter: PWD       =/Users/carletts/CATaur
+2026-03-10 20:38:45,724 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: Scarlett-2.local FullName: localhost
+2026-03-10 20:38:45,730 INFO o.a.j.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties
+2026-03-10 20:38:46,239 INFO o.a.j.JMeterGuiLauncher: Setting LAF to: com.github.weisj.darklaf.DarkLaf:com.github.weisj.darklaf.theme.DarculaTheme
+2026-03-10 20:38:47,319 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.action.Command], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:38:47,389 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.plugin.MenuCreator], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:38:47,455 INFO o.j.r.JARSourceHTTP: Found cached repo
+2026-03-10 20:38:47,553 INFO o.j.r.PluginManager: Plugins Status: [jpgc-plugins-manager=1.9, jmeter-core=5.6.3, jmeter-ftp=5.6.3, jmeter-http=5.6.3, jmeter-jdbc=5.6.3, jmeter-jms=5.6.3, jmeter-junit=5.6.3, jmeter-java=5.6.3, jmeter-ldap=5.6.3, jmeter-mail=5.6.3, jmeter-mongodb=5.6.3, jmeter-native=5.6.3, jmeter-tcp=5.6.3, jmeter-components=5.6.3]
+2026-03-10 20:38:47,553 INFO o.j.r.PluginManagerMenuItem: Plugins Manager has upgrades: [jpgc-plugins-manager]
+2026-03-10 20:39:16,518 INFO o.a.j.s.FileServer: Default base='/Users/carletts/CATaur'
+2026-03-10 20:39:16,524 INFO o.a.j.g.a.Load: Loading file: /Users/carletts/CATaur/Thread Group-Auth APIs.jmx
+2026-03-10 20:39:16,524 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur'
+2026-03-10 20:39:16,614 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-03-10 20:39:16,618 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-03-10 20:39:16,618 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-03-10 20:39:16,619 INFO o.a.j.s.SaveService: Loading file: /Users/carletts/CATaur/Thread Group-Auth APIs.jmx
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-03-10 20:39:16,667 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-03-10 20:39:16,790 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-03-10 20:39:16,790 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-03-10 20:39:16,790 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-03-10 20:39:16,791 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-03-10 20:39:16,841 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.ResultRenderer], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:39:16,851 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.RequestView], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:39:16,905 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.ResultRenderer], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:39:16,911 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.RequestView], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:39:16,927 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur'
+2026-03-10 20:39:26,763 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:39:26,763 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:26,764 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:26,764 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-03-10 20:39:26,764 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-03-10 20:39:26,780 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 20:39:26,784 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:39:26,807 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:39:26,807 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:39:26,807 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:39:26,807 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:39:26,808 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:39:26,808 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:39:26,810 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:26,810 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Filename must not be null or empty
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:256) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:208) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-10 20:39:26,814 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:26,814 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:39:26,814 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:39:31,836 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:39:31,836 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:31,837 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:39:31,860 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:39:31,860 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:39:31,860 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:39:31,860 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:39:31,861 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:39:31,861 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:39:31,861 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:31,861 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Filename must not be null or empty
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:256) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:208) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-10 20:39:31,862 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:31,862 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:39:31,862 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:39:32,591 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:39:32,591 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:32,591 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:39:32,616 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:39:32,616 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:39:32,616 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:39:32,616 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:39:32,617 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:39:32,617 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:39:32,617 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:32,617 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Filename must not be null or empty
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:256) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:208) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-10 20:39:32,617 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:32,617 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:39:32,618 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:39:32,868 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:39:32,869 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:32,869 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:39:32,891 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:39:32,892 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:39:32,892 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:39:32,892 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:39:32,892 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:39:32,892 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:39:32,893 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:32,893 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Filename must not be null or empty
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:256) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:208) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-10 20:39:32,893 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:32,893 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:39:32,893 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:39:33,131 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:39:33,131 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:39:33,132 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:39:33,156 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:39:33,156 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:39:33,156 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:39:33,156 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:39:33,157 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:39:33,157 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:39:33,157 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:33,157 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Filename must not be null or empty
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:256) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:208) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+2026-03-10 20:39:33,158 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:39:33,158 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:39:33,158 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:40:49,892 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:40:49,893 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:40:49,894 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:40:49,927 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:40:49,927 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:40:49,927 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:40:49,927 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:40:49,927 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:40:49,928 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:40:49,928 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:40:49,933 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = Scarlett-2.local
+2026-03-10 20:40:49,936 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-03-10 20:40:50,146 INFO o.a.j.p.h.s.h.LazyLayeredConnectionSocketFactory: Setting up HTTPS TrustAll Socket Factory
+2026-03-10 20:40:50,148 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
+2026-03-10 20:40:50,148 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
+2026-03-10 20:40:50,227 INFO o.a.j.u.SSLManager: JmeterKeyStore Location:  type JKS
+2026-03-10 20:40:50,227 INFO o.a.j.u.SSLManager: KeyStore created OK
+2026-03-10 20:40:50,227 WARN o.a.j.u.SSLManager: Keystore file not found, loading empty keystore
+2026-03-10 20:40:54,130 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 20:40:54,131 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:40:54,134 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:40:54,134 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:58:02,266 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:58:02,267 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:58:02,268 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:58:02,309 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:58:02,309 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:58:02,309 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:58:02,309 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:58:02,310 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:58:02,310 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:58:02,310 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:02,310 INFO o.a.j.s.FileServer: Stored: user.csv
+2026-03-10 20:58:02,310 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Could not read file header line for file user.csv
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:283) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:216) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.lang.IllegalArgumentException: File user.csv must exist and be readable
+	at org.apache.jmeter.services.FileServer.createBufferedReader(FileServer.java:424) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:340) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:324) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:272) ~[ApacheJMeter_core.jar:5.6.3]
+	... 9 more
+2026-03-10 20:58:02,311 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:02,311 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:58:02,311 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:58:47,217 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:58:47,218 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:58:47,219 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:58:47,263 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:58:47,263 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:58:47,263 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:58:47,263 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:58:47,264 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:58:47,264 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:58:47,264 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:47,264 INFO o.a.j.s.FileServer: Stored: user.csv
+2026-03-10 20:58:47,264 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Could not read file header line for file user.csv
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:283) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:216) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.lang.IllegalArgumentException: File user.csv must exist and be readable
+	at org.apache.jmeter.services.FileServer.createBufferedReader(FileServer.java:424) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:340) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:324) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:272) ~[ApacheJMeter_core.jar:5.6.3]
+	... 9 more
+2026-03-10 20:58:47,264 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:47,264 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:58:47,264 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:58:49,448 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:58:49,448 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:58:49,449 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:58:49,474 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:58:49,474 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:58:49,474 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:58:49,474 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:58:49,474 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:58:49,475 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:58:49,475 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:49,475 INFO o.a.j.s.FileServer: Stored: user.csv
+2026-03-10 20:58:49,475 ERROR o.a.j.t.JMeterThread: Test failed!
+java.lang.IllegalArgumentException: Could not read file header line for file user.csv
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:283) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.initVars(CSVDataSet.java:216) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.config.CSVDataSet.iterationStart(CSVDataSet.java:171) ~[ApacheJMeter_components.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterationStart(GenericController.java:412) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.fireIterEvents(GenericController.java:404) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.GenericController.next(GenericController.java:170) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.control.LoopController.next(LoopController.java:119) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.AbstractThreadGroup.next(AbstractThreadGroup.java:109) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.threads.JMeterThread.run(JMeterThread.java:266) ~[ApacheJMeter_core.jar:5.6.3]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.lang.IllegalArgumentException: File user.csv must exist and be readable
+	at org.apache.jmeter.services.FileServer.createBufferedReader(FileServer.java:424) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:340) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.readLine(FileServer.java:324) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.services.FileServer.reserveFile(FileServer.java:272) ~[ApacheJMeter_core.jar:5.6.3]
+	... 9 more
+2026-03-10 20:58:49,475 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:58:49,475 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:58:49,476 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 20:59:06,408 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 20:59:06,408 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 20:59:06,409 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 20:59:06,434 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 20:59:06,434 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 20:59:06,434 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 20:59:06,434 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 20:59:06,435 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 20:59:06,435 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 20:59:06,435 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 20:59:10,416 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 20:59:10,416 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 20:59:10,416 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 20:59:10,416 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:03:03,884 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.ResultRenderer], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 21:03:03,909 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.RequestView], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-10 21:03:09,766 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:03:09,767 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:03:09,768 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:03:09,804 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:03:09,804 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:03:09,804 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:03:09,805 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:03:09,805 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:03:09,805 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:03:09,805 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:03:13,726 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:03:13,726 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:03:13,727 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:03:13,728 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:09:16,528 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:09:16,530 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:09:16,530 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:09:16,572 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:09:16,572 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:09:16,572 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:09:16,572 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:09:16,572 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:09:16,572 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:09:16,572 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:09:19,482 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:09:19,483 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:09:19,486 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:09:19,486 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:17:58,007 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:17:58,009 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:17:58,010 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:17:58,049 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:17:58,049 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:17:58,049 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:17:58,049 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:17:58,050 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:17:58,050 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:17:58,050 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:17:59,139 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:17:59,139 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:17:59,140 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:17:59,140 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:19:54,388 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:19:54,390 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:19:54,391 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:19:54,448 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:19:54,449 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:19:54,449 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:19:54,449 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:19:54,449 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:19:54,449 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:19:54,449 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:19:55,737 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:19:55,737 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:19:55,737 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:19:55,737 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:23:15,315 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:23:15,317 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:23:15,317 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:23:15,372 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:23:15,372 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:23:15,372 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:23:15,372 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:23:15,373 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:23:15,373 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:23:15,373 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:23:17,914 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:23:17,915 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:23:17,916 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:23:17,917 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:30:49,248 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:30:49,250 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:30:49,251 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:30:49,299 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:30:49,300 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:30:49,300 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:30:49,300 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:30:49,300 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:30:49,300 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:30:49,300 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:30:49,789 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:30:49,789 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:30:49,789 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:30:49,789 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:31:08,661 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:31:08,662 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:31:08,663 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:31:08,692 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:31:08,692 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:31:08,692 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:31:08,693 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:31:08,693 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:31:08,693 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:31:08,693 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:09,649 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:09,649 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:09,649 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:31:09,649 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:31:31,557 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:31:31,558 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:31:31,559 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:31:31,590 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:31:31,590 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:31:31,590 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:31:31,590 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:31:31,590 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:31:31,590 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:31:31,591 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:32,151 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:32,151 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:31:32,152 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:31:32,152 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:32:11,903 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:32:11,904 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:32:11,904 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:32:11,935 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:32:11,936 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:32:11,936 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:32:11,936 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:32:11,936 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:32:11,936 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:32:11,936 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:31,552 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:31,552 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:31,552 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:32:31,553 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:32:35,826 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:32:35,826 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:32:35,826 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:32:35,855 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:32:35,856 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:32:35,856 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:32:35,856 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:32:35,856 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:32:35,856 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:32:35,856 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:36,496 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:36,497 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:32:36,498 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:32:36,498 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-10 21:33:24,343 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-10 21:33:24,345 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-10 21:33:24,345 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-10 21:33:24,391 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
+2026-03-10 21:33:24,391 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Auth APIs.
+2026-03-10 21:33:24,391 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-10 21:33:24,391 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-10 21:33:24,392 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-10 21:33:24,392 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-10 21:33:24,393 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
+2026-03-10 21:33:26,153 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
+2026-03-10 21:33:26,154 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
+2026-03-10 21:33:26,155 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-10 21:33:26,155 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
