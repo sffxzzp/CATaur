@@ -86,6 +86,34 @@ export class CandidateResumeService {
         private readonly aiProviderConfigService: AIProviderConfigService,
     ) { }
 
+    /**
+     * Normalize date string to YYYY-MM-DD format for database
+     * Handles: YYYY-MM-DD, YYYY-MM, YYYY
+     */
+    private normalizeDate(dateStr: string | null): string | null {
+        if (!dateStr) return null;
+        const trimmed = dateStr.trim();
+        if (!trimmed) return null;
+
+        // Already in YYYY-MM-DD format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+
+        // YYYY-MM format -> add -01
+        if (/^\d{4}-\d{2}$/.test(trimmed)) {
+            return `${trimmed}-01`;
+        }
+
+        // YYYY format -> add -01-01
+        if (/^\d{4}$/.test(trimmed)) {
+            return `${trimmed}-01-01`;
+        }
+
+        // Invalid format, return null
+        return null;
+    }
+
     async parseResume(userId: string, dto: ParseResumeDto) {
         const user = await this.userRepository.findOne({ where: { id: userId }, relations: ['roles'] });
         if (!user) {
@@ -212,8 +240,8 @@ export class CandidateResumeService {
                     candidateId: candidate.id,
                     role: exp.jobTitle,
                     company: exp.companyName,
-                    startDate: exp.startDate,
-                    endDate: exp.endDate,
+                    startDate: this.normalizeDate(exp.startDate),
+                    endDate: this.normalizeDate(exp.endDate),
                     isCurrent: exp.isCurrent,
                     highlights: exp.description ? JSON.stringify([exp.description]) : null,
                 });
