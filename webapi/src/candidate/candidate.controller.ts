@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { RequireRoles } from '../auth/decorators/roles.decorator';
 import { GetUser } from '../auth/decorators/user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { Role } from '../database/entities/user-role.entity';
 import { User } from '../database/entities/user.entity';
 import { JobOrdersService } from '../job-orders/job-orders.service';
@@ -110,6 +111,7 @@ export class CandidateController {
         private candidateAssistantService: CandidateAssistantService,
     ) {}
 
+    @Public()
     @Get('jobs')
     @ApiOperation({ summary: 'Browse open job orders' })
     @ApiQuery({ name: 'page', required: false })
@@ -169,6 +171,7 @@ export class CandidateController {
         });
     }
 
+    @Public()
     @Get('jobs/:id')
     @ApiOperation({ summary: 'Get job order detail' })
     @ApiOkResponse({ type: JobOrderResponseDto })
