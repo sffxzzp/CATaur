@@ -135,7 +135,7 @@ function NotificationDropdown() {
             <button
               onClick={handleReadAll}
               disabled={!hasUnread}
-              className="text-xs font-medium text-[var(--accent)] disabled:text-[var(--gray-400)] hover:underline"
+              className="text-xs font-medium text-[var(--accent)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed cursor-pointer hover:underline"
             >
               Read all
             </button>
