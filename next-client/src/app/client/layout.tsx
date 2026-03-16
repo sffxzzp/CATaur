@@ -79,7 +79,7 @@ function AvatarDropdown({ userName, email }: { userName: string; email: string }
 
   const signOut = () => {
     localStorage.removeItem("clientLoggedIn");
-    window.location.replace("/login?role=client&redirect=%2Fclient");
+    window.location.replace("/login?role=client");
   };
 
   const initials = userName
@@ -323,8 +323,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const loggedIn = localStorage.getItem("clientLoggedIn") === "1";
     if (!loggedIn) {
       setAuthorized(false);
-      const redirect = encodeURIComponent(pathname || "/client");
-      window.location.replace(`/login?role=client&redirect=${redirect}`);
+      window.location.replace('/login?role=client');
       return;
     }
     setAuthorized(true);

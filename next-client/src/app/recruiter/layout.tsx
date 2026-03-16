@@ -266,7 +266,7 @@ function AvatarDropdown() {
   const signOut = () => {
     localStorage.removeItem("recruiterLoggedIn");
     localStorage.removeItem("userRole");
-    window.location.replace("/login?role=recruiter&redirect=%2Frecruiter");
+    window.location.replace("/login?role=recruiter");
   };
 
   const avatarLabel = nickname
@@ -387,8 +387,7 @@ export default function RecruiterLayout({ children }: { children: React.ReactNod
     const loggedIn = localStorage.getItem("recruiterLoggedIn") === "1";
     if (!loggedIn) {
       setAuthorized(false);
-      const redirect = encodeURIComponent(pathname || "/recruiter");
-      window.location.replace(`/login?role=recruiter&redirect=${redirect}`);
+      window.location.replace("/login?role=recruiter");
       return;
     }
     setAuthorized(true);

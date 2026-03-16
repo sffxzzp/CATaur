@@ -65,7 +65,7 @@ export function RecruiterHeader() {
         if (typeof window === "undefined") return;
         localStorage.removeItem("recruiterLoggedIn");
         setRecruiterLoggedIn(false);
-        window.location.replace("/login?role=recruiter&redirect=%2Frecruiter");
+        window.location.replace("/login?role=recruiter");
     };
 
     return (

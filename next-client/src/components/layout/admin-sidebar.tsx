@@ -60,7 +60,7 @@ export function AdminSidebar() {
     if (typeof window === "undefined") return;
     localStorage.removeItem("recruiterLoggedIn");
     setLoggedIn(false);
-    window.location.replace("/login?role=recruiter&redirect=%2Fadminister");
+    window.location.replace("/login?role=recruiter");
   };
 
   return (
