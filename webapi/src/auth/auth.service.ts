@@ -198,8 +198,6 @@ export class AuthService {
             user = await this.usersService.update(user.id, { isActive: true });
         }
 
-        // Update last login time
-        await this.usersService.update(user.id, { lastLoginAt: new Date() });
         await this.authAttempts.recordSuccess(email);
 
         return this.login(user);
@@ -389,8 +387,6 @@ export class AuthService {
             return this.startTotpLogin(user);
         }
 
-        // Update last login time
-        await this.usersService.update(user.id, { lastLoginAt: new Date() });
         await this.authAttempts.recordSuccess(email);
 
         return this.login(user);
@@ -535,8 +531,6 @@ export class AuthService {
             return this.startTotpLogin(user);
         }
 
-        // Update last login time
-        await this.usersService.update(user.id, { lastLoginAt: new Date() });
         await this.authAttempts.recordSuccess(email);
 
         return this.login(user);
@@ -632,7 +626,6 @@ export class AuthService {
 
         await this.authAttempts.clearTotpFailures(user.id);
         await this.cacheManager.del(`mfa_login:${mfaToken}`);
-        await this.usersService.update(user.id, { lastLoginAt: new Date() });
         await this.authAttempts.recordSuccess(user.email);
 
         return this.login(user);

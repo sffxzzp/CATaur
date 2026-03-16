@@ -20,8 +20,7 @@ const dbUserWithPassword = {
     email: 'test@example.com', 
     isActive: true, 
     passwordHash: 'hashed_password',
-    createdAt: new Date(),
-    lastLoginAt: null 
+    createdAt: new Date()
 };
 ```
 

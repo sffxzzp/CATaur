@@ -44,7 +44,7 @@ describe('JwtStrategy', () => {
     describe('validate', () => {
         const payload = { sub: 1, email: 'test@example.com' };
         const user = { id: 1, email: 'test@example.com', isActive: true };
-        const dbUserWithPassword = { id: 1, email: 'test@example.com', isActive: true, passwordHash: 'hashed_password', createdAt: new Date(), lastLoginAt: null };
+        const dbUserWithPassword = { id: 1, email: 'test@example.com', isActive: true, passwordHash: 'hashed_password', createdAt: new Date() };
 
         it('should return user from cache if present', async () => {
             cacheManager.get.mockResolvedValue(user);

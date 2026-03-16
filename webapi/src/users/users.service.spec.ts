@@ -83,7 +83,7 @@ describe('UsersService', () => {
         it('should hash password and save user', async () => {
             const userData = { email: 'test@example.com', passwordHash: 'hashed_password_123' };
             const generatedId = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
-            const createdUser = { id: generatedId, ...userData, isActive: false, createdAt: new Date(), lastLoginAt: null };
+            const createdUser = { id: generatedId, ...userData, isActive: false, createdAt: new Date() };
 
             repository.create.mockReturnValue(createdUser);
             repository.save.mockResolvedValue(createdUser);

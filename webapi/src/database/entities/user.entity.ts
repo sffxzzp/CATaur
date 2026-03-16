@@ -39,10 +39,6 @@ export class User {
     @Column({ nullable: false })
     passwordHash: string;
 
-    @ApiProperty({ description: 'Last login time', required: false, type: Date, writeOnly: true })
-    @Column({ type: 'datetime', nullable: true })
-    lastLoginAt: Date | null;
-
     @ApiProperty({ description: 'Whether TOTP MFA is enabled', default: false, writeOnly: true })
     @Column({ default: false })
     totpEnabled: boolean;

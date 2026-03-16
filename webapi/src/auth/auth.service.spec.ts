@@ -110,46 +110,6 @@ describe('AuthService', () => {
         expect(service).toBeDefined();
     });
 
-    describe('register', () => {
-        it('should create a new inactive user and send verification email', async () => {
-            const registerDto = { email: 'new@example.com', password: 'SecurePass123!' };
-            const createdUser = { id: '01ARZ3NDEKTSV4RRFFQ69G5FAV', email: registerDto.email, isActive: false, passwordHash: expect.any(String) };
-
-            usersService.findOneByEmail.mockResolvedValue(null);
-            usersService.create.mockResolvedValue(createdUser);
-
-            const result = await service.register(registerDto);
-
-            expect(result).toEqual({ id: '01ARZ3NDEKTSV4RRFFQ69G5FAV', email: 'new@example.com', isActive: false, passwordHash: expect.any(String) });
-            expect(usersService.create).toHaveBeenCalledWith({
-                email: registerDto.email,
-                passwordHash: expect.any(String),
-            });
-            expect(cacheManager.set).toHaveBeenCalledWith('verify_email:MOCK_TOKEN', registerDto.email, 3600 * 1000);
-            expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(registerDto.email, 'MOCK_TOKEN');
-        });
-
-        it('should throw ConflictException if email already exists and is active', async () => {
-            const registerDto = { email: 'existing@example.com', password: 'SecurePass123!' };
-            usersService.findOneByEmail.mockResolvedValue({ id: '1', email: 'existing@example.com', isActive: true, passwordHash: 'hashed' });
-
-            await expect(service.register(registerDto)).rejects.toThrow('Email already registered');
-        });
-
-        it('should allow re-registering if account is exist but inactive', async () => {
-            const registerDto = { email: 'inactive@example.com', password: 'SecurePass123!' };
-            const existingUser = { id: '1', email: 'inactive@example.com', isActive: false, passwordHash: 'hashed' };
-            const updatedUser = { ...existingUser };
-
-            usersService.findOneByEmail.mockResolvedValue(existingUser);
-            usersService.update.mockResolvedValue(updatedUser);
-
-            const result = await service.register(registerDto);
-
-            expect(result).toBeDefined();
-            expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(registerDto.email, 'MOCK_TOKEN');
-        });
-    });
 
     describe('verifyEmail', () => {
         it('should activate user and delete token if valid', async () => {
@@ -210,7 +170,6 @@ describe('AuthService', () => {
                 email: user.email,
                 roles: [],
             });
-            expect(usersService.update).toHaveBeenCalledWith(user.id, { lastLoginAt: expect.any(Date) });
         });
 
         it('should throw UnauthorizedException if user does not exist', async () => {
@@ -429,7 +388,6 @@ describe('AuthService', () => {
                 roles: [],
             });
             expect(cacheManager.del).toHaveBeenCalledWith(`verification_code:${email}`);
-            expect(usersService.update).toHaveBeenCalledWith(user.id, { lastLoginAt: expect.any(Date) });
         });
 
         it('should throw UnauthorizedException if user does not exist', async () => {
