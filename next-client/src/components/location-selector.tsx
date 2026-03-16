@@ -29,11 +29,7 @@ export function LocationSelector({
       <select
         className={inp}
         value={country}
-        onChange={e => {
-          onCountryChange(e.target.value);
-          onStateChange("");
-          onCityChange("");
-        }}
+        onChange={e => onCountryChange(e.target.value)}
       >
         <option value="">Country</option>
         {Object.keys(LOCATION_DATA).map(c => (
@@ -43,10 +39,7 @@ export function LocationSelector({
       <select
         className={inp}
         value={state}
-        onChange={e => {
-          onStateChange(e.target.value);
-          onCityChange("");
-        }}
+        onChange={e => onStateChange(e.target.value)}
         disabled={!country}
       >
         <option value="">State/Province</option>
