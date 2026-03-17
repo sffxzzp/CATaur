@@ -120,7 +120,12 @@ export default function JobOrderDetails() {
             </div>
             <div className="flex items-center gap-4 mt-2 text-sm text-[var(--gray-500)] font-medium flex-wrap">
               {company && <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />{company.name}</span>}
-              {job.location && <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{job.location}</span>}
+              {(job.locationCity || job.location) && (
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {job.locationCity && job.locationState ? `${job.locationCity}, ${job.locationState}` : job.location}
+                </span>
+              )}
               <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />{job.openings} opening{job.openings !== 1 ? "s" : ""}</span>
             </div>
           </div>
@@ -144,7 +149,9 @@ export default function JobOrderDetails() {
           )}
           <div>
             <p className="text-xs font-bold text-[var(--gray-400)] uppercase tracking-wider mb-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> Location</p>
-            <p className="text-sm font-medium text-[var(--gray-800)]">{job.location || "—"}</p>
+            <p className="text-sm font-medium text-[var(--gray-800)]">
+              {job.locationCity && job.locationState ? `${job.locationCity}, ${job.locationState}` : job.location || "—"}
+            </p>
           </div>
           <div>
             <p className="text-xs font-bold text-[var(--gray-400)] uppercase tracking-wider mb-1">Department</p>

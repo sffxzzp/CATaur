@@ -448,7 +448,9 @@ export default function RecruiterJobOrdersPage() {
                         <span className="text-sm text-[var(--gray-700)]">{company?.name || "-"}</span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="text-sm text-[var(--gray-600)]">{j.location || "-"}</span>
+                        <span className="text-sm text-[var(--gray-600)]">
+                          {j.locationCity && j.locationState ? `${j.locationCity}, ${j.locationState}` : j.location || "-"}
+                        </span>
                       </TableCell>
                       <TableCell className="py-4">
                         <span className="text-sm text-[var(--gray-600)]">{j.employmentType || "Full-time"}</span>

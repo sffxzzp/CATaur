@@ -152,6 +152,10 @@ export default function RecruiterClientsPage() {
       return;
     }
 
+    const stateAbbr = formData.state && formData.country
+      ? LOCATION_DATA[formData.country]?.[formData.state]?.abbr || formData.state
+      : formData.state;
+
     setSubmitting(true);
     try {
       if (editingClient) {
@@ -162,7 +166,7 @@ export default function RecruiterClientsPage() {
           phone: formData.phone || undefined,
           website: formData.website || undefined,
           locationCountry: formData.country || undefined,
-          locationState: formData.state || undefined,
+          locationState: stateAbbr || undefined,
           locationCity: formData.city || undefined,
           keyTechnologies: formData.keyTechnologies || undefined,
           clientAccountId: formData.clientAccount || undefined,
@@ -175,7 +179,7 @@ export default function RecruiterClientsPage() {
           phone: formData.phone || undefined,
           website: formData.website || undefined,
           locationCountry: formData.country || undefined,
-          locationState: formData.state || undefined,
+          locationState: stateAbbr || undefined,
           locationCity: formData.city || undefined,
           keyTechnologies: formData.keyTechnologies || undefined,
           clientAccountId: formData.clientAccount || undefined,
