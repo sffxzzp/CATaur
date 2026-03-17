@@ -1,5 +1,21 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RootPage() {
-  redirect("/candidate/jobs");
+  const router = useRouter();
+
+  useEffect(() => {
+    const hostname = window.location.hostname.toLowerCase();
+    const isManager = hostname === "manager.cataur.freedeeplearn.com";
+
+    if (isManager) {
+      router.replace("/login");
+    } else {
+      router.replace("/candidate/jobs");
+    }
+  }, [router]);
+
+  return null;
 }
