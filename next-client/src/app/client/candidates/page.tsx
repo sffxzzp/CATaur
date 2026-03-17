@@ -47,8 +47,7 @@ type APICandidate = {
   appliedAt?: string;
   createdAt?: string;
   candidate?: {
-    firstName?: string;
-    lastName?: string;
+    nickname?: string;
     email?: string;
   };
   jobOrder?: {
@@ -247,11 +246,11 @@ export default function ClientCandidatesPage() {
             const sc = STATUS_CONFIG[c.status as ApplicationStatus] || STATUS_CONFIG.new;
 
             // Computed safe fields
-            const fullName = c.name || (c.candidate ? `${c.candidate.firstName} ${c.candidate.lastName}`.trim() : "Unknown Candidate");
-            const cEmail = c.email || c.candidate?.email || "No email";
-            const jTitle = c.jobTitle || c.jobOrder?.title || "Unknown Position";
-            const locationStr = [c.locationCity, c.locationState, c.locationCountry].filter(Boolean).join(", ") || c.source || "Unknown Location";
-            const applyDate = c.appliedAt || c.createdAt || c.interviewSentAt ? new Date(c.appliedAt || c.createdAt || c.interviewSentAt!).toLocaleDateString() : "N/A";
+            const fullName = c.candidate?.nickname || c.name || "Unknown Candidate";
+            const cEmail = c.candidate?.email || c.email || "No email";
+            const jTitle = c.jobOrder?.title || c.jobTitle || "Unknown Position";
+            const locationStr = [c.locationCity, c.locationState, c.locationCountry].filter(Boolean).join(", ") || (c.source === "self_applied" ? "Self Applied" : c.source === "recruiter_import" ? "Recruiter Import" : c.source) || "Unknown Location";
+            const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : (c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : "N/A");
 
             return (
               <Link
