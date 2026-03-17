@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { request } from "@/lib/request";
 import { auth, googleProvider, githubProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
+import { toast } from "sonner";
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -267,7 +268,6 @@ export default function UnifiedLoginPage() {
 
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const { title, subtitle } = useMemo(() => {
     if (isManager) return { title: "Management Portal", subtitle: "Sign in to access your workspace" };
@@ -297,7 +297,7 @@ export default function UnifiedLoginPage() {
       localStorage.setItem("recruiterLoggedIn", "1");
     }
 
-    setSuccessMsg("Login successful! Redirecting...");
+    toast.success("Login successful! Redirecting...");
 
     // Redirect logic: check params first, then role
     const defaultRedirect = actualRole === "Candidate" ? "/candidate" : (actualRole === "Client" ? "/client" : "/recruiter");
@@ -312,7 +312,6 @@ export default function UnifiedLoginPage() {
     async (email: string, pw: string) => {
       setIsPending(true);
       setErrorMsg(null);
-      setSuccessMsg(null);
 
       try {
         const data = await request("/auth/login/password", {
@@ -335,7 +334,6 @@ export default function UnifiedLoginPage() {
     async (email: string, code: string) => {
       setIsPending(true);
       setErrorMsg(null);
-      setSuccessMsg(null);
 
       try {
         const data = await request("/auth/login/verification-code", {
@@ -357,7 +355,6 @@ export default function UnifiedLoginPage() {
   const handleSocialLogin = async (provider: 'google' | 'github') => {
     setIsPending(true);
     setErrorMsg(null);
-    setSuccessMsg(null);
 
     try {
       const firebaseProvider = provider === 'google' ? googleProvider : githubProvider;
@@ -390,13 +387,6 @@ export default function UnifiedLoginPage() {
       {errorMsg && (
         <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
           {errorMsg}
-        </div>
-      )}
-
-      {successMsg && (
-        <div className="mb-4 flex items-center gap-2 rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 border border-green-200">
-          <CheckCircle2 className="h-4 w-4" />
-          {successMsg}
         </div>
       )}
 

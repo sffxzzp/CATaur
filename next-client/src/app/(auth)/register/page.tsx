@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { request } from "@/lib/request";
 import { auth, googleProvider, githubProvider } from "@/lib/firebase";
 import { signInWithPopup } from "firebase/auth";
+import { toast } from "sonner";
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -76,10 +77,10 @@ export default function RegisterPage() {
       const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
       const pw = (form.elements.namedItem("password") as HTMLInputElement).value;
       const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
-      
-      if (pw !== confirm) { 
-        setPwError("Passwords do not match."); 
-        return; 
+
+      if (pw !== confirm) {
+        setPwError("Passwords do not match.");
+        return;
       }
       setPwError("");
 
@@ -98,9 +99,9 @@ export default function RegisterPage() {
       try {
         const data = await request("/auth/register", {
           method: "POST",
-          json: { 
-            email, 
-            password: pw, 
+          json: {
+            email,
+            password: pw,
             nickname: email.split('@')[0],
             role: role as any
           },
@@ -113,6 +114,7 @@ export default function RegisterPage() {
         }
 
         // Set local storage flags based on role
+        toast.success("Account created successfully. Redirecting...");
         switch (role) {
           case "recruiter":
             localStorage.setItem("recruiterLoggedIn", "1");
@@ -162,6 +164,7 @@ export default function RegisterPage() {
       localStorage.setItem("candidateLoggedIn", "1");
       localStorage.setItem("candidateEmail", data.email);
       localStorage.setItem("candidateName", data.email.split('@')[0]);
+      toast.success("Account created successfully. Redirecting...");
 
       const redirect = params.get("redirect");
       router.push(redirect || "/candidate");

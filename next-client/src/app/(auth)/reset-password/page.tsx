@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Lock, Eye, EyeOff, CheckCircle, RefreshCw, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { request } from "@/lib/request";
+import { toast } from "sonner";
 
 const inputBase =
     "w-full rounded-lg border border-[#D1D5DB] bg-white px-3.5 py-2.5 text-sm text-[#111827] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#1D4ED8]/15";
@@ -51,6 +52,7 @@ export default function ResetPasswordPage() {
                 }
             });
             setDone(true);
+            toast.success("Password reset successfully.");
         } catch (err: any) {
             console.error("Reset password error:", err);
             setError(err.message || "Failed to reset password. The link may be expired.");
