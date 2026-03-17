@@ -30,7 +30,6 @@ export type JobOrder = {
   locationCountry: string | null;
   locationState: string | null;
   locationCity: string | null;
-  assignedToId: string | null;
   owner: string | null;
   createdAt: string;
   updatedAt: string;

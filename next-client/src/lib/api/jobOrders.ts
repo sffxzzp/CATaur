@@ -67,7 +67,6 @@ export const jobOrdersClient = {
     locationCountry?: string;
     locationState?: string;
     locationCity?: string;
-    assignedToId?: string;
   }) =>
     request<{ data: JobOrder }>("/api/recruiter/job-orders", {
       method: "POST",
@@ -88,7 +87,6 @@ export const jobOrdersClient = {
     locationCountry?: string;
     locationState?: string;
     locationCity?: string;
-    assignedToId?: string;
   }) =>
     request<{ data: JobOrder }>(`/api/recruiter/job-orders/${id}`, {
       method: "PUT",

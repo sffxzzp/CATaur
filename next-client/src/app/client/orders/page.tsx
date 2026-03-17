@@ -33,7 +33,6 @@ type APIJobOrder = {
   salary: string;
   tags: string[];
   companyId: string;
-  assignedToId: string;
   applicants?: number;
 };
 

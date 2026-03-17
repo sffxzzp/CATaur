@@ -37,12 +37,6 @@ type APIJobOrder = {
     website: string;
     keyTechnologies: string;
   };
-  assignedToId: string;
-  assignedTo?: {
-    id: string;
-    email: string;
-    nickname: string;
-  };
   createdAt: string;
   updatedAt: string;
   applicants?: number;
@@ -289,14 +283,6 @@ export default function ClientOrderDetailPage() {
                     <DollarSign className="h-3.5 w-3.5" /> Salary
                   </dt>
                   <dd className="font-medium text-[var(--gray-900)]">{job.salary}</dd>
-                </div>
-              )}
-              {job?.assignedTo?.nickname && (
-                <div className="flex items-center justify-between px-5 py-3">
-                  <dt className="flex items-center gap-2 text-[var(--gray-500)]">
-                    <UserCheck className="h-3.5 w-3.5" /> Recruiter
-                  </dt>
-                  <dd className="font-medium text-[var(--gray-900)]">{job.assignedTo.nickname}</dd>
                 </div>
               )}
               <div className="flex items-center justify-between px-5 py-3">
