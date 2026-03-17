@@ -43,19 +43,19 @@ export function GuestGate({ children }: { children: React.ReactNode }) {
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-light)]">
                     <Lock className="h-6 w-6 text-[var(--accent)]" />
                 </div>
-                <h2 className="text-xl font-semibold text-[var(--gray-900)]">
+                <h2 className="text-2xl font-semibold text-[var(--gray-900)]">
                     Login Required
                 </h2>
-                <p className="mt-2 max-w-sm text-sm text-[var(--gray-400)]">
+                <p className="mt-2 max-w-sm text-base text-muted-foreground">
                     You need to be signed in to access this page.
                 </p>
                 <Link
                     href={"/login"}
-                    className="mt-6 inline-flex items-center gap-2 rounded bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
+                    className="mt-6 inline-flex items-center gap-2 rounded bg-[var(--accent)] px-5 py-2.5 text-base font-semibold text-white transition hover:bg-[var(--accent-hover)]"
                 >
                     Sign in to continue
                 </Link>
-                <p className="mt-3 text-xs text-[var(--gray-400)]">
+                <p className="mt-3 text-sm text-muted-foreground">
                     Don&apos;t have an account?{" "}
                     <Link href="/register" className="text-[var(--accent)] hover:underline">
                         Create one for free
@@ -98,16 +98,16 @@ export function LoginToApplyModal({
                             <Lock className="h-4 w-4 text-[var(--accent)]" />
                         </div>
                         <div>
-                            <h3 className="text-base font-semibold text-[var(--gray-900)]">
+                            <h3 className="text-lg font-medium text-[var(--gray-900)]">
                                 Sign in to Apply
                             </h3>
-                            <p className="text-xs text-[var(--gray-400)]">{jobTitle}</p>
+                            <p className="text-sm text-muted-foreground">{jobTitle}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Body */}
-                <div className="px-6 py-5 text-sm text-[var(--gray-600)]">
+                <div className="px-6 py-5 text-base text-[var(--gray-600)]">
                     Create a free account or sign in to submit your application and track
                     its status.
                 </div>
@@ -116,19 +116,19 @@ export function LoginToApplyModal({
                 <div className="flex items-center justify-end gap-2 border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
                     <button
                         onClick={onClose}
-                        className="rounded border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--gray-600)] transition hover:bg-[var(--gray-100)]"
+                        className="rounded border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-base text-[var(--gray-600)] transition hover:bg-[var(--gray-100)]"
                     >
                         Cancel
                     </button>
                     <Link
                         href={`/register`}
-                        className="rounded border border-transparent bg-[var(--surface)] px-4 py-2 text-sm text-[var(--accent)] ring-1 ring-[var(--accent)] transition hover:bg-[var(--accent-light)]"
+                        className="rounded border border-transparent bg-[var(--surface)] px-4 py-2 text-base text-[var(--accent)] ring-1 ring-[var(--accent)] transition hover:bg-[var(--accent-light)]"
                     >
                         Create Account
                     </Link>
                     <Link
                         href={"/login"}
-                        className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--accent-hover)]"
+                        className="rounded bg-[var(--accent)] px-4 py-2 text-base font-semibold text-white transition hover:bg-[var(--accent-hover)]"
                     >
                         Sign In
                     </Link>

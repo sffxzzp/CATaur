@@ -82,8 +82,8 @@ function JobCard({ job, isGuest, isApplied }: { job: (typeof JOBS)[0]; isGuest: 
           {job.company.charAt(0)}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-[#111827] truncate">{job.title}</h3>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-[#6B7280]">
+          <h3 className="text-lg font-medium text-[#111827] truncate">{job.title}</h3>
+          <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
             <Building2 className="h-3 w-3 shrink-0" />
             {job.company}
           </p>
@@ -96,7 +96,7 @@ function JobCard({ job, isGuest, isApplied }: { job: (typeof JOBS)[0]; isGuest: 
       </div>
 
       {/* Meta */}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#6B7280]">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
           <MapPin className="h-3 w-3" />
           {job.location}
@@ -118,7 +118,7 @@ function JobCard({ job, isGuest, isApplied }: { job: (typeof JOBS)[0]; isGuest: 
       </div>
 
       {/* Description preview */}
-      <p className="mt-3 text-xs leading-relaxed text-[#6B7280] line-clamp-2">
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-2">
         {job.description
           .split("\n")
           .map((l) => l.trim())
@@ -128,7 +128,7 @@ function JobCard({ job, isGuest, isApplied }: { job: (typeof JOBS)[0]; isGuest: 
 
       {/* Footer */}
       <div className="mt-4 flex items-center justify-between border-t border-[#F3F4F6] pt-3">
-        <span className="flex items-center gap-1 text-xs text-[#6B7280]">
+        <span className="flex items-center gap-1 text-sm text-muted-foreground">
           <Clock className="h-3 w-3" />
           Posted {job.postedDate}
         </span>
@@ -171,7 +171,7 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`rounded border px-3 py-1 text-xs font-medium transition-colors ${active
+      className={`rounded border px-3 py-1 text-sm font-medium transition-colors ${active
         ? "border-[var(--accent)] bg-[var(--accent)] text-white"
         : "border-[var(--border)] bg-[var(--surface)] text-[var(--gray-600)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
         }`}
@@ -346,8 +346,8 @@ export default function JobSearchPage() {
       {!isLoading && !error && <>
       {/* Page header */}
       <div className="mb-5">
-        <h1 className="text-xl font-semibold text-[#111827]">Job Search</h1>
-        <p className="mt-1 text-sm text-[#6B7280]">Browse open positions and apply directly.</p>
+        <h1 className="text-2xl font-semibold text-[#111827]">Job Search</h1>
+        <p className="mt-1 text-base text-muted-foreground">Browse open positions and apply directly.</p>
       </div>
 
       {/* Search + Location */}
@@ -395,7 +395,7 @@ export default function JobSearchPage() {
       {/* Filter pills */}
       <div className="mb-5 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-24 shrink-0 text-xs font-medium text-[#6B7280]">Arrangement</span>
+          <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Arrangement</span>
           {WORK_ARRANGEMENT_OPTIONS.map((a) => (
             <FilterPill
               key={a}
@@ -406,7 +406,7 @@ export default function JobSearchPage() {
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-24 shrink-0 text-xs font-medium text-[#6B7280]">Job Type</span>
+          <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Job Type</span>
           {TYPE_OPTIONS.map((t) => (
             <FilterPill
               key={t}
@@ -421,14 +421,14 @@ export default function JobSearchPage() {
       {/* Results bar */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
         <div className="flex items-center gap-3">
-          <p className="text-sm text-[#374151]">
+          <p className="text-base text-[#374151]">
             <span className="font-semibold text-[#111827]">{filteredJobs.length}</span> of{" "}
             {apiJobs.filter((j) => j.status === "active").length} positions
           </p>
           {hasActiveFilters && (
             <button
               onClick={clearAll}
-              className="flex items-center gap-1 rounded border border-[#E5E7EB] px-2.5 py-1 text-xs text-[#6B7280] transition hover:border-red-300 hover:text-red-500"
+              className="flex items-center gap-1 rounded border border-[#E5E7EB] px-2.5 py-1 text-sm text-muted-foreground transition hover:border-red-300 hover:text-red-500"
             >
               <X className="h-3 w-3" />
               Clear filters
@@ -436,8 +436,8 @@ export default function JobSearchPage() {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-[#6B7280]" />
-          <span className="text-xs text-[#6B7280]">Sort:</span>
+          <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Sort:</span>
           <div className="relative">
             <select
               value={sortBy}

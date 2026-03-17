@@ -72,7 +72,7 @@ function OnboardingSection({ profile }: { profile: CandidateProfileExtended | nu
     <div className="mx-auto max-w-xl">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-semibold text-[#111827]">Welcome to CATaur 👋</h1>
-        <p className="mt-2 text-sm text-[#6B7280]">
+        <p className="mt-2 text-base text-muted-foreground">
           Complete a few quick steps to start your job search.
         </p>
         <div className="mx-auto mt-4 h-1 w-48 overflow-hidden rounded-full bg-[#E5E7EB]">
@@ -81,7 +81,7 @@ function OnboardingSection({ profile }: { profile: CandidateProfileExtended | nu
             style={{ width: `${(doneCount / steps.length) * 100}%` }}
           />
         </div>
-        <p className="mt-1.5 text-xs text-[#6B7280]">
+        <p className="mt-1.5 text-sm text-muted-foreground">
           {doneCount} of {steps.length} steps completed
         </p>
       </div>
@@ -110,11 +110,11 @@ function OnboardingSection({ profile }: { profile: CandidateProfileExtended | nu
                 )}
               </div>
               <div className="flex-1">
-                <p className={`text-sm font-medium ${step.done ? "text-[#6B7280] line-through" : "text-[#111827]"}`}>
+                <p className={`text-base font-medium ${step.done ? "text-muted-foreground line-through" : "text-[#111827]"}`}>
                   {step.title}
                 </p>
                 {!step.done && (
-                  <p className="mt-0.5 text-xs text-[#6B7280]">{step.description}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{step.description}</p>
                 )}
               </div>
               {!step.done && <ChevronRight className="h-4 w-4 shrink-0 text-[#6B7280]" />}
@@ -152,7 +152,7 @@ function StatsRow({ apps }: { apps: Application[] }) {
             </div>
             <div className="min-w-0">
               <p className="text-xl font-bold text-[#111827] leading-none">{s.value}</p>
-              <p className="mt-0.5 text-xs text-[#6B7280] leading-tight truncate">{s.label}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground leading-tight truncate">{s.label}</p>
             </div>
           </div>
         );
@@ -173,7 +173,7 @@ function UpcomingInterviews({ apps }: { apps: Application[] }) {
     <div className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB]">
       <div className="flex items-center gap-2 border-b border-[#FDE68A] px-5 py-3">
         <CalendarClock className="h-4 w-4 text-[#92400E]" />
-        <h2 className="text-sm font-semibold text-[#92400E]">Upcoming Interviews</h2>
+        <h2 className="text-lg font-medium text-[#92400E]">Upcoming Interviews</h2>
       </div>
       <div className="divide-y divide-[#FDE68A]">
         {interviews.map((app) => (
@@ -183,21 +183,21 @@ function UpcomingInterviews({ apps }: { apps: Application[] }) {
             className="flex items-center gap-4 px-5 py-4 transition hover:bg-[#FEF3C7]"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#111827]">
+              <p className="text-base font-semibold text-[#111827]">
                 {app.interviewType || "Interview"}
               </p>
-              <p className="mt-0.5 text-xs text-[#6B7280]">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {app.jobOrder?.title || "Position"} · {app.jobOrder?.companyId || "Company"}
               </p>
             </div>
             <div className="shrink-0 text-right">
               {app.interviewDate && (
-                <p className="text-sm font-semibold text-[#92400E]">
+                <p className="text-base font-semibold text-[#92400E]">
                   {new Date(app.interviewDate).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })}
                 </p>
               )}
               {app.interviewTime && (
-                <p className="text-xs text-[#6B7280]">{app.interviewTime}</p>
+                <p className="text-sm text-muted-foreground">{app.interviewTime}</p>
               )}
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-[#92400E]" />
@@ -217,15 +217,15 @@ function RecentActivity({ apps }: { apps: Application[] }) {
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
       <div className="flex items-center justify-between border-b border-[var(--border-light)] px-5 py-3">
         <div className="flex items-center gap-2">
-          <Inbox className="h-4 w-4 text-[#6B7280]" />
-          <h2 className="text-sm font-semibold text-[#111827]">Recent Applications</h2>
+          <Inbox className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-lg font-medium text-[#111827]">Recent Applications</h2>
         </div>
-        <Link href="/candidate/applications" className="flex items-center gap-1 text-xs font-medium text-[#1D4ED8] hover:underline">
+        <Link href="/candidate/applications" className="flex items-center gap-1 text-sm font-medium text-[#1D4ED8] hover:underline">
           View all <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
       {recent.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-[#6B7280]">No applications yet.</div>
+        <div className="px-5 py-8 text-center text-base text-muted-foreground">No applications yet.</div>
       ) : (
         <div className="divide-y divide-[var(--border-light)]">
           {recent.map((app) => {
@@ -236,13 +236,13 @@ function RecentActivity({ apps }: { apps: Application[] }) {
                   <Building2 className="h-4 w-4 text-[#6B7280]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-medium text-[#111827]">
+                  <p className="truncate text-base font-medium text-[#111827]">
                     {app.jobOrder?.title || "Position"}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-[#6B7280]">{app.jobOrder?.companyId || "—"}</span>
+                    <span className="text-sm text-muted-foreground">{app.jobOrder?.companyId || "—"}</span>
                     <span className="text-[#D1D5DB]">·</span>
-                    <span className="flex items-center gap-0.5 text-xs text-[#9CA3AF]">
+                    <span className="flex items-center gap-0.5 text-sm text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {formatDate(app.createdAt)}
                     </span>
@@ -275,8 +275,8 @@ function PipelineFunnel({ apps }: { apps: Application[] }) {
   return (
     <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
       <div className="flex items-center gap-2 border-b border-[var(--border-light)] px-5 py-3">
-        <TrendingUp className="h-4 w-4 text-[#6B7280]" />
-        <h2 className="text-sm font-semibold text-[#111827]">Application Pipeline</h2>
+        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-lg font-medium text-[#111827]">Application Pipeline</h2>
       </div>
       <div className="space-y-3 px-5 py-4">
         {stages.map((stage) => {
@@ -285,8 +285,8 @@ function PipelineFunnel({ apps }: { apps: Application[] }) {
           return (
             <div key={stage.key}>
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-xs font-medium text-[#374151]">{stage.label}</span>
-                <span className={`text-xs font-semibold ${stage.textCls}`}>{count}</span>
+                <span className="text-sm font-medium text-[#374151]">{stage.label}</span>
+                <span className={`text-sm font-semibold ${stage.textCls}`}>{count}</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-[#F3F4F6]">
                 <div className={`h-full rounded-full transition-all duration-700 ${stage.barCls}`} style={{ width: `${pct}%` }} />
@@ -307,8 +307,8 @@ function Dashboard({ profile, apps }: { profile: CandidateProfileExtended | null
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-[#111827]">Hi, {displayName} 👋</h1>
-        <p className="mt-1 text-sm text-[#6B7280]">Here&apos;s a summary of your job search activity.</p>
+        <h1 className="text-2xl font-semibold text-[#111827]">Hi, {displayName} 👋</h1>
+        <p className="mt-1 text-base text-muted-foreground">Here&apos;s a summary of your job search activity.</p>
       </div>
       <StatsRow apps={apps} />
       <UpcomingInterviews apps={apps} />

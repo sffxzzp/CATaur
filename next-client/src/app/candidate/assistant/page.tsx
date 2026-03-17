@@ -119,15 +119,15 @@ export default function AssistantPage() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-[#111827]">AI Assistant</h1>
-            <p className="text-sm text-[#6B7280]">Get personalized career guidance, interview prep, and more.</p>
+            <h1 className="text-2xl font-semibold text-[#111827]">AI Assistant</h1>
+            <p className="text-base text-muted-foreground">Get personalized career guidance, interview prep, and more.</p>
           </div>
         </div>
 
         <div className="rounded-lg border border-[var(--border-light)] bg-white">
           <div className="flex items-center gap-2 border-b border-[var(--border-light)] px-5 py-3">
             <MessageCircle className="h-4 w-4 text-[#1D4ED8]" />
-            <span className="text-sm font-medium text-[#111827]">AI Chat</span>
+            <span className="text-lg font-medium text-[#111827]">AI Chat</span>
           </div>
 
           <div className="flex h-[600px] flex-col">
@@ -145,8 +145,8 @@ export default function AssistantPage() {
                     }`}
                   >
                     <div
-                      className={`mb-1 flex items-center gap-1.5 text-xs ${
-                        chat.role === "user" ? "justify-end text-white/70" : "text-[#6B7280]"
+                      className={`mb-1 flex items-center gap-1.5 text-sm ${
+                        chat.role === "user" ? "justify-end text-white/70" : "text-muted-foreground"
                       }`}
                     >
                       {chat.role === "assistant" && <Sparkles className="h-3 w-3" />}
@@ -158,7 +158,7 @@ export default function AssistantPage() {
                       {chat.role === "assistant" ? (
                         <ReactMarkdown>{chat.message}</ReactMarkdown>
                       ) : (
-                        <p className="text-sm whitespace-pre-wrap">{chat.message}</p>
+                        <p className="text-base whitespace-pre-wrap">{chat.message}</p>
                       )}
                     </div>
                   </div>
@@ -173,7 +173,7 @@ export default function AssistantPage() {
                         <div className="h-2 w-2 animate-bounce rounded-full bg-[#1D4ED8]" style={{ animationDelay: "150ms" }} />
                         <div className="h-2 w-2 animate-bounce rounded-full bg-[#1D4ED8]" style={{ animationDelay: "300ms" }} />
                       </div>
-                      <span className="text-xs text-[#6B7280]">Thinking...</span>
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function AssistantPage() {
                     key={action}
                     onClick={() => handleSend(action)}
                     disabled={loading}
-                    className="rounded border border-[#D1D5DB] bg-white px-3 py-1.5 text-xs text-[#374151] transition hover:border-[#1D4ED8] hover:text-[#1D4ED8] disabled:opacity-50"
+                    className="rounded border border-[#D1D5DB] bg-white px-3 py-1.5 text-sm text-[#374151] transition hover:border-[#1D4ED8] hover:text-[#1D4ED8] disabled:opacity-50"
                   >
                     {action}
                   </button>
@@ -202,7 +202,7 @@ export default function AssistantPage() {
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                   placeholder="Ask me anything about your career..."
                   disabled={loading}
-                  className="flex-1 rounded border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20 disabled:opacity-50"
+                  className="flex-1 rounded border border-[#D1D5DB] bg-white px-3 py-2 text-base text-[#111827] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20 disabled:opacity-50"
                 />
                 <Button onClick={() => handleSend()} disabled={loading || !input.trim()} size="sm" className="gap-1.5">
                   <Send className="h-3.5 w-3.5" />

@@ -147,7 +147,7 @@ function ApplicationCard({ app }: { app: Application }) {
         {/* Left: job info */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-semibold text-[#111827] truncate">{app.role}</h2>
+            <h2 className="text-lg font-medium text-[#111827] truncate">{app.role}</h2>
             <span
               className={`inline-flex shrink-0 items-center rounded px-2 py-0.5 text-xs font-medium border ${status.classes}`}
             >
@@ -155,7 +155,7 @@ function ApplicationCard({ app }: { app: Application }) {
             </span>
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#6B7280]">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#6B7280]">
             <span className="flex items-center gap-1">
               <Building2 className="h-3 w-3" />
               {app.company}
@@ -174,7 +174,7 @@ function ApplicationCard({ app }: { app: Application }) {
         {/* Right: view job link */}
         <Link
           href={`/candidate/jobs/${app.jobSlug}`}
-          className="flex shrink-0 items-center gap-1 rounded border border-[#D1D5DB] bg-[#F9FAFB] px-3 py-1.5 text-xs font-medium text-[#374151] transition hover:border-[#1D4ED8] hover:text-[#1D4ED8]"
+          className="flex shrink-0 items-center gap-1 rounded border border-[#D1D5DB] bg-[#F9FAFB] px-3 py-1.5 text-sm font-medium text-[#374151] transition hover:border-[#1D4ED8] hover:text-[#1D4ED8]"
         >
           View Job
           <ChevronRight className="h-3 w-3" />
@@ -191,16 +191,16 @@ function ApplicationCard({ app }: { app: Application }) {
                 {app.interview.recruiterName.charAt(0)}
               </div>
               <div>
-                <p className="text-xs font-semibold text-[#111827]">
+                <p className="text-sm font-semibold text-[#111827]">
                   {app.interview.recruiterName} · Recruiter at {app.company}
                 </p>
-                <p className="text-xs text-[#6B7280]">
+                <p className="text-sm text-muted-foreground">
                   Interview Invitation · {app.interview.type}
                 </p>
               </div>
             </div>
             {/* Interview meta */}
-            <div className="flex items-center gap-1.5 rounded border border-[#FDE68A] bg-white px-3 py-1.5 text-xs font-medium text-[#92400E]">
+            <div className="flex items-center gap-1.5 rounded border border-[#FDE68A] bg-white px-3 py-1.5 text-sm font-medium text-[#92400E]">
               <CalendarClock className="h-3 w-3" />
               {app.interview.date} · {app.interview.time} · {app.interview.format}
             </div>
@@ -209,7 +209,7 @@ function ApplicationCard({ app }: { app: Application }) {
           {/* Message body */}
           <div className="bg-white px-5 py-4">
             {app.interview.message.split("\n\n").map((para, i) => (
-              <p key={i} className={`text-sm text-[#374151] leading-relaxed ${i > 0 ? "mt-3" : ""}`}>
+              <p key={i} className={`text-base text-[#374151] leading-relaxed ${i > 0 ? "mt-3" : ""}`}>
                 {para}
               </p>
             ))}
@@ -218,14 +218,14 @@ function ApplicationCard({ app }: { app: Application }) {
           {/* Confirm footer */}
           <div className="flex items-center justify-end border-t border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3">
             {confirmed ? (
-              <span className="flex items-center gap-1.5 text-sm font-medium text-[#166534]">
+              <span className="flex items-center gap-1.5 text-base font-medium text-[#166534]">
                 <CheckCircle2 className="h-4 w-4" />
                 Interview Confirmed
               </span>
             ) : (
               <button
                 onClick={handleConfirm}
-                className="flex items-center gap-1.5 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+                className="flex items-center gap-1.5 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-1.5 text-base font-medium text-white transition hover:bg-[#1E40AF]"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Confirm Interview
@@ -239,7 +239,7 @@ function ApplicationCard({ app }: { app: Application }) {
       {app.recruiterStatus === "Offer" && (
         <div className="flex items-center gap-3 border-t border-[#BBF7D0] bg-[#F0FDF4] px-5 py-3">
           <CheckCircle2 className="h-4 w-4 text-[#166534]" />
-          <p className="text-sm font-medium text-[#166534]">
+          <p className="text-base font-medium text-[#166534]">
             You&apos;ve received an offer! The recruiter will be in touch with next steps.
           </p>
         </div>
@@ -255,14 +255,14 @@ function EmptyState() {
     <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-[#D1D5DB] bg-white py-16 text-center">
       <Inbox className="h-8 w-8 text-[#D1D5DB]" />
       <div>
-        <p className="text-sm font-semibold text-[#111827]">No applications yet</p>
-        <p className="mt-1 text-sm text-[#6B7280]">
+        <p className="text-lg font-medium text-[#111827]">No applications yet</p>
+        <p className="mt-1 text-base text-muted-foreground">
           Start applying to jobs and your applications will appear here.
         </p>
       </div>
       <Link
         href="/candidate/jobs"
-        className="mt-2 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+        className="mt-2 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-2 text-base font-medium text-white transition hover:bg-[#1E40AF]"
       >
         Browse Jobs
       </Link>
@@ -303,8 +303,8 @@ export default function ApplicationsPage() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         {/* Page header */}
         <div className="mb-6">
-          <h1 className="text-xl font-semibold text-[#111827]">My Applications</h1>
-          <p className="mt-1 text-sm text-[#6B7280]">
+          <h1 className="text-2xl font-semibold text-[#111827]">My Applications</h1>
+          <p className="mt-1 text-base text-muted-foreground">
             Track the status of your submitted applications.
           </p>
         </div>

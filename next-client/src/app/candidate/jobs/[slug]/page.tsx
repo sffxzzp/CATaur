@@ -31,7 +31,7 @@ function MarkdownRenderer({ content }: { content: string }) {
     elements.push(
       <ul key={`ul-${keyIndex++}`} className="mb-4 space-y-1.5 pl-1">
         {listBuffer.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-[#374151] leading-relaxed">
+          <li key={i} className="flex items-start gap-2 text-base text-[#374151] leading-relaxed">
             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#1D4ED8]" />
             <span dangerouslySetInnerHTML={{ __html: boldify(item) }} />
           </li>
@@ -81,7 +81,7 @@ function MarkdownRenderer({ content }: { content: string }) {
     elements.push(
       <p
         key={keyIndex++}
-        className="mb-3 text-sm leading-relaxed text-[#374151]"
+        className="mb-3 text-base leading-relaxed text-[#374151]"
         dangerouslySetInnerHTML={{ __html: boldify(line) }}
       />
     );

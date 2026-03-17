@@ -389,7 +389,7 @@ export class ApplicationsService {
     ): Promise<Application> {
         const app = await this.repo.findOne({
             where: { id },
-            relations: ['candidate', 'jobOrder', 'jobOrder.company'],
+            relations: ['candidate', 'candidate.candidateProfile', 'jobOrder', 'jobOrder.company'],
         });
         if (!app) throw new NotFoundException('Application not found');
 

@@ -77,14 +77,14 @@ function Modal({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-[#374151]">{label}</label>
+      <label className="text-sm font-medium text-[#374151]">{label}</label>
       {children}
     </div>
   );
 }
 
 const inputCls =
-  "w-full rounded border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20";
+  "w-full rounded border border-[#D1D5DB] bg-white px-3 py-2 text-base text-[#111827] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20";
 
 function SectionCard({
   title,
@@ -102,7 +102,7 @@ function SectionCard({
       <div className="flex items-center justify-between border-b border-[var(--border-light)] px-5 py-3">
         <div className="flex items-center gap-2">
           <span className="text-[#1D4ED8]">{icon}</span>
-          <span className="text-sm font-medium text-[#111827]">{title}</span>
+          <span className="text-lg font-medium text-[#111827]">{title}</span>
         </div>
         {action}
       </div>
