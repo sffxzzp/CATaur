@@ -33,9 +33,10 @@ interface WorkExp { role: string; company: string; duration: string; highlights:
 interface Education { school: string; degree: string; year: string; }
 interface CandidateProfile {
     email: string; linkedin: string;
-    targetSalary: string; preferredLocation: string; yearsExp: number;
+    targetSalary: string; preferredLocation: string; yearsExp: number | string;
     summary: string; skills: Skill[]; work: WorkExp[]; education: Education[];
-    resumeFile: string; resumeSize: string; resumeUploaded: string;
+    resumeFile: string; resumeUploaded: string;
+    resumeUrl?: string; // Add this
 }
 
 const SKILL_POOLS: Record<string, Skill[]> = {
@@ -62,6 +63,7 @@ const SUMMARIES = [
 
 // We'll keep the mock profile builder, but we adapt it to use the new API data format to generate the rich content
 function buildProfile(c: any): CandidateProfile {
+    const prof = c.candidate?.candidateProfile || {};
     const n = parseInt(c.id.replace(/\D/g, "")) || 700;
     const role = (c.jobOrder?.title || "").toLowerCase();
     let pool = SKILL_POOLS.Backend;
@@ -72,7 +74,7 @@ function buildProfile(c: any): CandidateProfile {
     else if (role.includes("mobile") || role.includes("ios")) pool = SKILL_POOLS.Mobile;
     else if (role.includes("qa") || role.includes("test")) pool = SKILL_POOLS.QA;
 
-    const yrsExp = 4 + (n % 9);
+    const yrsExp = prof.yearsOfExperience !== null && prof.yearsOfExperience !== undefined ? prof.yearsOfExperience : (4 + (n % 9));
     const handle = (c.candidate?.nickname || c.name || "candidate").toLowerCase().replace(/[^a-z]/g, ".");
 
     const work: WorkExp[] = [
@@ -101,18 +103,18 @@ function buildProfile(c: any): CandidateProfile {
     ];
 
     return {
-        email: `${handle}@example.com`,
-        linkedin: `https://linkedin.com/in/${handle.replace(/\./g, "-")}`,
-        targetSalary: SALARIES[n % SALARIES.length],
-        preferredLocation: LOCS_PREF[n % LOCS_PREF.length],
+        email: c.candidate?.email || c.email || `${handle}@example.com`,
+        linkedin: prof.linkedin || `https://linkedin.com/in/${handle.replace(/\./g, "-")}`,
+        targetSalary: prof.targetSalary || SALARIES[n % SALARIES.length],
+        preferredLocation: prof.preferredLocation || LOCS_PREF[n % LOCS_PREF.length],
         yearsExp: yrsExp,
-        summary: SUMMARIES[n % SUMMARIES.length].replace("{n}", String(yrsExp)),
+        summary: prof.summary || SUMMARIES[n % SUMMARIES.length].replace("{n}", String(yrsExp)),
         skills: pool,
         work,
         education,
-        resumeFile: `${(c.candidate?.nickname || c.name || "Candidate").replace(" ", "_")}_Resume.pdf`,
-        resumeSize: `${180 + (n % 180)} KB`,
-        resumeUploaded: c.appliedAt || c.createdAt || "Recently",
+        resumeFile: prof.resumeUrl ? prof.resumeUrl.split('/').pop() : `${(c.candidate?.nickname || c.name || "Candidate").replace(" ", "_")}_Resume.pdf`,
+        resumeUploaded: prof.updatedAt ? new Date(prof.updatedAt).toLocaleDateString() : (c.appliedAt || c.createdAt ? new Date(c.appliedAt || c.createdAt).toLocaleDateString() : "Recently"),
+        resumeUrl: prof.resumeUrl || null,
     };
 }
 
@@ -222,7 +224,7 @@ export default function ClientCandidateDetailPage() {
     const profile = buildProfile(cand);
     const fullName = cand.candidate?.nickname || cand.name || "Unknown Candidate";
     const cEmail = cand.candidate?.email || cand.email;
-    const cPhone = cand.candidate?.phone || cand.phone;
+    const cPhone = cand.candidate?.candidateProfile?.phone || cand.candidate?.phone || cand.phone;
     const jTitle = cand.jobOrder?.title || cand.jobTitle || "Unknown Position";
     const locationStr = [cand.locationCity, cand.locationState, cand.locationCountry].filter(Boolean).join(", ") || "Location details unavailable";
     const applyDate = cand.createdAt ? new Date(cand.createdAt).toLocaleDateString() : (cand.appliedAt ? new Date(cand.appliedAt).toLocaleDateString() : "N/A");
@@ -362,18 +364,24 @@ export default function ClientCandidateDetailPage() {
                         <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6">
                             <SectionTitle icon={FileText} title="Resume / CV" />
                             <div className="flex items-center justify-between rounded-md border border-[var(--border-light)] bg-[var(--gray-50)] px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--surface)] border border-[var(--border-light)] text-[var(--gray-500)]">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--surface)] border border-[var(--border-light)] text-[var(--gray-500)] shrink-0">
                                         <FileText className="h-4 w-4" />
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-[var(--gray-800)]">{profile.resumeFile}</p>
-                                        <p className="text-xs text-[var(--gray-400)]">{profile.resumeSize} · Uploaded {profile.resumeUploaded}</p>
+                                    <div className="min-w-0 pr-4">
+                                        <p className="text-sm font-medium text-[var(--gray-800)] truncate h-5">{profile.resumeFile}</p>
+                                        <p className="text-xs text-[var(--gray-400)] truncate">Uploaded {profile.resumeUploaded}</p>
                                     </div>
                                 </div>
-                                <button className="flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition cursor-pointer">
-                                    <Download className="h-3.5 w-3.5" /> Download
-                                </button>
+                                {profile.resumeUrl ? (
+                                    <a href={profile.resumeUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-md border border-[var(--cursor-pointer-border, var(--border))] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--gray-700)] hover:bg-[var(--gray-50)] transition cursor-pointer shrink-0">
+                                        <Download className="h-3.5 w-3.5" /> Download
+                                    </a>
+                                ) : (
+                                    <button disabled className="opacity-50 flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-xs font-medium text-[var(--gray-700)] cursor-not-allowed shrink-0">
+                                        <Download className="h-3.5 w-3.5" /> No Resume
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
