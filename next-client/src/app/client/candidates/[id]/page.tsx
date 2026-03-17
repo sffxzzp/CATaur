@@ -3,7 +3,8 @@
 import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CANDIDATE_RECORDS, type ApplicationStatus, type CandidateRecord } from "@/data/recruiter";
+import { useEffect, useState } from "react";
+import { request } from "@/lib/request";
 import {
     ArrowLeft,
     MapPin,
@@ -22,6 +23,8 @@ import {
     Linkedin,
     ExternalLink,
     StickyNote,
+    Mail,
+    Phone,
 } from "lucide-react";
 
 /* ─── Profile builder (mirrors recruiter detail) ────────────────────────── */
@@ -57,9 +60,10 @@ const SUMMARIES = [
     "Technical leader with {n}+ years delivering production-grade software. Strong focus on observability and reliability.",
 ];
 
-function buildProfile(c: CandidateRecord): CandidateProfile {
+// We'll keep the mock profile builder, but we adapt it to use the new API data format to generate the rich content
+function buildProfile(c: any): CandidateProfile {
     const n = parseInt(c.id.replace(/\D/g, "")) || 700;
-    const role = c.role.toLowerCase();
+    const role = (c.jobOrder?.title || "").toLowerCase();
     let pool = SKILL_POOLS.Backend;
     if (role.includes("frontend") || role.includes("react") || role.includes("next")) pool = SKILL_POOLS.Frontend;
     else if (role.includes("devops") || role.includes("sre")) pool = SKILL_POOLS.DevOps;
@@ -69,11 +73,11 @@ function buildProfile(c: CandidateRecord): CandidateProfile {
     else if (role.includes("qa") || role.includes("test")) pool = SKILL_POOLS.QA;
 
     const yrsExp = 4 + (n % 9);
-    const handle = c.name.toLowerCase().replace(/[^a-z]/g, ".");
+    const handle = (c.candidate?.nickname || c.name || "candidate").toLowerCase().replace(/[^a-z]/g, ".");
 
     const work: WorkExp[] = [
         {
-            role: c.role, company: COMPANIES[n % COMPANIES.length], duration: `${2021 - (n % 3)} – Present`,
+            role: c.jobOrder?.title || "Software Engineer", company: COMPANIES[n % COMPANIES.length], duration: `${2021 - (n % 3)} – Present`,
             highlights: [
                 "Led architecture of core platform service handling 2M+ daily requests with 99.9% SLA",
                 "Mentored a team of 4 engineers and drove adoption of modern testing practices",
@@ -81,7 +85,7 @@ function buildProfile(c: CandidateRecord): CandidateProfile {
             ],
         },
         {
-            role: c.role.replace("Senior", "").replace("Lead", "").trim() || "Software Engineer",
+            role: (c.jobOrder?.title || "").replace("Senior", "").replace("Lead", "").trim() || "Software Engineer",
             company: COMPANIES[(n + 3) % COMPANIES.length], duration: `${2018 - (n % 2)} – ${2021 - (n % 3)}`,
             highlights: [
                 "Built and shipped core product features used by 10k+ users",
@@ -106,22 +110,22 @@ function buildProfile(c: CandidateRecord): CandidateProfile {
         skills: pool,
         work,
         education,
-        resumeFile: `${c.name.replace(" ", "_")}_Resume.pdf`,
+        resumeFile: `${(c.candidate?.nickname || c.name || "Candidate").replace(" ", "_")}_Resume.pdf`,
         resumeSize: `${180 + (n % 180)} KB`,
-        resumeUploaded: c.appliedAt,
+        resumeUploaded: c.appliedAt || c.createdAt || "Recently",
     };
 }
 
 /* ─── Status config ─────────────────────────────────────────────────────── */
-const STATUS_CONFIG: Record<ApplicationStatus, { label: string; badge: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; badge: string }> = {
     new: { label: "New", badge: "border-l-[var(--status-blue-text)]  text-[var(--status-blue-text)]  bg-[var(--status-blue-bg)]" },
     interview: { label: "Interview", badge: "border-l-[var(--status-amber-text)] text-[var(--status-amber-text)] bg-[var(--status-amber-bg)]" },
     offer: { label: "Offer", badge: "border-l-[var(--status-green-text)] text-[var(--status-green-text)] bg-[var(--status-green-bg)]" },
     closed: { label: "Closed", badge: "border-l-[var(--gray-400)]          text-[var(--gray-500)]          bg-[var(--gray-100)]" },
 };
 
-function StatusBadge({ status }: { status: ApplicationStatus }) {
-    const cfg = STATUS_CONFIG[status];
+function StatusBadge({ status }: { status: string }) {
+    const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.new;
     return (
         <span className={`inline-flex items-center rounded-r border-l-[3px] px-2 py-0.5 text-[11px] font-bold tracking-wide uppercase ${cfg.badge}`}>
             {cfg.label}
@@ -150,14 +154,14 @@ function SectionTitle({ icon: Icon, title }: { icon: React.ComponentType<{ class
 interface InterviewRound {
     round: number; type: string; date: string; time: string; confirmed: boolean;
 }
-function buildInterviewRounds(c: CandidateRecord): InterviewRound[] {
+function buildInterviewRounds(c: any): InterviewRound[] {
     if (c.status !== "interview" && c.status !== "offer") return [];
     const n = parseInt(c.id.replace(/\D/g, "")) || 700;
     return [{
         round: 1,
-        type: ["Zoom", "Phone", "Onsite"][n % 3],
-        date: c.interviewMessage?.date || "Mar 10, 2026",
-        time: c.interviewMessage?.time || "2:30 PM EST",
+        type: c.interviewType || ["Zoom", "Phone", "Onsite"][n % 3],
+        date: c.interviewDate || "TBA",
+        time: c.interviewTime || "TBA",
         confirmed: true,
     }];
 }
@@ -168,14 +172,65 @@ export default function ClientCandidateDetailPage() {
     const rawId = params?.id;
     const id = typeof rawId === "string" ? decodeURIComponent(rawId) : Array.isArray(rawId) ? decodeURIComponent(rawId[0]) : "";
 
-    const cand = CANDIDATE_RECORDS.find((c) => c.id === id);
+    const [cand, setCand] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!id) return;
+        setLoading(true);
+        request<any>(`/client/candidates/${id}`)
+            .then((res) => {
+                const payload = res.data?.id ? res.data : res;
+                if (payload && payload.id) setCand(payload);
+                else setError(`Payload missing id: ${JSON.stringify(res).substring(0, 100)}`);
+            })
+            .catch((err) => {
+                console.error("Failed to fetch candidate details:", err);
+                setError(`Fetch error: ${err.message}`);
+            })
+            .finally(() => setLoading(false));
+    }, [id]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+                <div className="text-[var(--gray-500)] flex items-center gap-2">
+                    <div className="h-4 w-4 rounded-full border-2 border-[var(--gray-400)] border-t-[var(--accent)] animate-spin" />
+                    Loading...
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-6">
+                <div className="rounded-lg border border-red-200 bg-red-50 p-6 max-w-lg text-center shadow-sm">
+                    <h2 className="text-lg font-semibold text-red-700 mb-2">Error Loading Candidate</h2>
+                    <p className="text-sm text-red-600 break-all">{error}</p>
+                    <Link href="/client/candidates" className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline">
+                        &larr; Back to Candidates
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     if (!cand) return notFound();
 
     const profile = buildProfile(cand);
-    const ini = cand.name.split(" ").map((n) => n[0]).join("").toUpperCase();
+    const fullName = cand.candidate?.nickname || cand.name || "Unknown Candidate";
+    const cEmail = cand.candidate?.email || cand.email;
+    const cPhone = cand.candidate?.phone || cand.phone;
+    const jTitle = cand.jobOrder?.title || cand.jobTitle || "Unknown Position";
+    const locationStr = [cand.locationCity, cand.locationState, cand.locationCountry].filter(Boolean).join(", ") || "Location details unavailable";
+    const applyDate = cand.createdAt ? new Date(cand.createdAt).toLocaleDateString() : (cand.appliedAt ? new Date(cand.appliedAt).toLocaleDateString() : "N/A");
+
+    const ini = fullName.split(" ").map((n: string) => n[0]).join("").toUpperCase();
     const idNum = parseInt(cand.id.replace(/\D/g, "")) || 0;
-    const source = idNum % 2 === 0 ? "Self-applied" : "Recruiter Referred";
-    const SourceIcon = idNum % 2 === 0 ? Globe : UserCheck;
+    const source = cand.source === "self_applied" ? "Self Applied" : cand.source === "recruiter_import" ? "Recruiter Import" : (cand.source || "Unknown Source");
+    const SourceIcon = cand.source === "self_applied" ? Globe : UserCheck;
     const rounds = buildInterviewRounds(cand);
 
     return (
@@ -188,7 +243,7 @@ export default function ClientCandidateDetailPage() {
                         <ArrowLeft className="h-3.5 w-3.5" /> Candidates
                     </Link>
                     <ChevronRight className="h-3.5 w-3.5 text-[var(--gray-300)]" />
-                    <span className="text-[var(--gray-700)] font-medium">{cand.name}</span>
+                    <span className="text-[var(--gray-700)] font-medium">{fullName}</span>
                 </div>
 
                 {/* Hero Card */}
@@ -199,14 +254,24 @@ export default function ClientCandidateDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0 md:text-left text-center">
                             <div className="flex flex-col md:flex-row items-center gap-3 flex-wrap">
-                                <h1 className="text-xl font-semibold text-[var(--gray-900)]">{cand.name}</h1>
+                                <h1 className="text-xl font-semibold text-[var(--gray-900)]">{fullName}</h1>
                                 <StatusBadge status={cand.status} />
                             </div>
                             <p className="mt-1 text-sm text-[var(--gray-500)]">
-                                {cand.jobTitle}
+                                {jTitle}
                             </p>
                             <div className="mt-3 flex flex-wrap justify-center md:justify-start items-center gap-4 text-xs text-[var(--gray-500)]">
-                                <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{cand.location}</span>
+                                {cEmail && (
+                                    <a href={`mailto:${cEmail}`} className="flex items-center gap-1 hover:text-[var(--accent)] transition">
+                                        <Mail className="h-3.5 w-3.5" />{cEmail}
+                                    </a>
+                                )}
+                                {cPhone && (
+                                    <a href={`tel:${cPhone}`} className="flex items-center gap-1 hover:text-[var(--accent)] transition">
+                                        <Phone className="h-3.5 w-3.5" />{cPhone}
+                                    </a>
+                                )}
+                                <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{locationStr}</span>
                                 <a href={profile.linkedin} target="_blank" rel="noreferrer"
                                     className="flex items-center gap-1 hover:text-[var(--accent)] transition">
                                     <Linkedin className="h-3.5 w-3.5" />LinkedIn <ExternalLink className="h-2.5 w-2.5" />
@@ -230,7 +295,7 @@ export default function ClientCandidateDetailPage() {
                                     <Briefcase className="h-3.5 w-3.5 text-[var(--gray-400)]" />{profile.yearsExp}+ years experience
                                 </span>
                                 <span className="flex items-center gap-1.5 text-[var(--gray-500)]">
-                                    <Clock className="h-3.5 w-3.5 text-[var(--gray-400)]" />Available: {cand.availability}
+                                    <Clock className="h-3.5 w-3.5 text-[var(--gray-400)]" />Available: 2 Weeks
                                 </span>
                                 <span className="flex items-center gap-1.5 text-[var(--gray-500)]">
                                     <MapPin className="h-3.5 w-3.5 text-[var(--gray-400)]" />{profile.preferredLocation}
@@ -322,10 +387,10 @@ export default function ClientCandidateDetailPage() {
                             <div className="space-y-3 text-sm">
                                 {[
                                     { label: "Status", value: <StatusBadge status={cand.status} /> },
-                                    { label: "Applied For", value: <span className="font-medium text-[var(--gray-800)] text-right max-w-[160px]">{cand.jobTitle}</span> },
-                                    { label: "Applied", value: <span className="text-[var(--gray-600)]">{cand.appliedAt}</span> },
-                                    { label: "Location", value: <span className="text-[var(--gray-600)]">{cand.location}</span> },
-                                    { label: "Availability", value: <span className="text-[var(--gray-600)]">{cand.availability}</span> },
+                                    { label: "Applied For", value: <span className="font-medium text-[var(--gray-800)] text-right max-w-[160px]">{jTitle}</span> },
+                                    { label: "Applied", value: <span className="text-[var(--gray-600)]">{applyDate}</span> },
+                                    { label: "Location", value: <span className="text-[var(--gray-600)]">{locationStr}</span> },
+                                    { label: "Availability", value: <span className="text-[var(--gray-600)]">2 Weeks</span> },
                                     {
                                         label: "Source",
                                         value: (
