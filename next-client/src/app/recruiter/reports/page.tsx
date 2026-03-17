@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { request } from "@/lib/request";
 import { Loader2, BriefcaseBusiness, FileText, TrendingUp, Download } from "lucide-react";
 import * as XLSX from "xlsx";
+import { toast } from "sonner";
 
 type JobOrderStats = {
   total: number;
@@ -52,6 +53,7 @@ export default function ReportsPage() {
         setActivityData(activity);
       } catch (err) {
         console.error("Failed to load reports", err);
+        toast.error("Failed to load reports.");
       } finally {
         setLoading(false);
       }

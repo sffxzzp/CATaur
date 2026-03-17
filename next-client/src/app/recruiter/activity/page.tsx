@@ -6,6 +6,7 @@ import {
     ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
 } from "lucide-react";
 import { request, requestBlob } from "@/lib/request";
+import { toast } from "sonner";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 type Actor = { nickname: string; email: string; roles: string[] } | null;
@@ -69,7 +70,6 @@ export default function AuditLogsPage() {
     const [debouncedQuery, setDebouncedQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [exporting, setExporting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     // Debounce search
     useEffect(() => {
@@ -80,7 +80,6 @@ export default function AuditLogsPage() {
     /* ── GET /admin/audit-logs ── */
     const fetchLogs = useCallback((params: { page: number; limit: number; search?: string }) => {
         setLoading(true);
-        setError(null);
         const qs = new URLSearchParams();
         qs.set("page", String(params.page));
         qs.set("limit", String(params.limit));
@@ -91,7 +90,7 @@ export default function AuditLogsPage() {
                 setTotal(res.total);
                 setTotalPages(res.totalPages);
             })
-            .catch(err => setError(err.message ?? "Failed to load logs."))
+            .catch(err => toast.error(err.message ?? "Failed to load logs."))
             .finally(() => setLoading(false));
     }, []);
 
@@ -117,7 +116,7 @@ export default function AuditLogsPage() {
             a.click();
             URL.revokeObjectURL(url);
         } catch (err: any) {
-            setError(err.message ?? "Export failed.");
+            toast.error(err.message ?? "Export failed.");
         } finally {
             setExporting(false);
         }
@@ -174,13 +173,6 @@ export default function AuditLogsPage() {
                     className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] shadow-[var(--shadow-sm)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                 />
             </div>
-
-            {/* ── Error banner ── */}
-            {error && (
-                <div className="rounded-md bg-[var(--status-red-bg)] px-4 py-2.5 text-sm text-[var(--status-red-text)]">
-                    {error}
-                </div>
-            )}
 
             {/* ── Table ── */}
             <div className="overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-xs)]">

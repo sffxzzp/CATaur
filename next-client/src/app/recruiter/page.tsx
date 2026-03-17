@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 type DashboardData = {
   myJobOrders: number;
@@ -80,6 +81,7 @@ export default function RecruiterPage() {
         setApplicationStats(appStats);
       } catch (err) {
         console.error("Failed to load dashboard", err);
+        toast.error("Failed to load dashboard.");
       } finally {
         setLoading(false);
       }
@@ -267,12 +269,11 @@ export default function RecruiterPage() {
                     {app.jobOrder?.title || "Unknown Position"}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                  app.status === "new" ? "bg-[var(--accent-light)] text-[var(--accent)]" :
-                  app.status === "interview" ? "bg-[var(--status-blue-bg)] text-[var(--status-blue-text)]" :
-                  app.status === "offer" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]" :
-                  "bg-[var(--gray-100)] text-[var(--gray-600)]"
-                }`}>
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${app.status === "new" ? "bg-[var(--accent-light)] text-[var(--accent)]" :
+                    app.status === "interview" ? "bg-[var(--status-blue-bg)] text-[var(--status-blue-text)]" :
+                      app.status === "offer" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]" :
+                        "bg-[var(--gray-100)] text-[var(--gray-600)]"
+                  }`}>
                   {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
                 </span>
               </div>

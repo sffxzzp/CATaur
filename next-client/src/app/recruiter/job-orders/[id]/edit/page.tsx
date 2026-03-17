@@ -6,6 +6,7 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { Code, Eye, Briefcase, MapPin, Building2, CircleDollarSign, Loader2, Save } from "lucide-react";
 import { CLIENTS, JOB_ORDERS, type JobOrder } from "@/data/recruiter";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "ADDED_JOB_ORDERS";
 
@@ -99,6 +100,7 @@ export default function EditJobOrderPage() {
             } else {
                 // Handle not found
                 console.error("Job Order not found:", id);
+                toast.error("Job order not found.");
                 router.push("/recruiter/job-orders");
             }
             setLoading(false);
@@ -166,10 +168,12 @@ export default function EditJobOrderPage() {
             }
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            toast.success("Job order updated successfully.");
 
             // Redirect back to details page
             router.push(`/recruiter/job-orders/${encodeURIComponent(id as string)}`);
         } catch {
+            toast.error("Failed to save job order.");
             setSaving(false);
         }
     };

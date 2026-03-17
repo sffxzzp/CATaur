@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Building2, MapPin, Users, CircleDollarSign, Briefcase, MonitorSmartphone, Loader2, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 
 // Mock data uses sourcing/interview/offer/filled/paused; form uses active/onhold/closed
 // We unify display labels and colors here
@@ -36,7 +37,6 @@ export default function JobOrderDetails() {
   const [job, setJob] = useState<JobOrder | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -46,7 +46,6 @@ export default function JobOrderDetails() {
   const loadJobOrder = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const jobData = await jobOrdersClient.getById(id);
       setJob(jobData);
@@ -62,7 +61,7 @@ export default function JobOrderDetails() {
       }
     } catch (err) {
       console.error("Failed to load job order:", err);
-      setError("Failed to load job order. Please try again.");
+      toast.error("Failed to load job order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -79,11 +78,11 @@ export default function JobOrderDetails() {
     );
   }
 
-  if (error || !job) {
+  if (!job) {
     return (
       <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8">
         <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)]">
-          <p className="text-sm text-[var(--gray-600)] mb-4">{error || "Job order not found."}</p>
+          <p className="text-sm text-[var(--gray-600)] mb-4">Job order not found.</p>
           <Button size="sm" variant="outline" onClick={() => router.push("/recruiter/job-orders")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Job Orders
