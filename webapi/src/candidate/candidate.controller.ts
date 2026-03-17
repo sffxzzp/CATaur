@@ -161,7 +161,7 @@ export class CandidateController {
             page: +page,
             limit: +limit,
             search,
-            statuses: ['sourcing', 'interview'],
+            statuses: ['active'],
             employmentTypes,
             workArrangements,
             locationCountry,
