@@ -50,6 +50,9 @@ export class AdminService {
         if (role) {
             queryBuilder.andWhere('roles.role = :role', { role });
         }
+        else{
+            queryBuilder.andWhere('roles.role <> :role', { role:Role.CANDIDATE });
+        }
 
         if (search) {
             queryBuilder.andWhere('(user.email LIKE :search OR user.nickname LIKE :search)', { search: `%${search}%` });
