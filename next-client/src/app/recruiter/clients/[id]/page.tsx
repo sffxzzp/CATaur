@@ -135,14 +135,7 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
         <Link href="/recruiter/clients" className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--gray-500)] hover:text-[var(--gray-900)] transition-colors cursor-pointer">
           <ArrowLeft className="h-4 w-4" /> Back to Companies
         </Link>
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={handleOpenEdit}
-            className="h-9 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer"
-          >
-            Edit Company
-          </button>
-        </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">

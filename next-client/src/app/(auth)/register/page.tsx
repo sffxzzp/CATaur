@@ -64,25 +64,103 @@ export default function RegisterPage() {
   const router = useRouter();
   const params = useSearchParams();
   const emailRef = useRef<HTMLInputElement>(null);
+  const pwRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
 
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [emailError, setEmailError] = useState("");
   const [pwError, setPwError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+
+  const validateEmail = (email: string) => {
+    if (!email) return "Email is required";
+    if (email.length >= 128) return "Email has reached maximum length (128 characters)";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+
+  const validatePassword = (pw: string) => {
+    if (!pw) return "Password is required";
+    if (pw.length >= 128) return "Password has reached maximum length (128 characters)";
+    if (pw.length < 12) return "Password must be at least 12 characters long";
+    if (!/[A-Z]/.test(pw)) return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(pw)) return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(pw)) return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pw)) return "Password must contain at least one special character";
+    return "";
+  };
+
+  const handleEmailBlur = () => {
+    const email = emailRef.current?.value?.trim() ?? "";
+    setEmailError(validateEmail(email));
+  };
+
+  const handleEmailInput = () => {
+    const email = emailRef.current?.value ?? "";
+    if (email.length >= 128) {
+      setEmailError("Email has reached maximum length (128 characters)");
+    } else if (emailError) {
+      setEmailError("");
+    }
+  };
+
+  const handlePwBlur = () => {
+    const pw = pwRef.current?.value ?? "";
+    setPwError(validatePassword(pw));
+  };
+
+  const handlePwInput = () => {
+    const pw = pwRef.current?.value ?? "";
+    if (pw.length >= 128) {
+      setPwError("Password has reached maximum length (128 characters)");
+    } else if (pwError && pw.length < 128) {
+      setPwError("");
+    }
+  };
+
+  const handleConfirmBlur = () => {
+    const pw = pwRef.current?.value ?? "";
+    const confirm = confirmRef.current?.value ?? "";
+    if (confirm && pw !== confirm) {
+      setConfirmError("Passwords do not match");
+    } else {
+      setConfirmError("");
+    }
+  };
+
+  const handleConfirmInput = () => {
+    const confirm = confirmRef.current?.value ?? "";
+    if (confirm.length >= 128) {
+      setConfirmError("Password has reached maximum length (128 characters)");
+    } else if (confirmError) {
+      setConfirmError("");
+    }
+  };
 
   const handleRegister = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const form = e.currentTarget;
-      const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
-      const pw = (form.elements.namedItem("password") as HTMLInputElement).value;
-      const confirm = (form.elements.namedItem("confirm") as HTMLInputElement).value;
+      const email = emailRef.current?.value?.trim() ?? "";
+      const pw = pwRef.current?.value ?? "";
+      const confirm = confirmRef.current?.value ?? "";
+
+      const emailErr = validateEmail(email);
+      const pwErr = validatePassword(pw);
+
+      setEmailError(emailErr);
+      setPwError(pwErr);
 
       if (pw !== confirm) {
-        setPwError("Passwords do not match.");
+        setConfirmError("Passwords do not match");
         return;
       }
-      setPwError("");
+      setConfirmError("");
+
+      if (emailErr || pwErr) {
+        return;
+      }
 
       const rawRole = params.get("role")?.toLowerCase() || "candidate";
       const roleMap: Record<string, string> = {
@@ -137,14 +215,16 @@ export default function RegisterPage() {
         }
       } catch (err: any) {
         console.error("Registration Error:", err);
-        setPwError(err.message || "Registration failed. Please try again.");
+        setEmailError(err.message || "Registration failed. Please try again.");
       }
     },
     [params, router]
   );
 
   const handleSocial = async (provider: 'google' | 'github') => {
+    setEmailError("");
     setPwError("");
+    setConfirmError("");
     try {
       const firebaseProvider = provider === 'google' ? googleProvider : githubProvider;
       const result = await signInWithPopup(auth, firebaseProvider);
@@ -171,7 +251,7 @@ export default function RegisterPage() {
 
     } catch (err: any) {
       console.error(`${provider} Social Sign Up Error:`, err);
-      setPwError(err.message || `${provider} Sign up failed`);
+      setEmailError(err.message || `${provider} Sign up failed`);
     }
   };
 
@@ -203,11 +283,14 @@ export default function RegisterPage() {
                 ref={emailRef}
                 name="email"
                 type="email"
-                required
+                maxLength={128}
                 placeholder="you@example.com"
-                className={cn(inputBase, "pl-9")}
+                onBlur={handleEmailBlur}
+                onInput={handleEmailInput}
+                className={cn(inputBase, "pl-9", emailError && "border-red-500 focus:border-red-500 focus:ring-red-500/15")}
               />
             </div>
+            {emailError && <p className="text-xs text-red-600">{emailError}</p>}
           </div>
 
           {/* Password */}
@@ -216,12 +299,14 @@ export default function RegisterPage() {
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
               <input
+                ref={pwRef}
                 name="password"
                 type={showPw ? "text" : "password"}
-                required
-                minLength={8}
-                placeholder="At least 8 characters"
-                className={cn(inputBase, "pl-9 pr-9")}
+                maxLength={128}
+                placeholder="At least 12 characters"
+                onBlur={handlePwBlur}
+                onInput={handlePwInput}
+                className={cn(inputBase, "pl-9 pr-9", pwError && "border-red-500 focus:border-red-500 focus:ring-red-500/15")}
               />
               <button
                 type="button"
@@ -232,6 +317,7 @@ export default function RegisterPage() {
                 {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {pwError && <p className="text-xs text-red-600">{pwError}</p>}
           </div>
 
           {/* Confirm password */}
@@ -240,11 +326,14 @@ export default function RegisterPage() {
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
               <input
+                ref={confirmRef}
                 name="confirm"
                 type={showConfirm ? "text" : "password"}
-                required
+                maxLength={128}
                 placeholder="Repeat password"
-                className={cn(inputBase, "pl-9 pr-9", pwError ? "border-red-400 focus:border-red-400 focus:ring-red-400/15" : "")}
+                onBlur={handleConfirmBlur}
+                onInput={handleConfirmInput}
+                className={cn(inputBase, "pl-9 pr-9", confirmError && "border-red-500 focus:border-red-500 focus:ring-red-500/15")}
               />
               <button
                 type="button"
@@ -255,7 +344,7 @@ export default function RegisterPage() {
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {pwError && <p className="text-xs text-red-500">{pwError}</p>}
+            {confirmError && <p className="text-xs text-red-600">{confirmError}</p>}
           </div>
 
           {/* Terms */}
