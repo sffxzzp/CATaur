@@ -1,0 +1,106 @@
+# ==========================================
+# WORKFLOW TRIGGER
+# Purpose: Automatically runs the CI/CD pipeline when commits are pushed to the main branch.
+# ==========================================
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  # ==========================================
+  # JOB 1: Build and Push
+  # Purpose: Prepares QEMU/Buildx for cross-platform builds, logs into Docker Hub, builds images with cache enabled, and pushes them to the container registry.
+  # ==========================================
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and Push WebAPI
+        uses: docker/build-push-action@v6
+        with:
+          context: ./webapi
+          push: true
+          platforms: linux/arm64
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cataur-webapi:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-webapi:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-webapi:buildcache,mode=max
+      # ==========================================
+      # FRONTEND BUILD ARGS
+      # Purpose: Passes GitHub Secrets as build arguments so the Next.js Dockerfile can bake them into the production build.
+      # ==========================================
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./next-client
+          push: true
+          platforms: linux/arm64
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cataur-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE=https://api.kawaiimonkey.top
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-frontend:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-frontend:buildcache,mode=max
+
+      - name: Build and Push File Service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./file-service
+          push: true
+          platforms: linux/arm64
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cataur-fileservice:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-fileservice:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/cataur-fileservice:buildcache,mode=max
+
+  # ==========================================
+  # JOB 2: Deploy to Oracle Cloud
+  # Purpose: Connects to the production server via SSH, pulls the freshly built images, recreates the containers, and prunes unused images to save disk space.
+  # ==========================================
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose and Caddyfile via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,Caddyfile"
+          target: "/opt/cataur/app/"
+
+      - name: Deploy to Oracle Cloud
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/cataur/app
+            sudo docker-compose pull
+            sudo docker-compose up -d
+            sudo docker image prune -f
