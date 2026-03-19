@@ -1,13 +1,17 @@
+# ==========================================
+# ADVANCED MULTI-ARCHITECTURE BUILD
+# Purpose: Drastically speeds up CI/CD builds by executing dependency installation and Next.js compilation natively on the runner's architecture ($BUILDPLATFORM), avoiding slow QEMU emulation.
+# ==========================================
+# syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS base
+ARG NODE_IMAGE=node:22-alpine
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# -------- Build stages run on BUILDPLATFORM (native on GitHub runner) --------
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Check lockfile type and install dependencies accordingly
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -17,17 +21,30 @@ RUN \
   fi
 
 
-# Rebuild the source code only when needed
-FROM base AS builder
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS builder
 WORKDIR /app
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED=1
+# ==========================================
+# BUILD-TIME ENVIRONMENT VARIABLES
+# Purpose: Injects Firebase and API credentials into the Next.js static build/prerender process.
+# ==========================================
+# Build-time env (needed because next build/prerender reads them)
+ARG NEXT_PUBLIC_API_BASE
+ARG NEXT_PUBLIC_FIREBASE_API_KEY
+ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ARG NEXT_PUBLIC_FIREBASE_APP_ID
 
+ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
+ENV NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY
+ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID
+ENV NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID
+
+# Build the Next.js app (Next.js will generate a standalone output folder)
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
@@ -35,34 +52,24 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-# Production image, copy all the files and run next
-FROM base AS runner
+# ==========================================
+# RUNTIME ENVIRONMENT (TARGETPLATFORM)
+# Purpose: Switches to the target production architecture (e.g., ARM64 for Oracle Cloud). NO "RUN" commands are executed here to bypass QEMU overhead. Only standalone artifacts are copied.
+# ==========================================
+# -------- Runtime stage uses TARGETPLATFORM, but NO RUN commands (avoid qemu) --------
+FROM --platform=$TARGETPLATFORM ${NODE_IMAGE} AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
+# Automatically leverage output traces (Standalone Mode) to reduce image size
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/.env.production ./.env
-
-USER nextjs
+# official node image has "node" user
+USER node
 
 EXPOSE 3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]

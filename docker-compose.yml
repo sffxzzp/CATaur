@@ -1,8 +1,16 @@
+# ==========================================
+# DOCKER COMPOSE CONFIGURATION
+# Purpose: Orchestrates all application services, handles port binding, defines volumes for persistent data, and places them in a unified network.
+# ==========================================
+version: "3.8"
+
 services:
+  # ==========================================
+  # CORE SERVICES
+  # Purpose: Hosts the frontend and backend, configured to restart automatically on failure.
+  # ==========================================
   frontend:
-    build:
-      context: ./next-client
-      dockerfile: Dockerfile
+    image: kawaiimonkey/cataur-frontend:latest
     environment:
       - NODE_ENV=production
     restart: always
@@ -10,106 +18,43 @@ services:
       - web-network
 
   webapi:
-    build:
-      context: ./webapi
-      dockerfile: Dockerfile
+    image: kawaiimonkey/cataur-webapi:latest
     environment:
       - NODE_ENV=production
+    env_file:
+      - .env
     restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
     networks:
       - web-network
 
-  db:
-    image: mariadb:latest
-    restart: always
-    environment:
-      - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
-      - MARIADB_DATABASE=${DB_DATABASE}
-    ports:
-      - "3306:3306"
-    healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - ~/data/mariadb:/var/lib/mysql
-    networks:
-      - web-network
-
-  redis:
-    image: redis:alpine
-    restart: always
-    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
-    ports:
-      - "16379:6379"
-    volumes:
-      - ~/data/redis:/data
-    networks:
-      - web-network
-
+  # ==========================================
+  # REVERSE PROXY
+  # Purpose: Caddy handles incoming traffic, automatic HTTPS, and proxies requests to the frontend/backend services.
+  # ==========================================
   caddy:
     image: caddy:latest
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - "8880:80"
     volumes:
-      - ~/data/caddy/Caddyfile:/etc/caddy/Caddyfile
-      - ~/data/caddy/data:/data
-      - ~/data/caddy/config:/config
+      - /opt/cataur/app/Caddyfile:/etc/caddy/Caddyfile
+      - /opt/cataur/data/caddy/data:/data
+      - /opt/cataur/data/caddy/config:/config
     depends_on:
       - webapi
+      - frontend
     networks:
       - web-network
 
-  loki:
-    image: grafana/loki:latest
-    restart: always
-    ports:
-      - "127.0.0.1:3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - loki-data:/loki
-    networks:
-      - web-network
-
-  grafana:
-    image: grafana/grafana:latest
-    restart: always
-    ports:
-      - "127.0.0.1:3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-    depends_on:
-      - loki
-    volumes:
-      - grafana-data:/var/lib/grafana
-    networks:
-      - web-network
-  
-  gobackup:
-    image: huacnlee/gobackup:latest
-    restart: always
-    depends_on:
-      - db
-    volumes:
-      - ./gobackup.yml:/etc/gobackup/gobackup.yml:ro
-      - ~/huang-ssh-private/id_rsa:/root/.ssh/id_rsa:ro
-    networks:
-      - web-network
-
-  # SeaweedFS Services start here
+  # ==========================================
+  # STORAGE CLUSTER (SeaweedFS)
+  # Purpose: A highly available distributed file system split into Master (metadata), Volume (storage), and Filer (POSIX-like file API).
+  # ==========================================
+  # SeaweedFS Storage Cluster
+  # SeaweedFS Storage Cluster
   seaweedfs-master:
     image: chrislusf/seaweedfs:latest
-    command: "master -ip=seaweedfs-master"
-    ports:
-      - "127.0.0.1:9333:9333"
+    command: master -ip=seaweedfs-master
     volumes:
       - ${LOCAL_DATA_PATH}/master:/data
     restart: always
@@ -118,9 +63,7 @@ services:
 
   seaweedfs-volume:
     image: chrislusf/seaweedfs:latest
-    command: "volume -mserver=seaweedfs-master:9333 -port=8080"
-    ports:
-      - "127.0.0.1:18080:8080"
+    command: volume -mserver=seaweedfs-master:9333 -port=8080
     depends_on:
       - seaweedfs-master
     volumes:
@@ -131,9 +74,7 @@ services:
 
   seaweedfs-filer:
     image: chrislusf/seaweedfs:latest
-    command: "filer -master=seaweedfs-master:9333"
-    ports:
-      - "127.0.0.1:8888:8888"
+    command: filer -master=seaweedfs-master:9333
     depends_on:
       - seaweedfs-master
       - seaweedfs-volume
@@ -142,15 +83,13 @@ services:
     restart: always
     networks:
       - web-network
-  # SeaweedFS Services end here
-  
 
+  # ==========================================
+  # FILE SERVICE
+  # Purpose: Connects the main application to the internal SeaweedFS cluster.
+  # ==========================================
   file-service:
-    build:
-      context: ./file-service
-      dockerfile: Dockerfile
-    expose:
-      - "3000"
+    image: kawaiimonkey/cataur-fileservice:latest
     environment:
       - SEAWEEDFS_FILER_URL=${SEAWEEDFS_FILER_URL}
       - NODE_ENV=production
@@ -160,10 +99,10 @@ services:
     networks:
       - web-network
 
+# ==========================================
+# NETWORKS
+# Purpose: A custom bridge network allowing services to communicate securely using their service names (e.g., 'http://webapi').
+# ==========================================
 networks:
   web-network:
     driver: bridge
-
-volumes:
-  loki-data:
-  grafana-data:

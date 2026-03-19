@@ -8,7 +8,7 @@ export default function RootPage() {
 
   useEffect(() => {
     const hostname = window.location.hostname.toLowerCase();
-    const isManager = hostname === "manager.cataur.freedeeplearn.com";
+    const isManager = hostname === "manager.kawaiimonkey.top";
 
     if (isManager) {
       router.replace("/login");
