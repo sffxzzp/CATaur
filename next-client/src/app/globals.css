@@ -57,6 +57,7 @@
 
   /* Danger / destructive (logout etc.) */
   --danger: #DC2626;
+  --danger-hover: #B91C1C;
   --danger-bg: #FEF2F2;
 
   /* Font size (adjustable via candidate header dropdown) */
@@ -141,6 +142,7 @@
 
   /* Danger */
   --danger: #F87171;
+  --danger-hover: #EF4444;
   --danger-bg: rgba(153, 27, 27, 0.15);
 
   /* Force color-scheme for native elements */
