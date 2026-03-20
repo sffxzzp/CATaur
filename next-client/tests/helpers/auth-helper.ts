@@ -30,7 +30,7 @@ export async function login(
   email: string,
   password: string,
 ) {
-  await page.goto(`http://localhost:3001/login?role=${role}`);
+  await page.goto(`/login?role=${role}`);
 
   /**
    * Step 1: find email input (reliable selector)
@@ -116,7 +116,7 @@ export async function logout(page: Page, role: string) {
   // fallback: if logout redirect fails
   console.log("[DEBUG] Logout redirect failed, forcing navigation");
 
-  await page.goto(`http://localhost:3001/login?role=${role}`);
+  await page.goto(`/login?role=${role}`);
 
   await expect(loginInput).toBeVisible();
 }
@@ -135,7 +135,7 @@ export async function register(
   password: string,
 ) {
   // go to login page for this role
-  await page.goto(`http://localhost:3001/login?role=${role}`);
+  await page.goto(`/login?role=${role}`);
 
   // wait for page to load
   await page.waitForLoadState("networkidle");
@@ -226,7 +226,7 @@ export async function register(
  */
 export async function forgotPassword(page: Page, role: string, email: string) {
   // go to login page
-  await page.goto(`http://localhost:3001/login?role=${role}`);
+  await page.goto(`/login?role=${role}`);
 
   await page.waitForLoadState("networkidle");
 
