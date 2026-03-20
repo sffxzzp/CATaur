@@ -5,9 +5,11 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     ManyToOne,
+    OneToMany,
     JoinColumn,
 } from 'typeorm';
 import { Company } from './company.entity';
+import { Application } from './application.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export type JobOrderStatus = 'active' | 'onhold' | 'closed';
@@ -70,6 +72,9 @@ export class JobOrder {
     @ManyToOne(() => Company, { nullable: true, onDelete: 'SET NULL' })
     @JoinColumn({ name: 'companyId' })
     company: Company;
+
+    @OneToMany(() => Application, application => application.jobOrder)
+    applications: Application[];
 
     @ApiProperty({ required: false, enum: ['Full-time', 'Part-time', 'Contract', 'Temporary', 'Internship', 'Permanent'] })
     @Column({ type: 'varchar', length: 20, nullable: true })

@@ -52,7 +52,8 @@ export class JobOrdersService {
         } = opts;
 
         const qb = this.repo.createQueryBuilder('jo')
-            .leftJoinAndSelect('jo.company', 'company');
+            .leftJoinAndSelect('jo.company', 'company')
+            .loadRelationCountAndMap('jo.applicants', 'jo.applications');
 
         // Apply caller-supplied scope (e.g. companyId)
         if (where.companyId) {
