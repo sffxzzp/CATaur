@@ -652,6 +652,7 @@ export default function RecruiterJobOrdersPage() {
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.title}
+                    maxLength={100}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                   />
                 </div>
@@ -700,6 +701,7 @@ export default function RecruiterJobOrdersPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Department</label>
                   <input
+                    maxLength={100}
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.department}
@@ -711,6 +713,7 @@ export default function RecruiterJobOrdersPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Salary</label>
                   <input
+                    maxLength={50}
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.salary}
@@ -761,8 +764,12 @@ export default function RecruiterJobOrdersPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[var(--gray-700)]">Description</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Description</label>
+                  <span className="text-xs text-[var(--gray-500)]">{editForm.description.length} / 5000</span>
+                </div>
                 <textarea
+                  maxLength={5000}
                   className="w-full min-h-[200px] resize-y rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
