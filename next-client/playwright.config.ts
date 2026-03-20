@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 const isCI = !!process.env.CI;
 
 // 1) 默认本地跑这个地址
-const defaultBaseURL = 'http://127.0.0.1:3001';
+const defaultBaseURL = 'http://127.0.0.1:3000';
 
 // 2) 如果你想跑 staging，就在命令行传 PLAYWRIGHT_BASE_URL
 //    例如：PLAYWRIGHT_BASE_URL=https://staging.xxx.com npx playwright test
