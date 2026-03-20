@@ -2,10 +2,11 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+    branches: [yanling]
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  # workflow_dispatch:
 
 jobs:
   e2e:
