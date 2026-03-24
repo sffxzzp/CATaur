@@ -21,6 +21,7 @@ import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/pag
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
+import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(JobOrder);
 const PaginatedApplicationsResponseDto = createPaginatedResponseDto(Application);
@@ -175,18 +176,8 @@ export class ClientController {
     // ── Dashboard ─────────────────────────────────────────────────────────
     @Get('dashboard')
     @ApiOperation({ summary: 'Client dashboard KPIs' })
-    @ApiOkResponse({
-        schema: {
-            type: 'object',
-            properties: {
-                activeOrders: { type: 'number' },
-                candidatesInReview: { type: 'number' },
-                pendingDecisions: { type: 'number' },
-                recentCandidates: { type: 'array', items: { $ref: '#/components/schemas/Application' } },
-            },
-        },
-    })
-    async dashboard(@GetUser() user: User): Promise<{ activeOrders: number; candidatesInReview: number; pendingDecisions: number; recentCandidates: Application[] }> {
+    @ApiOkResponse({ type: ClientDashboardResponseDto })
+    async dashboard(@GetUser() user: User): Promise<ClientDashboardResponseDto> {
         const companyIds = await this.getCompanyIds(user);
         return this.dashboardService.getClientDashboard(companyIds);
     }
