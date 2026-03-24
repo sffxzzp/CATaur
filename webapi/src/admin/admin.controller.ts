@@ -264,23 +264,15 @@ export class AdminController {
         });
     }
 
-    @Get('ai-providers/:provider/models')
-    @ApiOperation({ summary: 'Get AI provider model list' })
-    @ApiResponse({ status: 200, type: AIProviderModelsResponseDto })
-    async getAIProviderModels(
-        @Param('provider') provider: string,
-    ): Promise<AIProviderModelsResponseDto | null> {
-        return await this.adminService.getAIProviderModels(provider);
-    }
-
     @Post('ai-providers/:provider/models/refresh')
     @AuditLog('refresh AI provider models')
     @ApiOperation({ summary: 'Refresh AI provider model list' })
     @ApiResponse({ status: 200, type: AIProviderModelsResponseDto })
     async refreshAIProviderModels(
         @Param('provider') provider: string,
+        @Body() dto: { apiKey?: string },
     ): Promise<AIProviderModelsResponseDto | null> {
-        return await this.adminService.refreshAIProviderModels(provider);
+        return await this.adminService.refreshAIProviderModels(provider, dto.apiKey);
     }
 
     @Get('ai-providers/custom')

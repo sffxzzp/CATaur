@@ -50,8 +50,8 @@ export class AdminService {
         if (role) {
             queryBuilder.andWhere('roles.role = :role', { role });
         }
-        else{
-            queryBuilder.andWhere('roles.role <> :role', { role:Role.CANDIDATE });
+        else {
+            queryBuilder.andWhere('roles.role <> :role', { role: Role.CANDIDATE });
         }
 
         if (search) {
@@ -515,7 +515,7 @@ export class AdminService {
     }
 
     async getAIProviderModels(provider: string): Promise<AIProviderModelsResponseDto | null> {
-        const models = await this.aiProviderConfigService.getProviderModels(provider);
+        const models = await this.aiProviderConfigService.refreshProviderModels(provider);
         if (!models) {
             return null;
         }
@@ -527,8 +527,8 @@ export class AdminService {
         };
     }
 
-    async refreshAIProviderModels(provider: string): Promise<AIProviderModelsResponseDto | null> {
-        const models = await this.aiProviderConfigService.refreshProviderModels(provider);
+    async refreshAIProviderModels(provider: string, apiKey?: string): Promise<AIProviderModelsResponseDto | null> {
+        const models = await this.aiProviderConfigService.refreshProviderModels(provider, apiKey);
         if (!models) {
             return null;
         }

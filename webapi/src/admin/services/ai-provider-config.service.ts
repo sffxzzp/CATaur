@@ -25,7 +25,7 @@ export class AIProviderConfigService {
     @InjectRepository(SystemConfig)
     private readonly systemConfigsRepository: Repository<SystemConfig>,
     private readonly encryptionService: EncryptionService,
-  ) {}
+  ) { }
 
   /**
    * Save or update AI provider configuration
@@ -155,25 +155,18 @@ export class AIProviderConfigService {
     return config !== null;
   }
 
-  async getProviderModels(provider: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
-    const cached = await this.cacheManager.get<Buffer>(this.getModelsKey(provider));
-    if (cached) {
-      return this.encryptionService.decryptJson<{ models: string[]; defaultModel?: string; updatedAt: number }>(cached);
-    }
-
-    return this.refreshProviderModels(provider);
-  }
-
-  async refreshProviderModels(provider: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
+  async refreshProviderModels(provider: string, apiKey?: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
     const config = await this.getConfig(provider);
-    if (!config) {
-      return null;
+    apiKey = apiKey ?? config?.apiKey;
+    if (!apiKey) {
+      throw new BadRequestException('API key is required');
     }
 
-    const models = await this.fetchModelsForProvider(provider, config);
+
+    const models = await this.fetchModelsForProvider(provider, apiKey);
     const payload = {
       models,
-      defaultModel: config.defaultModel,
+      defaultModel: config?.defaultModel,
       updatedAt: Date.now(),
     };
     await this.cacheManager.set(this.getModelsKey(provider), this.encryptionService.encryptJson(payload), 0);
@@ -274,8 +267,7 @@ export class AIProviderConfigService {
     }
   }
 
-  private async fetchModelsForProvider(provider: string, config: AIProviderResponseDto): Promise<string[]> {
-    const apiKey = config.apiKey;
+  private async fetchModelsForProvider(provider: string, apiKey: string): Promise<string[]> {
     if (!apiKey) {
       throw new BadRequestException('API key not configured');
     }
@@ -301,57 +293,6 @@ export class AIProviderConfigService {
       const response = await axios.get<{ models: Array<{ name: string }> }>(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
       );
-      return response.data.models.map((model) => model.name);
-    }
-
-    if (provider === 'azure') {
-      if (!config.baseUrl || !config.apiVersion) {
-        throw new BadRequestException('Azure OpenAI requires baseUrl and apiVersion');
-      }
-      const url = `${config.baseUrl.replace(/\/+$/, '')}/openai/models?api-version=${encodeURIComponent(config.apiVersion)}`;
-      const response = await axios.get<{ data: Array<{ id: string }> }>(url, {
-        headers: {
-          'api-key': apiKey,
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    const customProviders = await this.getCustomProviders();
-    const custom = customProviders.find((item) => item.id === provider);
-    if (!custom) {
-      throw new BadRequestException('Unknown provider');
-    }
-
-    const baseUrl = custom.baseUrl.replace(/\/+$/, '');
-    if (custom.providerType === 'openai') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>(`${baseUrl}/v1/models`, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (custom.providerType === 'anthropic') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>(`${baseUrl}/v1/models`, {
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (custom.providerType === 'gemini') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(
-        `${baseUrl}/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      );
-      return response.data.models.map((model) => model.name);
-    }
-
-    if (custom.providerType === 'ollama') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(`${baseUrl}/api/tags`);
       return response.data.models.map((model) => model.name);
     }
 
