@@ -660,14 +660,14 @@ export default function ProfilePage() {
                     <FormField label="Province / State">
                       <select value={locRegion} onChange={(e) => handleRegionChange(e.target.value)} disabled={!locCountry} className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}>
                         <option value="">Select province/state…</option>
-                        {locCountry && REGIONS[locCountry].map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                        {locCountry && REGIONS[locCountry as CountryCode]?.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
                       </select>
                     </FormField>
                     <FormField label="City">
                       <div className="sm:col-span-2">
                         <select value={locCity} onChange={(e) => setLocCity(e.target.value)} disabled={!locRegion} className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}>
                           <option value="">Select city…</option>
-                          {locCountry && locRegion && (CITIES[locCountry][locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
+                          {locCountry && locRegion && (CITIES[locCountry as CountryCode]?.[locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
                         </select>
                       </div>
                     </FormField>
@@ -1118,14 +1118,14 @@ export default function ProfilePage() {
                   <FormField label="Province / State">
                     <select value={locRegion} onChange={(e) => handleRegionChange(e.target.value)} disabled={!locCountry} className={`${inputCls} disabled:opacity-50`}>
                       <option value="">Select province/state…</option>
-                      {locCountry && REGIONS[locCountry].map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                      {locCountry && REGIONS[locCountry as CountryCode]?.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
                     </select>
                   </FormField>
                   <div className="sm:col-span-2">
                     <FormField label="City">
                       <select value={locCity} onChange={(e) => setLocCity(e.target.value)} disabled={!locRegion} className={`${inputCls} disabled:opacity-50`}>
                         <option value="">Select city…</option>
-                        {locCountry && locRegion && (CITIES[locCountry][locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
+                        {locCountry && locRegion && (CITIES[locCountry as CountryCode]?.[locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
                       </select>
                     </FormField>
                   </div>
