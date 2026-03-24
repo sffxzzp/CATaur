@@ -122,9 +122,9 @@ export class CandidateProfileService {
             linkedin: candidate.linkedin ?? null,
             resumeUrl: candidate.resumeUrl ?? null,
             portfolioUrl: candidate.portfolioUrl ?? null,
-            currentLocationCountry: candidate.locationCountry ?? null,
-            currentLocationState: candidate.locationState ?? null,
-            currentLocationCity: candidate.locationCity ?? null,
+            locationCountry: candidate.locationCountry ?? null,
+            locationState: candidate.locationState ?? null,
+            locationCity: candidate.locationCity ?? null,
             noticePeriod: candidate.noticePeriod ?? null,
             availableDate: candidate.availableDate ?? null,
             profileStatus: candidate.profileStatus ?? null,
@@ -150,9 +150,9 @@ export class CandidateProfileService {
         if (dto.targetSalary !== undefined) candidate.targetSalary = dto.targetSalary ?? null;
         if (dto.preferredLocation !== undefined) candidate.preferredLocation = dto.preferredLocation ?? null;
         if (dto.linkedin !== undefined) candidate.linkedin = dto.linkedin ?? null;
-        if (dto.currentLocationCountry !== undefined) candidate.locationCountry = dto.currentLocationCountry ?? null;
-        if (dto.currentLocationState !== undefined) candidate.locationState = dto.currentLocationState ?? null;
-        if (dto.currentLocationCity !== undefined) candidate.locationCity = dto.currentLocationCity ?? null;
+        if (dto.locationCountry !== undefined) candidate.locationCountry = dto.locationCountry ?? null;
+        if (dto.locationState !== undefined) candidate.locationState = dto.locationState ?? null;
+        if (dto.locationCity !== undefined) candidate.locationCity = dto.locationCity ?? null;
         if (dto.noticePeriod !== undefined) candidate.noticePeriod = dto.noticePeriod ?? null;
         if (dto.availableDate !== undefined) candidate.availableDate = dto.availableDate ?? null;
         if (dto.profileStatus !== undefined) candidate.profileStatus = dto.profileStatus ?? null;

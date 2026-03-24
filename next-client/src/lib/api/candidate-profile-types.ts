@@ -50,7 +50,9 @@ export interface CandidateProfileExtended {
   linkedin: string | null;
   resumeUrl: string | null;
   portfolioUrl: string | null;
-  currentLocation: string | null;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
   noticePeriod: number | null;
   availableDate: string | null;
   profileStatus: string | null;
@@ -69,7 +71,9 @@ export interface UpdateCandidateProfileDto {
   preferredLocation?: string;
   linkedin?: string;
   phone?: string;
-  currentLocation?: string;
+  locationCountry?: string;
+  locationState?: string;
+  locationCity?: string;
   noticePeriod?: number;
   availableDate?: string;
   profileStatus?: string;

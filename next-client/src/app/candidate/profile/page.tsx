@@ -223,18 +223,10 @@ export default function ProfilePage() {
           linkedin: data.linkedin || "",
         });
 
-        // Parse currentLocation into country/region/city if set
-        if (data.currentLocation) {
-          const parts = data.currentLocation.split(", ");
-          if (parts.length >= 3) {
-            setLocCity(parts[0]);
-            setLocRegion(parts[1]);
-            setLocCountry(parts[2] as CountryCode);
-          } else if (parts.length === 2) {
-            setLocCity(parts[0]);
-            setLocRegion(parts[1]);
-          }
-        }
+        // Parse location pieces if set
+        if (data.locationCountry) setLocCountry(data.locationCountry as CountryCode);
+        if (data.locationState) setLocRegion(data.locationState);
+        if (data.locationCity) setLocCity(data.locationCity);
 
         // Check if onboarding was already completed (via localStorage or profileStatus)
         const userId = data.id;
@@ -260,14 +252,15 @@ export default function ProfilePage() {
   // ─── Onboarding: save basic info ──────────────────────────────────────────
   const handleSaveBasicInfo = async () => {
     const nickname = [basicForm.firstName, basicForm.lastName].filter(Boolean).join(" ");
-    const currentLocation = [locCity, locRegion, locCountry].filter(Boolean).join(", ");
     setSaving(true);
     try {
       // Save extended candidate fields
       const updated = await candidateSelfProfileClient.updateMyProfile({
         phone: basicForm.phone || undefined,
         linkedin: basicForm.linkedin || undefined,
-        currentLocation: currentLocation || undefined,
+        locationCountry: locCountry || undefined,
+        locationState: locRegion || undefined,
+        locationCity: locCity || undefined,
         profileStatus: "active",
       });
       // Also update display name (nickname) on the user record
@@ -398,13 +391,14 @@ export default function ProfilePage() {
   // ─── Edit basic profile (modal save) ──────────────────────────────────────
   const handleSaveEditProfile = async () => {
     const nickname = [basicForm.firstName, basicForm.lastName].filter(Boolean).join(" ");
-    const currentLocation = [locCity, locRegion, locCountry].filter(Boolean).join(", ");
     setSaving(true);
     try {
       const updated = await candidateSelfProfileClient.updateMyProfile({
         phone: basicForm.phone || undefined,
         linkedin: basicForm.linkedin || undefined,
-        currentLocation: currentLocation || undefined,
+        locationCountry: locCountry || undefined,
+        locationState: locRegion || undefined,
+        locationCity: locCity || undefined,
       });
       if (nickname) {
         await request("/candidate/profile", { method: "PUT", json: { nickname } });
@@ -584,7 +578,7 @@ export default function ProfilePage() {
   const displayName = profile?.nickname || "Your Name";
   const displayEmail = profile?.email || (typeof window !== "undefined" ? localStorage.getItem("candidateEmail") : "") || "";
   const displayPhone = profile?.phone || "";
-  const displayLocation = profile?.currentLocation || "";
+  const displayLocation = [profile?.locationCity, profile?.locationState, profile?.locationCountry].filter(Boolean).join(", ");
   const displayLinkedin = profile?.linkedin || "";
 
   const workExperiences = profile?.workExperience || [];
