@@ -45,9 +45,9 @@ export class ApplicationsService {
      */
     async findAll(
         scope: Partial<{ companyIds: string[]; candidateId: string }>,
-        opts: { page?: number; limit?: number; status?: string; jobOrderId?: string; search?: string; location?: string } = {},
+        opts: { page?: number; limit?: number; status?: string; jobOrderId?: string; search?: string; candidateNameOrJobTitle?: string; location?: string } = {},
     ) {
-        const { page = 1, limit = 20, status, jobOrderId, search, location } = opts;
+        const { page = 1, limit = 20, status, jobOrderId, search, candidateNameOrJobTitle, location } = opts;
 
         const qb = this.repo.createQueryBuilder('app')
             .leftJoinAndSelect('app.candidate', 'candidate')
@@ -63,9 +63,11 @@ export class ApplicationsService {
         }
         if (status) qb.andWhere('app.status = :status', { status });
         if (jobOrderId) qb.andWhere('app.jobOrderId = :jobOrderId', { jobOrderId });
-        if (search) {
+
+        const searchTerm = candidateNameOrJobTitle || search;
+        if (searchTerm) {
             qb.andWhere('(candidate.nickname LIKE :s OR candidate.email LIKE :s OR jobOrder.title LIKE :s)', {
-                s: `%${search}%`,
+                s: `%${searchTerm}%`,
             });
         }
         if (location) {

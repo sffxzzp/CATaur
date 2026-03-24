@@ -23,9 +23,10 @@ import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
 import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
 import { ClientJobOrder } from './dto/client-job-order.dto';
+import { ClientCandidate } from './dto/client-candidate.dto';
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(ClientJobOrder);
-const PaginatedApplicationsResponseDto = createPaginatedResponseDto(Application);
+const PaginatedApplicationsResponseDto = createPaginatedResponseDto(ClientCandidate);
 const JobOrderResponseDto = createApiResponseDto(JobOrder);
 const ApplicationResponseDto = createApiResponseDto(Application);
 
@@ -34,6 +35,7 @@ const ApplicationResponseDto = createApiResponseDto(Application);
     PaginatedJobOrdersResponseDto,
     PaginatedApplicationsResponseDto,
     ClientJobOrder,
+    ClientCandidate,
     JobOrder,
     Application,
     JobOrderResponseDto,
@@ -122,7 +124,7 @@ export class ClientController {
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
     @ApiQuery({ name: 'jobOrderId', required: false })
-    @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'candidateNameOrJobTitle', required: false })
     @ApiOkResponse({ type: PaginatedApplicationsResponseDto })
     async listCandidates(
         @GetUser() user: User,
@@ -130,12 +132,35 @@ export class ClientController {
         @Query('limit') limit = '20',
         @Query('status') status?: string,
         @Query('jobOrderId') jobOrderId?: string,
-        @Query('search') search?: string,
-    ): Promise<PaginatedResponse<Application>> {
+        @Query('candidateNameOrJobTitle') candidateNameOrJobTitle?: string,
+    ): Promise<PaginatedResponse<ClientCandidate>> {
         const companyIds = await this.getCompanyIds(user);
-        return this.applicationsService.findAll({ companyIds }, {
-            page: +page, limit: +limit, status, jobOrderId, search,
-        });
+        const result = await this.applicationsService.findAll(
+            { companyIds },
+            {
+                page: +page,
+                limit: +limit,
+                status: status || undefined,
+                jobOrderId: jobOrderId || undefined,
+                candidateNameOrJobTitle: candidateNameOrJobTitle || undefined,
+            },
+        );
+
+        return {
+            ...result,
+            data: result.data.map((app: any) => ({
+                id: app.id,
+                candidate: {
+                    user: app.candidate,
+                },
+                jobTitle: app.jobOrder?.title,
+                status: app.status,
+                createdAt: app.createdAt,
+                locationCountry: app.locationCountry,
+                locationState: app.locationState,
+                locationCity: app.locationCity,
+            })),
+        };
     }
 
     @Get('candidates/:id')
