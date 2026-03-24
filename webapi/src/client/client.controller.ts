@@ -22,8 +22,9 @@ import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
 import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
+import { ClientJobOrder } from './dto/client-job-order.dto';
 
-const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(JobOrder);
+const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(ClientJobOrder);
 const PaginatedApplicationsResponseDto = createPaginatedResponseDto(Application);
 const JobOrderResponseDto = createApiResponseDto(JobOrder);
 const ApplicationResponseDto = createApiResponseDto(Application);
@@ -32,6 +33,7 @@ const ApplicationResponseDto = createApiResponseDto(Application);
 @ApiExtraModels(
     PaginatedJobOrdersResponseDto,
     PaginatedApplicationsResponseDto,
+    ClientJobOrder,
     JobOrder,
     Application,
     JobOrderResponseDto,
@@ -49,7 +51,7 @@ export class ClientController {
         private companiesRepository: Repository<Company>,
         private reportsService: ReportsService,
         private dashboardService: DashboardService,
-    ) {}
+    ) { }
 
     /** Resolve all company IDs this client user belongs to */
     private async getCompanyIds(user: User): Promise<string[]> {
@@ -74,30 +76,31 @@ export class ClientController {
         @Query('page') page = '1',
         @Query('limit') limit = '20',
         @Query('status') status?: string,
-        @Query('statuses') statusesRaw?: string | string[],
-        @Query('search') search?: string,
-    ): Promise<PaginatedResponse<JobOrder>> {
+    ): Promise<PaginatedResponse<ClientJobOrder>> {
         const companyIds = await this.getCompanyIds(user);
-        if (!companyIds.length) return { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+        const result = await this.jobOrdersService.findAll(
+            { companyIds },
+            {
+                page: +page,
+                limit: +limit,
+                status: status || undefined,
+            },
+        );
 
-        let statuses: string[] | undefined;
-        if (Array.isArray(statusesRaw)) {
-            statuses = statusesRaw;
-        } else if (typeof statusesRaw === 'string') {
-            statuses = statusesRaw.split(',');
-        }
-        if (statuses) {
-            statuses = statuses.map((s) => s.trim()).filter(Boolean);
-            if (!statuses.length) statuses = undefined;
-        }
-
-        return this.jobOrdersService.findAll({ companyIds }, {
-            page: +page,
-            limit: +limit,
-            status,
-            statuses,
-            search,
-        });
+        return {
+            ...result,
+            data: result.data.map((jo: any) => ({
+                id: jo.id,
+                title: jo.title,
+                locationCountry: jo.locationCountry,
+                locationState: jo.locationState,
+                locationCity: jo.locationCity,
+                employmentType: jo.employmentType,
+                status: jo.status,
+                candidateCount: jo.applicants || 0,
+                createdAt: jo.createdAt,
+            })),
+        };
     }
 
     @Get('orders/:id')
