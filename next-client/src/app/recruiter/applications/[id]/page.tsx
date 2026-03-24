@@ -268,13 +268,16 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">Subject</label>
-            <input type="text" className={inp} value={draft.subject} onChange={e => onChange({ subject: e.target.value })} />
+            <input maxLength={100} type="text" className={inp} value={draft.subject} onChange={e => onChange({ subject: e.target.value })} />
+            {draft.subject.length >= 100 && (
+              <p className="text-xs text-[var(--error)]">Subject is too long</p>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
               { key: "type", label: "Type", el: <select className={inp} value={draft.type} onChange={e => onChange({ type: e.target.value as InterviewDraft["type"] })}><option>Zoom</option><option>Phone</option><option>Onsite</option></select> },
-              { key: "date", label: "Date", el: <input type="text" className={inp} placeholder="e.g. Mar 10, 2026" value={draft.date} onChange={e => onChange({ date: e.target.value })} /> },
-              { key: "time", label: "Time", el: <input type="text" className={inp} placeholder="e.g. 2:30 PM EST" value={draft.time} onChange={e => onChange({ time: e.target.value })} /> },
+              { key: "date", label: "Date", el: <input maxLength={100} type="text" className={inp} placeholder="e.g. Mar 10, 2026" value={draft.date} onChange={e => onChange({ date: e.target.value })} /> },
+              { key: "time", label: "Time", el: <input maxLength={100} type="text" className={inp} placeholder="e.g. 2:30 PM EST" value={draft.time} onChange={e => onChange({ time: e.target.value })} /> },
             ].map(({ key, label, el }) => (
               <div key={key} className="space-y-1.5">
                 <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">{label}</label>

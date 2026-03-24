@@ -149,7 +149,10 @@ function InterviewModal({ draft, onChange, onSend, onClose }: {
                     </div>
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-[var(--gray-500)]">Subject</label>
-                        <input type="text" className={inp} value={draft.subject} onChange={(e) => onChange({ subject: e.target.value })} />
+                        <input type="text" maxLength={100} className={inp} value={draft.subject} onChange={(e) => onChange({ subject: e.target.value })} />
+                        {draft.subject.length >= 100 && (
+                            <p className="text-xs text-[var(--error)]">Subject is too long</p>
+                        )}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="space-y-1">
@@ -160,16 +163,25 @@ function InterviewModal({ draft, onChange, onSend, onClose }: {
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-[var(--gray-500)]">Date</label>
-                            <input type="text" className={inp} placeholder="e.g. Mar 10, 2026" value={draft.date} onChange={(e) => onChange({ date: e.target.value })} />
+                            <input type="text" maxLength={100} className={inp} placeholder="e.g. Mar 10, 2026" value={draft.date} onChange={(e) => onChange({ date: e.target.value })} />
+                            {draft.date.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">Date is too long</p>
+                            )}
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-[var(--gray-500)]">Time</label>
-                            <input type="text" className={inp} placeholder="e.g. 2:30 PM EST" value={draft.time} onChange={(e) => onChange({ time: e.target.value })} />
+                            <input type="text" maxLength={100} className={inp} placeholder="e.g. 2:30 PM EST" value={draft.time} onChange={(e) => onChange({ time: e.target.value })} />
+                            {draft.time.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">Time is too long</p>
+                            )}
                         </div>
                     </div>
                     <div className="space-y-1">
                         <label className="text-xs font-medium text-[var(--gray-500)]">Message</label>
-                        <textarea rows={4} className={inp} value={draft.content} onChange={(e) => onChange({ content: e.target.value })} />
+                        <textarea maxLength={1000} rows={4} className={inp} value={draft.content} onChange={(e) => onChange({ content: e.target.value })} />
+                        {draft.content.length >= 1000 && (
+                            <p className="text-xs text-[var(--error)]">Message is too long</p>
+                        )}
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 border-t border-[var(--border)] px-5 py-3">
@@ -403,8 +415,12 @@ export default function RecruiterApplicationsPage() {
                 <div className="relative flex-1 max-w-sm">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--gray-400)]" />
                     <input type="text" placeholder="Search by name or job title…" value={query}
+                        maxLength={100}
                         onChange={(e) => setQuery(e.target.value)}
                         className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-4 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)]" />
+                    {query.length >= 100 && (
+                        <p className="text-xs text-[var(--error)]">Search query is too long</p>
+                    )}
                 </div>
                 <div className="relative">
                     <Briefcase className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />

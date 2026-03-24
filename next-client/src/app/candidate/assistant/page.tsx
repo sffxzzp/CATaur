@@ -40,7 +40,7 @@ export default function AssistantPage() {
   }, [messages]);
 
   useEffect(() => {
-    candidateSelfProfileClient.getMyProfile().then(setProfile).catch(() => {});
+    candidateSelfProfileClient.getMyProfile().then(setProfile).catch(() => { });
   }, []);
 
   const buildResumeContext = () => {
@@ -138,16 +138,14 @@ export default function AssistantPage() {
                   className={`flex ${chat.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-lg px-4 py-3 ${
-                      chat.role === "user"
+                    className={`max-w-[85%] rounded-lg px-4 py-3 ${chat.role === "user"
                         ? "bg-[#1D4ED8] text-white"
                         : "border border-[var(--border-light)] bg-white text-[#111827]"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`mb-1 flex items-center gap-1.5 text-sm ${
-                        chat.role === "user" ? "justify-end text-white/70" : "text-muted-foreground"
-                      }`}
+                      className={`mb-1 flex items-center gap-1.5 text-sm ${chat.role === "user" ? "justify-end text-white/70" : "text-muted-foreground"
+                        }`}
                     >
                       {chat.role === "assistant" && <Sparkles className="h-3 w-3" />}
                       <span>{chat.role === "assistant" ? "AI Assistant" : "You"}</span>

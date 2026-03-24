@@ -344,132 +344,136 @@ export default function JobSearchPage() {
       )}
 
       {!isLoading && !error && <>
-      {/* Page header */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-[#111827]">Job Search</h1>
-        <p className="mt-1 text-base text-muted-foreground">Browse open positions and apply directly.</p>
-      </div>
-
-      {/* Search + Location */}
-      <div className="mb-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative lg:col-span-1">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#6B7280]" />
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Job title or company..."
-            className="h-9 w-full rounded border border-[#D1D5DB] bg-white pl-9 pr-4 text-sm text-[#111827] placeholder-[#6B7280] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
-          />
+        {/* Page header */}
+        <div className="mb-5">
+          <h1 className="text-2xl font-semibold text-[#111827]">Job Search</h1>
+          <p className="mt-1 text-base text-muted-foreground">Browse open positions and apply directly.</p>
         </div>
 
-        <SelectField icon={MapPin} value={selectedCountry} onChange={handleCountryChange} placeholder="Country">
-          {COUNTRIES.map((c) => (
-            <option key={c.code} value={c.code}>{c.name}</option>
-          ))}
-        </SelectField>
-
-        <SelectField
-          value={selectedState}
-          onChange={handleStateChange}
-          placeholder={selectedCountry ? "Province / State" : "Select country first"}
-          disabled={!selectedCountry}
-        >
-          {availableStates.map((s) => (
-            <option key={s.code} value={s.code}>{s.name}</option>
-          ))}
-        </SelectField>
-
-        <SelectField
-          value={selectedCity}
-          onChange={setSelectedCity}
-          placeholder={selectedState ? "City" : "Select province first"}
-          disabled={!selectedState}
-        >
-          {availableCities.map((city) => (
-            <option key={city} value={city}>{city}</option>
-          ))}
-        </SelectField>
-      </div>
-
-      {/* Filter pills */}
-      <div className="mb-5 space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Arrangement</span>
-          {WORK_ARRANGEMENT_OPTIONS.map((a) => (
-            <FilterPill
-              key={a}
-              label={a}
-              active={selectedArrangements.includes(a)}
-              onClick={() => toggleArrangement(a)}
+        {/* Search + Location */}
+        <div className="mb-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative lg:col-span-1">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#6B7280]" />
+            <input
+              maxLength={100}
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Job title or company..."
+              className="h-9 w-full rounded border border-[#D1D5DB] bg-white pl-9 pr-4 text-sm text-[#111827] placeholder-[#6B7280] transition focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
             />
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Job Type</span>
-          {TYPE_OPTIONS.map((t) => (
-            <FilterPill
-              key={t}
-              label={t}
-              active={selectedTypes.includes(t)}
-              onClick={() => toggleType(t)}
-            />
-          ))}
-        </div>
-      </div>
+            {keyword.length >= 100 && (
+              <p className="text-xs text-[var(--error)]">Job title or company is too long</p>
+            )}
+          </div>
 
-      {/* Results bar */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
-        <div className="flex items-center gap-3">
-          <p className="text-base text-[#374151]">
-            <span className="font-semibold text-[#111827]">{filteredJobs.length}</span> of{" "}
-            {apiJobs.filter((j) => j.status === "active").length} positions
-          </p>
-          {hasActiveFilters && (
-            <button
-              onClick={clearAll}
-              className="flex items-center gap-1 rounded border border-[#E5E7EB] px-2.5 py-1 text-sm text-muted-foreground transition hover:border-red-300 hover:text-red-500"
-            >
-              <X className="h-3 w-3" />
-              Clear filters
-            </button>
-          )}
+          <SelectField icon={MapPin} value={selectedCountry} onChange={handleCountryChange} placeholder="Country">
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>{c.name}</option>
+            ))}
+          </SelectField>
+
+          <SelectField
+            value={selectedState}
+            onChange={handleStateChange}
+            placeholder={selectedCountry ? "Province / State" : "Select country first"}
+            disabled={!selectedCountry}
+          >
+            {availableStates.map((s) => (
+              <option key={s.code} value={s.code}>{s.name}</option>
+            ))}
+          </SelectField>
+
+          <SelectField
+            value={selectedCity}
+            onChange={setSelectedCity}
+            placeholder={selectedState ? "City" : "Select province first"}
+            disabled={!selectedState}
+          >
+            {availableCities.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </SelectField>
         </div>
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Sort:</span>
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="appearance-none rounded border border-[#D1D5DB] bg-white py-1 pl-3 pr-7 text-xs text-[#374151] focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt}>{opt}</option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#6B7280]" />
+
+        {/* Filter pills */}
+        <div className="mb-5 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Arrangement</span>
+            {WORK_ARRANGEMENT_OPTIONS.map((a) => (
+              <FilterPill
+                key={a}
+                label={a}
+                active={selectedArrangements.includes(a)}
+                onClick={() => toggleArrangement(a)}
+              />
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-24 shrink-0 text-sm font-medium text-muted-foreground">Job Type</span>
+            {TYPE_OPTIONS.map((t) => (
+              <FilterPill
+                key={t}
+                label={t}
+                active={selectedTypes.includes(t)}
+                onClick={() => toggleType(t)}
+              />
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Job list */}
-      {filteredJobs.length > 0 ? (
-        <div className="space-y-3">
-          {filteredJobs.map((job) => (
-            <JobCard key={job.slug} job={job} isGuest={isGuest} isApplied={appliedJobIds.has(job.slug)} />
-          ))}
+        {/* Results bar */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
+          <div className="flex items-center gap-3">
+            <p className="text-base text-[#374151]">
+              <span className="font-semibold text-[#111827]">{filteredJobs.length}</span> of{" "}
+              {apiJobs.filter((j) => j.status === "active").length} positions
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={clearAll}
+                className="flex items-center gap-1 rounded border border-[#E5E7EB] px-2.5 py-1 text-sm text-muted-foreground transition hover:border-red-300 hover:text-red-500"
+              >
+                <X className="h-3 w-3" />
+                Clear filters
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Sort:</span>
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="appearance-none rounded border border-[#D1D5DB] bg-white py-1 pl-3 pr-7 text-xs text-[#374151] focus:border-[#1D4ED8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]/20"
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt}>{opt}</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-[#6B7280]" />
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#D1D5DB] bg-white py-16 text-center">
-          <Search className="mb-3 h-8 w-8 text-[#D1D5DB]" />
-          <p className="text-sm font-semibold text-[#374151]">No jobs match your filters</p>
-          <p className="mt-1 text-xs text-[#6B7280]">Try adjusting your search or clearing filters</p>
-          <Button variant="outline" size="sm" className="mt-5" onClick={clearAll}>
-            Clear all filters
-          </Button>
-        </div>
-      )}
+
+        {/* Job list */}
+        {filteredJobs.length > 0 ? (
+          <div className="space-y-3">
+            {filteredJobs.map((job) => (
+              <JobCard key={job.slug} job={job} isGuest={isGuest} isApplied={appliedJobIds.has(job.slug)} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#D1D5DB] bg-white py-16 text-center">
+            <Search className="mb-3 h-8 w-8 text-[#D1D5DB]" />
+            <p className="text-sm font-semibold text-[#374151]">No jobs match your filters</p>
+            <p className="mt-1 text-xs text-[#6B7280]">Try adjusting your search or clearing filters</p>
+            <Button variant="outline" size="sm" className="mt-5" onClick={clearAll}>
+              Clear all filters
+            </Button>
+          </div>
+        )}
       </>}
     </div>
   );

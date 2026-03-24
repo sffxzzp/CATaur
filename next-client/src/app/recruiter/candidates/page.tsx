@@ -110,15 +110,24 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2">
               <label className={lbl}>Full Name *</label>
-              <input autoFocus type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <input autoFocus maxLength={100} type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              {form.name.length >= 100 && (
+                <p className="text-xs text-[var(--error)]">Name is too long</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className={lbl}>Email *</label>
-              <input type="email" className={inp} placeholder="jane@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+              <input maxLength={100} type="email" className={inp} placeholder="jane@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+              {form.email.length >= 100 && (
+                <p className="text-xs text-[var(--error)]">Email is too long</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className={lbl}>Phone *</label>
-              <input type="tel" className={inp} placeholder="416-555-0100" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+              <input maxLength={100} type="tel" className={inp} placeholder="416-555-0100" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+              {form.phone.length >= 100 && (
+                <p className="text-xs text-[var(--error)]">Phone is too long</p>
+              )}
             </div>
           </div>
           <div className="space-y-1">

@@ -196,11 +196,15 @@ export default function ClientCandidatesPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--gray-400)]" />
           <input
             type="text"
+            maxLength={100}
             placeholder="Search by name or job title…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-4 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)]"
           />
+          {query.length >= 100 && (
+            <p className="text-xs text-[var(--error)]">Search query is too long</p>
+          )}
         </div>
         <div className="relative">
           <Briefcase className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
