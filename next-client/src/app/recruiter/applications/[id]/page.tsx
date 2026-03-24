@@ -123,7 +123,7 @@ function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
   const name = app.candidate?.nickname || app.candidate?.email || "Candidate";
   const email = app.candidate?.email || "—";
   const jobTitle = app.jobOrder?.title || "";
-  const location = formatLocation(app.locationCity || null, app.locationState || null) || formatLocation(app.jobOrder?.locationCity || null, app.jobOrder?.locationState || null) || "";
+  const location = formatLocation(app.candidate?.candidateProfile?.locationCity || app.locationCity || null, app.candidate?.candidateProfile?.locationState || app.locationState || null) || formatLocation(app.jobOrder?.locationCity || null, app.jobOrder?.locationState || null) || "";
 
   const clientDecision = app.clientDecisionType ? {
     type: app.clientDecisionType as any,
