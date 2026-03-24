@@ -382,30 +382,45 @@ export default function RecruiterClientsPage() {
                   <label className="text-sm font-medium text-[var(--gray-700)]">
                     Name <span className="text-red-500">*</span>
                   </label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  {formData.name.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Name is too long</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">
                     Email <span className="text-red-500">*</span>
                   </label>
-                  <input type="email" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                  <input type="email" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                  {formData.email.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Email is too long</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Contact</label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                  {formData.contact.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Contact is too long</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                  {formData.phone.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Phone is too long</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Web Site</label>
-                <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+                <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+                {formData.website.length >= 100 && (
+                  <p className="text-xs text-[var(--error)]">Website is too long</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -428,7 +443,10 @@ export default function RecruiterClientsPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Key Technologies</label>
-                <input type="text" placeholder="e.g. React, Node.js, AWS..." className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.keyTechnologies} onChange={e => setFormData({ ...formData, keyTechnologies: e.target.value })} />
+                <input type="text" maxLength={100} placeholder="e.g. React, Node.js, AWS..." className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.keyTechnologies} onChange={e => setFormData({ ...formData, keyTechnologies: e.target.value })} />
+                {formData.keyTechnologies.length >= 100 && (
+                  <p className="text-xs text-[var(--error)]">Key technologies is too long</p>
+                )}
               </div>
 
               <div className="space-y-1.5">

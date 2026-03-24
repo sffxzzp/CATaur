@@ -56,6 +56,7 @@
   --overlay: rgba(0, 0, 0, 0.3);
 
   /* Danger / destructive (logout etc.) */
+  --error: #DC2626;
   --danger: #DC2626;
   --danger-hover: #B91C1C;
   --danger-bg: #FEF2F2;
@@ -141,6 +142,7 @@
   --overlay: rgba(0, 0, 0, 0.55);
 
   /* Danger */
+  --error: #F87171;
   --danger: #F87171;
   --danger-hover: #EF4444;
   --danger-bg: rgba(153, 27, 27, 0.15);

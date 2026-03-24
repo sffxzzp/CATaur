@@ -119,7 +119,7 @@ function formatDate(d: string | null | undefined): string {
   if (parts.length >= 2) {
     const year = parts[0];
     const monthNum = parseInt(parts[1], 10);
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return `${months[monthNum - 1] ?? ""} ${year}`;
   }
   return d;
@@ -611,33 +611,45 @@ export default function ProfilePage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField label="First Name">
                       <input
+                        maxLength={100}
                         type="text"
                         className={inputCls}
                         placeholder="John"
                         value={basicForm.firstName}
                         onChange={(e) => setBasicForm((f) => ({ ...f, firstName: e.target.value }))}
                       />
+                      {basicForm.firstName.length >= 100 && (
+                        <p className="text-xs text-[var(--error)]">First name is too long</p>
+                      )}
                     </FormField>
                     <FormField label="Last Name">
                       <input
+                        maxLength={100}
                         type="text"
                         className={inputCls}
                         placeholder="Doe"
                         value={basicForm.lastName}
                         onChange={(e) => setBasicForm((f) => ({ ...f, lastName: e.target.value }))}
                       />
+                      {basicForm.lastName.length >= 100 && (
+                        <p className="text-xs text-[var(--error)]">Last name is too long</p>
+                      )}
                     </FormField>
                     <FormField label="Email Address">
                       <input type="email" className={inputCls} value={profile?.email ?? ""} disabled />
                     </FormField>
                     <FormField label="Phone Number">
                       <input
+                        maxLength={15}
                         type="tel"
                         className={inputCls}
                         placeholder="+1 (416) 555-0198"
                         value={basicForm.phone}
                         onChange={(e) => setBasicForm((f) => ({ ...f, phone: e.target.value }))}
                       />
+                      {basicForm.phone.length >= 15 && (
+                        <p className="text-xs text-[var(--error)]">Phone number is too long</p>
+                      )}
                     </FormField>
                     <FormField label="Country">
                       <select value={locCountry} onChange={(e) => handleCountryChange(e.target.value as CountryCode | "")} className={inputCls}>
@@ -648,26 +660,30 @@ export default function ProfilePage() {
                     <FormField label="Province / State">
                       <select value={locRegion} onChange={(e) => handleRegionChange(e.target.value)} disabled={!locCountry} className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}>
                         <option value="">Select province/state…</option>
-                        {locCountry && REGIONS[locCountry].map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                        {locCountry && REGIONS[locCountry as CountryCode]?.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
                       </select>
                     </FormField>
                     <FormField label="City">
                       <div className="sm:col-span-2">
                         <select value={locCity} onChange={(e) => setLocCity(e.target.value)} disabled={!locRegion} className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}>
                           <option value="">Select city…</option>
-                          {locCountry && locRegion && (CITIES[locCountry][locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
+                          {locCountry && locRegion && (CITIES[locCountry as CountryCode]?.[locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
                         </select>
                       </div>
                     </FormField>
                     <FormField label="LinkedIn Profile URL">
                       <div className="sm:col-span-2">
                         <input
+                          maxLength={200}
                           type="url"
                           className={inputCls}
                           placeholder="https://linkedin.com/in/..."
                           value={basicForm.linkedin}
                           onChange={(e) => setBasicForm((f) => ({ ...f, linkedin: e.target.value }))}
                         />
+                        {basicForm.linkedin.length >= 200 && (
+                          <p className="text-xs text-[var(--error)]">LinkedIn profile URL is too long</p>
+                        )}
                       </div>
                     </FormField>
                   </div>
@@ -779,7 +795,7 @@ export default function ProfilePage() {
                         )}
                         {displayLinkedin && (
                           <a href={displayLinkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[#1D4ED8] hover:underline underline-offset-2">
-                            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
                             LinkedIn
                           </a>
                         )}
@@ -948,11 +964,10 @@ export default function ProfilePage() {
                           {skills.map((skill) => (
                             <span
                               key={skill.id}
-                              className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium ${
-                                skill.skillLevel === "Expert"
-                                  ? "bg-[#EFF6FF] text-[#1D4ED8]"
-                                  : "bg-[#F3F4F6] text-[#374151]"
-                              }`}
+                              className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium ${skill.skillLevel === "Expert"
+                                ? "bg-[#EFF6FF] text-[#1D4ED8]"
+                                : "bg-[#F3F4F6] text-[#374151]"
+                                }`}
                             >
                               {skill.skillName}
                               <span className={`text-[10px] ${skill.skillLevel === "Expert" ? "text-[#60A5FA]" : "text-[#9CA3AF]"}`}>
@@ -1057,30 +1072,42 @@ export default function ProfilePage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="First Name">
                     <input
+                      maxLength={100}
                       type="text"
                       className={inputCls}
                       value={basicForm.firstName}
                       onChange={(e) => setBasicForm((f) => ({ ...f, firstName: e.target.value }))}
                     />
+                    {basicForm.firstName.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">First name is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Last Name">
                     <input
+                      maxLength={100}
                       type="text"
                       className={inputCls}
                       value={basicForm.lastName}
                       onChange={(e) => setBasicForm((f) => ({ ...f, lastName: e.target.value }))}
                     />
+                    {basicForm.lastName.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">Last name is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Email Address">
                     <input type="email" className={inputCls} value={profile?.email ?? ""} disabled />
                   </FormField>
                   <FormField label="Phone Number">
                     <input
+                      maxLength={15}
                       type="tel"
                       className={inputCls}
                       value={basicForm.phone}
                       onChange={(e) => setBasicForm((f) => ({ ...f, phone: e.target.value }))}
                     />
+                    {basicForm.phone.length >= 15 && (
+                      <p className="text-xs text-[var(--error)]">Phone number is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Country">
                     <select value={locCountry} onChange={(e) => handleCountryChange(e.target.value as CountryCode | "")} className={inputCls}>
@@ -1091,25 +1118,29 @@ export default function ProfilePage() {
                   <FormField label="Province / State">
                     <select value={locRegion} onChange={(e) => handleRegionChange(e.target.value)} disabled={!locCountry} className={`${inputCls} disabled:opacity-50`}>
                       <option value="">Select province/state…</option>
-                      {locCountry && REGIONS[locCountry].map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
+                      {locCountry && REGIONS[locCountry as CountryCode]?.map((r) => <option key={r.code} value={r.code}>{r.name}</option>)}
                     </select>
                   </FormField>
                   <div className="sm:col-span-2">
                     <FormField label="City">
                       <select value={locCity} onChange={(e) => setLocCity(e.target.value)} disabled={!locRegion} className={`${inputCls} disabled:opacity-50`}>
                         <option value="">Select city…</option>
-                        {locCountry && locRegion && (CITIES[locCountry][locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
+                        {locCountry && locRegion && (CITIES[locCountry as CountryCode]?.[locRegion] ?? []).map((city) => <option key={city} value={city}>{city}</option>)}
                       </select>
                     </FormField>
                   </div>
                   <div className="sm:col-span-2">
                     <FormField label="LinkedIn Profile URL">
                       <input
+                        maxLength={200}
                         type="url"
                         className={inputCls}
                         value={basicForm.linkedin}
                         onChange={(e) => setBasicForm((f) => ({ ...f, linkedin: e.target.value }))}
                       />
+                      {basicForm.linkedin.length >= 200 && (
+                        <p className="text-xs text-[var(--error)]">LinkedIn profile URL is too long</p>
+                      )}
                     </FormField>
                   </div>
                 </div>
@@ -1213,12 +1244,18 @@ export default function ProfilePage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <FormField label="Job Title *">
-                      <input type="text" className={inputCls} placeholder="e.g. Senior Software Engineer" value={expForm.role} onChange={(e) => setExpForm((f) => ({ ...f, role: e.target.value }))} />
+                      <input type="text" maxLength={100} className={inputCls} placeholder="e.g. Senior Software Engineer" value={expForm.role} onChange={(e) => setExpForm((f) => ({ ...f, role: e.target.value }))} />
+                      {expForm.role.length >= 100 && (
+                        <p className="text-xs text-[var(--error)]">Job title is too long</p>
+                      )}
                     </FormField>
                   </div>
                   <div className="sm:col-span-2">
                     <FormField label="Company Name *">
-                      <input type="text" className={inputCls} placeholder="e.g. Acme Corp" value={expForm.company} onChange={(e) => setExpForm((f) => ({ ...f, company: e.target.value }))} />
+                      <input type="text" maxLength={100} className={inputCls} placeholder="e.g. Acme Corp" value={expForm.company} onChange={(e) => setExpForm((f) => ({ ...f, company: e.target.value }))} />
+                      {expForm.company.length >= 100 && (
+                        <p className="text-xs text-[var(--error)]">Company name is too long</p>
+                      )}
                     </FormField>
                   </div>
                   <FormField label="Start Date">
@@ -1235,12 +1272,16 @@ export default function ProfilePage() {
                     <FormField label="Description / Highlights (one per line)">
                       <textarea
                         rows={5}
+                        maxLength={500}
                         className={inputCls}
                         placeholder={"• Led the development of...\n• Increased conversion rate by..."}
                         value={expForm.highlights}
                         onChange={(e) => setExpForm((f) => ({ ...f, highlights: e.target.value }))}
                       />
                       <p className="mt-1 text-xs text-[#6B7280]">Each line becomes a separate bullet point.</p>
+                      {expForm.highlights.length >= 500 && (
+                        <p className="text-xs text-[var(--error)]">Description is too long</p>
+                      )}
                     </FormField>
                   </div>
                 </div>
@@ -1265,16 +1306,28 @@ export default function ProfilePage() {
               >
                 <div className="grid gap-4">
                   <FormField label="School / University *">
-                    <input type="text" className={inputCls} placeholder="e.g. Stanford University" value={eduForm.school} onChange={(e) => setEduForm((f) => ({ ...f, school: e.target.value }))} />
+                    <input maxLength={100} type="text" className={inputCls} placeholder="e.g. Stanford University" value={eduForm.school} onChange={(e) => setEduForm((f) => ({ ...f, school: e.target.value }))} />
+                    {eduForm.school.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">School / University is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Degree or Certificate *">
-                    <input type="text" className={inputCls} placeholder="e.g. BSc, High School Diploma" value={eduForm.degree} onChange={(e) => setEduForm((f) => ({ ...f, degree: e.target.value }))} />
+                    <input maxLength={100} type="text" className={inputCls} placeholder="e.g. BSc, High School Diploma" value={eduForm.degree} onChange={(e) => setEduForm((f) => ({ ...f, degree: e.target.value }))} />
+                    {eduForm.degree.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">Degree or Certificate is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Field of Study (Optional)">
-                    <input type="text" className={inputCls} placeholder="e.g. Computer Science" value={eduForm.fieldOfStudy} onChange={(e) => setEduForm((f) => ({ ...f, fieldOfStudy: e.target.value }))} />
+                    <input maxLength={100} type="text" className={inputCls} placeholder="e.g. Computer Science" value={eduForm.fieldOfStudy} onChange={(e) => setEduForm((f) => ({ ...f, fieldOfStudy: e.target.value }))} />
+                    {eduForm.fieldOfStudy.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">Field of Study is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Graduation Year (Optional)">
-                    <input type="number" className={inputCls} placeholder="e.g. 2020" min={1970} max={2030} value={eduForm.graduationYear} onChange={(e) => setEduForm((f) => ({ ...f, graduationYear: e.target.value }))} />
+                    <input maxLength={4} type="number" className={inputCls} placeholder="e.g. 2020" min={1970} max={2030} value={eduForm.graduationYear} onChange={(e) => setEduForm((f) => ({ ...f, graduationYear: e.target.value }))} />
+                    {eduForm.graduationYear.length >= 4 && (
+                      <p className="text-xs text-[var(--error)]">Graduation Year is too long</p>
+                    )}
                   </FormField>
                 </div>
               </Modal>
@@ -1298,11 +1351,10 @@ export default function ProfilePage() {
                         {skills.map((skill) => (
                           <span
                             key={skill.id}
-                            className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium ${
-                              skill.skillLevel === "Expert"
-                                ? "bg-[#EFF6FF] text-[#1D4ED8]"
-                                : "bg-[#F3F4F6] text-[#374151]"
-                            }`}
+                            className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium ${skill.skillLevel === "Expert"
+                              ? "bg-[#EFF6FF] text-[#1D4ED8]"
+                              : "bg-[#F3F4F6] text-[#374151]"
+                              }`}
                           >
                             {skill.skillName}
                             <span className={`text-[10px] ${skill.skillLevel === "Expert" ? "text-[#60A5FA]" : "text-[#9CA3AF]"}`}>
@@ -1323,6 +1375,7 @@ export default function ProfilePage() {
                     <p className="text-xs font-medium text-[#374151] mb-2">Add a skill</p>
                     <div className="grid grid-cols-[1fr_auto_auto] gap-2">
                       <input
+                        maxLength={50}
                         type="text"
                         className={inputCls}
                         placeholder="e.g. React"
@@ -1330,6 +1383,9 @@ export default function ProfilePage() {
                         onChange={(e) => setNewSkillName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter" && newSkillName.trim()) handleAddSkill(); }}
                       />
+                      {newSkillName.length >= 50 && (
+                        <p className="text-xs text-[var(--error)]">Skill name is too long</p>
+                      )}
                       <select
                         className={inputCls}
                         value={newSkillLevel}
@@ -1371,24 +1427,33 @@ export default function ProfilePage() {
                 <div className="grid gap-4">
                   <FormField label="Target Salary">
                     <input
+                      maxLength={10}
                       type="text"
                       className={inputCls}
                       placeholder="e.g. CA$150,000"
                       value={prefForm.targetSalary}
                       onChange={(e) => setPrefForm((f) => ({ ...f, targetSalary: e.target.value }))}
                     />
+                    {prefForm.targetSalary.length >= 10 && (
+                      <p className="text-xs text-[var(--error)]">Target Salary is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Preferred Location">
                     <input
+                      maxLength={100}
                       type="text"
                       className={inputCls}
                       placeholder="e.g. Toronto, Canada or Remote"
                       value={prefForm.preferredLocation}
                       onChange={(e) => setPrefForm((f) => ({ ...f, preferredLocation: e.target.value }))}
                     />
+                    {prefForm.preferredLocation.length >= 100 && (
+                      <p className="text-xs text-[var(--error)]">Preferred Location is too long</p>
+                    )}
                   </FormField>
                   <FormField label="Notice Period (days)">
                     <input
+                      maxLength={3}
                       type="number"
                       className={inputCls}
                       placeholder="e.g. 14"
@@ -1396,6 +1461,9 @@ export default function ProfilePage() {
                       value={prefForm.noticePeriod}
                       onChange={(e) => setPrefForm((f) => ({ ...f, noticePeriod: e.target.value }))}
                     />
+                    {prefForm.noticePeriod.length >= 3 && (
+                      <p className="text-xs text-[var(--error)]">Notice Period is too long</p>
+                    )}
                   </FormField>
                 </div>
               </Modal>

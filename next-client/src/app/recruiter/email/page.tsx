@@ -106,8 +106,11 @@ export default function EmailServerPage() {
                     <div className="grid gap-5 sm:grid-cols-2">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">SMTP Host <span className="text-red-500">*</span></label>
-                            <input value={form.host} onChange={e => setForm({ ...form, host: e.target.value })}
+                            <input maxLength={100} value={form.host} onChange={e => setForm({ ...form, host: e.target.value })}
                                 placeholder="smtp.gmail.com" className={field} />
+                            {form.host.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">SMTP Host is too long</p>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">
@@ -119,17 +122,23 @@ export default function EmailServerPage() {
 
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">Username</label>
-                            <input value={form.auth.user}
+                            <input maxLength={100} value={form.auth.user}
                                 onChange={e => setForm({ ...form, auth: { ...form.auth, user: e.target.value } })}
                                 placeholder="smtp-user@example.com" className={field} />
+                            {form.auth.user.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">Username is too long</p>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">Password / App Password</label>
                             <div className="relative">
-                                <input type={showPw ? "text" : "password"} value={form.auth.pass}
+                                <input maxLength={100} type={showPw ? "text" : "password"} value={form.auth.pass}
                                     onChange={e => setForm({ ...form, auth: { ...form.auth, pass: e.target.value } })}
                                     placeholder="••••••••" className={field + " pr-10"} />
+                                {form.auth.pass.length >= 100 && (
+                                    <p className="text-xs text-[var(--error)]">Password is too long</p>
+                                )}
                                 <button type="button" onClick={() => setShowPw(v => !v)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--gray-400)] hover:text-[var(--gray-600)]">
                                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -139,16 +148,22 @@ export default function EmailServerPage() {
 
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">From Name</label>
-                            <input value={form.fromName}
+                            <input maxLength={100} value={form.fromName}
                                 onChange={e => setForm({ ...form, fromName: e.target.value })}
                                 placeholder="CATaur System" className={field} />
+                            {form.fromName.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">From Name is too long</p>
+                            )}
                         </div>
 
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">From Email</label>
-                            <input type="email" value={form.emailFrom}
+                            <input maxLength={100} type="email" value={form.emailFrom}
                                 onChange={e => setForm({ ...form, emailFrom: e.target.value })}
                                 placeholder="no-reply@cataur.com" className={field} />
+                            {form.emailFrom.length >= 100 && (
+                                <p className="text-xs text-[var(--error)]">From Email is too long</p>
+                            )}
                         </div>
                     </div>
 
