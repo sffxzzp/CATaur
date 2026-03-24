@@ -523,6 +523,7 @@ export class AdminService {
             provider,
             models: models.models,
             defaultModel: models.defaultModel,
+            enabled: models.enabled,
             updatedAt: models.updatedAt,
         };
     }
@@ -536,6 +537,7 @@ export class AdminService {
             provider,
             models: models.models,
             defaultModel: models.defaultModel,
+            enabled: models.enabled,
             updatedAt: models.updatedAt,
         };
     }

@@ -1,10 +1,9 @@
-import { IsString, IsNotEmpty, IsOptional, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, Matches, IsBoolean } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum AIProvider {
   OPENAI = 'openai',
   ANTHROPIC = 'anthropic',
-  AZURE_OPENAI = 'azure',
   GOOGLE = 'google',
 }
 
@@ -35,6 +34,11 @@ export class AIProviderConfigDto {
   @IsString()
   @IsOptional()
   apiVersion?: string;
+
+  @ApiProperty({ required: false, default: false })
+  @IsBoolean()
+  @IsOptional()
+  enabled?: boolean;
 }
 
 export class AIProviderResponseDto {
@@ -52,6 +56,9 @@ export class AIProviderResponseDto {
 
   @ApiProperty({ required: false })
   apiVersion?: string;
+
+  @ApiProperty()
+  enabled: boolean;
 
   @ApiProperty()
   updatedAt: number;
@@ -99,6 +106,9 @@ export class AIProviderModelsResponseDto {
 
   @ApiProperty({ required: false })
   defaultModel?: string;
+
+  @ApiProperty()
+  enabled: boolean;
 
   @ApiProperty()
   updatedAt: number;

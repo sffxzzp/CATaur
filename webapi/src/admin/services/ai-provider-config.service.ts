@@ -44,8 +44,13 @@ export class AIProviderConfigService {
         ...existing,
         ...config,
         apiKey,
+        enabled: config.enabled ?? existing?.enabled ?? false,
         updatedAt: Date.now(),
       };
+
+      if (responseDto.enabled) {
+        await this.disableAllProvidersExcept(config.provider);
+      }
 
       await this.saveConfigToDb(config.provider, responseDto);
 
@@ -155,7 +160,7 @@ export class AIProviderConfigService {
     return config !== null;
   }
 
-  async refreshProviderModels(provider: string, apiKey?: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
+  async refreshProviderModels(provider: string, apiKey?: string): Promise<{ models: string[]; defaultModel?: string; enabled: boolean; updatedAt: number } | null> {
     const config = await this.getConfig(provider);
     apiKey = apiKey ?? config?.apiKey;
     if (!apiKey) {
@@ -167,6 +172,7 @@ export class AIProviderConfigService {
     const payload = {
       models,
       defaultModel: config?.defaultModel,
+      enabled: config?.enabled ?? false,
       updatedAt: Date.now(),
     };
     await this.cacheManager.set(this.getModelsKey(provider), this.encryptionService.encryptJson(payload), 0);
@@ -243,6 +249,7 @@ export class AIProviderConfigService {
     return {
       ...config,
       apiKey: this.maskApiKey(config.apiKey),
+      enabled: config.enabled ?? false,
     };
   }
 
@@ -425,6 +432,34 @@ export class AIProviderConfigService {
     }
 
     return providers;
+  }
+
+  private async disableAllProvidersExcept(currentProvider: string): Promise<void> {
+    const allConfigs = await this.systemConfigsRepository.find({
+      where: { category: AI_PROVIDER_CONFIG_CATEGORY },
+    });
+
+    const currentDbKey = this.getConfigDbKey(currentProvider);
+
+    for (const record of allConfigs) {
+      if (record.key === currentDbKey) continue;
+
+      if (record.value) {
+        const config = this.encryptionService.decryptJson<AIProviderResponseDto>(record.value as Buffer);
+        if (config.enabled) {
+          config.enabled = false;
+          config.updatedAt = Date.now();
+          const encrypted = this.encryptionService.encryptJson(config);
+          record.value = encrypted as unknown as string;
+          await this.systemConfigsRepository.save(record);
+
+          // Also update cache
+          const providerId = record.key.replace('provider:', '');
+          const cacheKey = this.getConfigKey(providerId);
+          await this.cacheManager.set(cacheKey, encrypted, 0);
+        }
+      }
+    }
   }
 
   private async ensureConfigPersisted(provider: string, payload: AIProviderResponseDto): Promise<void> {
