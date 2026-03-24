@@ -197,11 +197,17 @@ export default function UsersPage() {
                 <div className="relative w-full sm:w-64">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--gray-400)]" />
                     <input
+                        type="text"
+                        maxLength={100}
                         placeholder="Search name, email…"
                         value={query}
                         onChange={e => { setQuery(e.target.value); setPage(1); }}
                         className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-3 text-sm text-[var(--gray-900)] placeholder:text-[var(--gray-400)] shadow-[var(--shadow-sm)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     />
+                    {query.length >= 100 && (
+                        <p className="text-sm text-red-500">Search cannot exceed 100 characters</p>
+                    )}
+
                 </div>
                 <select
                     value={roleFilter}

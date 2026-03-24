@@ -153,11 +153,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                                 Account Name <span className="text-red-500">*</span>
                             </label>
                             <input
+                                type="text"
+                                maxLength={100}
                                 value={form.accountName}
                                 onChange={e => setForm({ ...form, accountName: e.target.value })}
                                 className={inputCls(errors.accountName)}
                                 placeholder="e.g. Jane Smith"
                             />
+                            {form.accountName.length >= 100 && (
+                                <p className="text-xs text-red-500">Account name cannot exceed 100 characters</p>
+                            )}
                             {errors.accountName && <p className="text-xs text-red-500">{errors.accountName}</p>}
                         </div>
 
@@ -183,12 +188,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                                 Email <span className="text-red-500">*</span>
                             </label>
                             <input
+                                maxLength={100}
                                 type="email"
                                 value={form.email}
                                 onChange={e => setForm({ ...form, email: e.target.value })}
                                 className={inputCls(errors.email)}
                                 placeholder="user@example.com"
                             />
+                            {form.email.length >= 100 && (
+                                <p className="text-xs text-red-500">Email cannot exceed 100 characters</p>
+                            )}
                             {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                         </div>
 
@@ -196,12 +205,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
                             <input
+                                maxLength={15}
                                 type="tel"
                                 value={form.phone}
                                 onChange={e => setForm({ ...form, phone: e.target.value })}
                                 className={inputCls()}
                                 placeholder="+1 416-555-0000"
                             />
+                            {form.phone.length >= 15 && (
+                                <p className="text-xs text-red-500">Phone number cannot exceed 15 characters</p>
+                            )}
                         </div>
 
                         {/* Status toggle */}
@@ -229,12 +242,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                             </label>
                             <div className="relative">
                                 <input
+                                    maxLength={100}
                                     type={showPw ? "text" : "password"}
                                     value={form.password}
                                     onChange={e => setForm({ ...form, password: e.target.value })}
                                     className={inputCls(errors.password) + " pr-10"}
                                     placeholder={editingId ? (form.password ? "" : "No password on record") : "••••••••"}
                                 />
+                                {form.password.length >= 100 && (
+                                    <p className="text-xs text-red-500">Password cannot exceed 100 characters</p>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setShowPw(v => !v)}
