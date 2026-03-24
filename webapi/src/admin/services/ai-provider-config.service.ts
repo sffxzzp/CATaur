@@ -136,6 +136,39 @@ export class AIProviderConfigService {
   }
 
   /**
+   * Enable specific AI provider
+   */
+  async enableConfig(provider: string): Promise<AIProviderResponseDto> {
+    try {
+      const existing = await this.getConfig(provider);
+      if (!existing) {
+        throw new BadRequestException('AI Provider config not found');
+      }
+
+      if (existing.enabled) {
+        return this.maskConfig(existing);
+      }
+
+      await this.disableAllProvidersExcept(provider);
+
+      const updated: AIProviderResponseDto = {
+        ...existing,
+        enabled: true,
+        updatedAt: Date.now(),
+      };
+
+      await this.saveConfigToDb(provider, updated);
+      await this.cacheManager.set(this.getConfigKey(provider), this.encryptionService.encryptJson(updated), 0);
+
+      this.logger.log(`AI Provider enabled: ${provider}`);
+      return this.maskConfig(updated);
+    } catch (error) {
+      this.logger.error(`Failed to enable AI Provider config: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Delete specific AI provider configuration
    */
   async deleteConfig(provider: string): Promise<void> {

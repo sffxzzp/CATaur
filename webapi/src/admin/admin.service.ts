@@ -498,6 +498,13 @@ export class AdminService {
     }
 
     /**
+     * Enable specific AI provider
+     */
+    async enableAIProviderConfig(provider: string): Promise<AIProviderResponseDto> {
+        return await this.aiProviderConfigService.enableConfig(provider);
+    }
+
+    /**
      * Get specific AI provider configuration
      */
     async getAIProviderConfig(provider: string): Promise<AIProviderResponseDto | null> {

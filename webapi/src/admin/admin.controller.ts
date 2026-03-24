@@ -240,6 +240,16 @@ export class AdminController {
         return await this.adminService.getAIProviderConfig(provider);
     }
 
+    @Patch('ai-providers/:provider/enable')
+    @AuditLog('enable AI provider')
+    @ApiOperation({ summary: 'Enable specific AI provider' })
+    @ApiResponse({ status: 200, type: AIProviderResponseDto })
+    async enableAIProviderConfig(
+        @Param('provider') provider: string,
+    ): Promise<AIProviderResponseDto> {
+        return await this.adminService.enableAIProviderConfig(provider);
+    }
+
     @Post('ai-providers')
     @AuditLog('save AI provider config')
     @ApiOperation({ summary: 'Save or update AI provider configuration' })
