@@ -455,7 +455,9 @@ export default function RecruiterApplicationsPage() {
                         const candidateName = c.candidate?.nickname || c.candidate?.email || 'Unknown';
                         const candidateEmail = c.candidate?.email || '';
                         const jobTitle = c.jobOrder?.title || 'Position';
-                        const location = formatLocation(c.locationCity, c.locationState);
+                        const locCity = c.candidate?.candidateProfile?.locationCity ?? c.locationCity;
+                        const locState = c.candidate?.candidateProfile?.locationState ?? c.locationState;
+                        const location = formatLocation(locCity, locState);
                         const appliedAt = new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                         const source = c.source === 'self_applied' ? 'Self-applied' : 'Recruiter Import';
 

@@ -51,6 +51,7 @@ export class ApplicationsService {
 
         const qb = this.repo.createQueryBuilder('app')
             .leftJoinAndSelect('app.candidate', 'candidate')
+            .leftJoinAndSelect('candidate.candidateProfile', 'candidateProfile')
             .leftJoinAndSelect('app.jobOrder', 'jobOrder')
             .leftJoinAndSelect('jobOrder.company', 'company');
 

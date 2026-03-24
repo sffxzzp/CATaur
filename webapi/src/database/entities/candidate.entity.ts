@@ -47,15 +47,15 @@ export class Candidate {
 
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'varchar', length: 64, nullable: true })
-    currentLocationCountry: string | null;
+    locationCountry: string | null;
 
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'varchar', length: 64, nullable: true })
-    currentLocationState: string | null;
+    locationState: string | null;
 
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'varchar', length: 64, nullable: true })
-    currentLocationCity: string | null;
+    locationCity: string | null;
 
     @ApiProperty({ required: false, type: Number })
     @Column({ type: 'int', nullable: true })
