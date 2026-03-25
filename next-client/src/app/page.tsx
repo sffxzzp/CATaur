@@ -11,7 +11,15 @@ export default function RootPage() {
     const isManager = hostname === "manager.kawaiimonkey.top";
 
     if (isManager) {
-      router.replace("/login");
+      if (localStorage.getItem("authToken")) {
+        if (localStorage.getItem("clientLoggedIn") === "1") {
+          router.replace("/client");
+        } else {
+          router.replace("/recruiter");
+        }
+      } else {
+        router.replace("/login");
+      }
     } else {
       router.replace("/candidate/jobs");
     }

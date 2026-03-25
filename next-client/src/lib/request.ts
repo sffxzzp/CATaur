@@ -58,6 +58,14 @@ export async function request<T = any>(
     );
     // @ts-ignore
     err.status = res.status;
+
+    if (res.status === 401 && typeof window !== 'undefined') {
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+      }
+    }
+
     throw err;
   }
 
@@ -92,6 +100,14 @@ export async function requestBlob(
     const err = new Error(msg || `HTTP ${res.status} ${res.statusText}`);
     // @ts-ignore
     err.status = res.status;
+
+    if (res.status === 401 && typeof window !== 'undefined') {
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+      }
+    }
+
     throw err;
   }
   return res.blob();
