@@ -152,7 +152,9 @@ export default function UsersPage() {
             toast.success(editingId ? "User updated successfully" : "User created successfully");
         } catch (err: any) {
             // Rethrow so the modal can catch it and display the error banner
-            throw err;
+            toast.error(err.message ?? "An error occurred while saving.");
+
+
         }
     };
 
