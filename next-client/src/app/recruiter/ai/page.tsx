@@ -122,8 +122,7 @@ export default function AIProviderConfigPage() {
         const timer = setTimeout(async () => {
             setRefreshingModels(true);
             try {
-                const success = await loadModels(provider, { testKey: key });
-                if (success) toast.success("Connected & model list refreshed.");
+                await loadModels(provider, { testKey: key });
             } catch (err: any) {
                 toast.error(err.message ?? "Failed to connect with new key.");
             } finally {
@@ -281,8 +280,8 @@ export default function AIProviderConfigPage() {
                     </div>
                 </div>
 
-                <div className={`p-5 space-y-5 transition-opacity ${loading ? "opacity-40 pointer-events-none" : ""}`}>
-                    <div className="grid gap-5 sm:grid-cols-2">
+                <div className={`p-5 space-y-6 transition-opacity ${loading ? "opacity-40 pointer-events-none" : ""}`}>
+                    <div className="space-y-5">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">API Key <span className="text-red-500">*</span></label>
                             <div className="relative">
@@ -329,25 +328,25 @@ export default function AIProviderConfigPage() {
                                     type="button"
                                     onClick={handleRefreshModels}
                                     disabled={loading || saving || refreshingModels || !key.trim()}
-                                    className="h-9 flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    className="h-9 flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                     <RefreshCw className={`h-3.5 w-3.5 ${refreshingModels ? "animate-spin" : ""}`} />
                                     <span>Refresh models</span>
                                 </button>
                             </div>
                         </div>
-
-                        {provider === "google" && (
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-[var(--gray-700)]">Gemini endpoint</label>
-                                <input
-                                    value="https://generativelanguage.googleapis.com/v1beta/models"
-                                    readOnly
-                                    className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--gray-50)] px-3 text-sm text-[var(--gray-500)]"
-                                />
-                            </div>
-                        )}
                     </div>
+
+                    {provider === "google" && (
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-[var(--gray-700)]">Gemini endpoint</label>
+                            <input
+                                value="https://generativelanguage.googleapis.com/v1beta/models"
+                                readOnly
+                                className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--gray-50)] px-3 text-sm text-[var(--gray-500)]"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center justify-end gap-2 border-t border-[var(--border)] bg-[var(--gray-50)] px-5 py-3 flex-wrap">
