@@ -163,8 +163,8 @@ function ClientCandidatesPageContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--gray-900)]">Candidates</h2>
-          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Track candidate progress across all of your job orders</p>
+          <h2 className="text-xl font-semibold text-[var(--gray-900)]">Applications</h2>
+          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Track application progress across all of your job orders</p>
         </div>
       </div>
 
@@ -213,7 +213,7 @@ function ClientCandidatesPageContent() {
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
         </div>
         <p className="ml-auto text-sm text-[var(--gray-400)] hidden sm:block">
-          <span className="font-medium text-[var(--gray-600)]">{total}</span> total candidates
+          <span className="font-medium text-[var(--gray-600)]">{total}</span> total applications
         </p>
       </div>
 
@@ -230,12 +230,12 @@ function ClientCandidatesPageContent() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Loader2 className="h-7 w-7 animate-spin" />
-            <p className="text-sm">Loading candidates...</p>
+            <p className="text-sm">Loading applications...</p>
           </div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Users className="h-7 w-7" />
-            <p className="text-sm">No candidates match your filters.</p>
+            <p className="text-sm">No applications match your filters.</p>
           </div>
         ) : (
           list.map((c) => {

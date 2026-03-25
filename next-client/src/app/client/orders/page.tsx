@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { request } from "@/lib/request";
 import {
-  Search,
   ChevronLeft,
   ChevronRight,
   BriefcaseBusiness,
@@ -18,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 
 type StatusFilter = "all" | "active" | "onhold" | "closed";
 
@@ -58,21 +56,13 @@ const STATUS_STYLE: Record<"active" | "onhold" | "closed", { bg: string; text: s
 const PAGE_SIZE = 10;
 
 export default function ClientOrdersPage() {
-  const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
 
-  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [list, setList] = useState<APIJobOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-
-  // Debounced search
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(query), 300);
-    return () => clearTimeout(t);
-  }, [query]);
 
   // Fetch from API
   useEffect(() => {
@@ -89,9 +79,6 @@ export default function ClientOrdersPage() {
       qs.append("statuses", "filled");
     }
 
-    if (debouncedQuery) {
-      qs.set("search", debouncedQuery);
-    }
 
     request<APIResponse>(`/client/orders?${qs.toString()}`)
       .then((res) => {
@@ -101,7 +88,7 @@ export default function ClientOrdersPage() {
       })
       .catch((err) => console.error("Error fetching client orders:", err))
       .finally(() => setLoading(false));
-  }, [page, statusFilter, debouncedQuery]);
+  }, [page, statusFilter]);
 
   return (
     <div className="p-6 md:p-8 space-y-6">
@@ -110,16 +97,6 @@ export default function ClientOrdersPage() {
         <div>
           <h2 className="text-xl font-semibold text-[var(--gray-900)] tracking-tight">Job Orders</h2>
           <p className="text-sm text-[var(--gray-500)] mt-1">Track open positions and submitted Applications</p>
-        </div>
-        {/* Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--gray-400)]" />
-          <Input
-            placeholder="Search by title or Req ID…"
-            className="h-9 bg-[var(--surface)] pl-9 text-sm border-[var(--border)] rounded-md shadow-[var(--shadow-sm)] text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus-visible:ring-1 focus-visible:ring-[var(--accent-ring)]"
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-          />
         </div>
       </div>
 
