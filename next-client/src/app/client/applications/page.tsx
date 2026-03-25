@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { request } from "@/lib/request";
 import { type ApplicationStatus } from "@/data/recruiter";
 import {
@@ -90,11 +91,13 @@ function FilterTab({
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 const PAGE_SIZE = 10;
 
-export default function ClientCandidatesPage() {
+function ClientCandidatesPageContent() {
+  const searchParams = useSearchParams();
+  const initJobFilter = searchParams.get("jobOrderId") || "all";
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">("all");
-  const [jobFilter, setJobFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState(initJobFilter);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
@@ -345,5 +348,17 @@ export default function ClientCandidatesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ClientCandidatesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[300px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--gray-400)]" />
+      </div>
+    }>
+      <ClientCandidatesPageContent />
+    </Suspense>
   );
 }

@@ -109,7 +109,7 @@ export default function ClientOrdersPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-[var(--gray-900)] tracking-tight">Job Orders</h2>
-          <p className="text-sm text-[var(--gray-500)] mt-1">Track open positions and submitted candidates</p>
+          <p className="text-sm text-[var(--gray-500)] mt-1">Track open positions and submitted Applications</p>
         </div>
         {/* Search */}
         <div className="relative w-full sm:w-64">
@@ -153,7 +153,7 @@ export default function ClientOrdersPage() {
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Location</TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Type</TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">Status</TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)] text-right pr-6">Candidates</TableHead>
+                <TableHead className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)] text-right pr-6">Applications</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
