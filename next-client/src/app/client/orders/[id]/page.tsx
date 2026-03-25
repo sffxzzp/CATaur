@@ -208,7 +208,7 @@ export default function ClientOrderDetailPage() {
           <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
             <div className="flex items-center justify-between border-b border-[var(--border-light)] px-5 py-4">
               <div>
-                <h3 className="text-sm font-semibold text-[var(--gray-900)]">Submitted Candidates</h3>
+                <h3 className="text-sm font-semibold text-[var(--gray-900)]">Submitted Applications</h3>
                 <p className="text-xs text-[var(--gray-500)] mt-0.5">
                   {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} for this position
                 </p>
@@ -293,23 +293,6 @@ export default function ClientOrderDetailPage() {
               </div>
             </dl>
           </div>
-
-          {/* Tags */}
-          {job?.tags && job.tags.length > 0 && (
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5">
-              <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Required Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {(job.tags || []).map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-md border border-[var(--border)] bg-[var(--gray-50)] px-2.5 py-1 text-xs font-medium text-[var(--gray-700)]"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
         </div>
       </div>

@@ -25,34 +25,23 @@ import {
 type APICandidate = {
   id: string;
   status: string;
-  source?: string;
-  locationCountry?: string;
-  locationState?: string;
-  locationCity?: string;
-  recruiterNotes?: string;
-  interviewType?: string;
-  interviewDate?: string;
-  interviewTime?: string;
-  interviewSubject?: string;
-  interviewContent?: string;
-  interviewSentAt?: string;
-  clientDecisionType?: string;
-  clientDecisionNote?: string;
-  clientDecisionAt?: string;
-
-  // Fallbacks in case the backend populates nested relations transparently
-  name?: string;
-  email?: string;
-  jobTitle?: string;
-  appliedAt?: string;
-  createdAt?: string;
+  createdAt: string;
+  jobTitle: string;
+  locationCountry?: string | null;
+  locationState?: string | null;
+  locationCity?: string | null;
   candidate?: {
-    nickname?: string;
-    email?: string;
-  };
-  jobOrder?: {
-    title?: string;
-  };
+    user?: {
+      id: string;
+      email: string;
+      nickname: string;
+      candidateProfile?: {
+        locationCountry?: string | null;
+        locationState?: string | null;
+        locationCity?: string | null;
+      } | null;
+    } | null;
+  } | null;
 };
 
 /* ─── Status config ──────────────────────────────────────────────────────── */
@@ -250,11 +239,17 @@ export default function ClientCandidatesPage() {
             const sc = STATUS_CONFIG[c.status as ApplicationStatus] || STATUS_CONFIG.new;
 
             // Computed safe fields
-            const fullName = c.candidate?.nickname || c.name || "Unknown Candidate";
-            const cEmail = c.candidate?.email || c.email || "No email";
-            const jTitle = c.jobOrder?.title || c.jobTitle || "Unknown Position";
-            const locationStr = [c.locationCity, c.locationState, c.locationCountry].filter(Boolean).join(", ") || (c.source === "self_applied" ? "Self Applied" : c.source === "recruiter_import" ? "Recruiter Import" : c.source) || "Unknown Location";
-            const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : (c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : "N/A");
+            const fullName = c.candidate?.user?.nickname || "Unknown Candidate";
+            const cEmail = c.candidate?.user?.email || "No email";
+            const jTitle = c.jobTitle || "Unknown Position";
+
+            const profile = c.candidate?.user?.candidateProfile;
+            const city = c.locationCity || profile?.locationCity;
+            const state = c.locationState || profile?.locationState;
+            const country = c.locationCountry || profile?.locationCountry;
+            const locationStr = [city, state, country].filter(Boolean).join(", ") || "Unknown Location";
+
+            const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "N/A";
 
             return (
               <Link
