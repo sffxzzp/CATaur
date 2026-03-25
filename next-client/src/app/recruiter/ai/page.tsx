@@ -60,9 +60,12 @@ export default function AIProviderConfigPage() {
             const data = await request<ProviderModelsResponse>(path, options);
             if (data?.models) {
                 setModels((prev) => ({ ...prev, [id]: data }));
-                if (!model || !data.models.includes(model)) {
-                    setModel(data.defaultModel ?? data.models[0] ?? "");
-                }
+                setModel(current => {
+                    if (!current || !data.models.includes(current)) {
+                        return data.defaultModel ?? data.models[0] ?? "";
+                    }
+                    return current;
+                });
                 if (data.enabled !== undefined) {
                     setEnabled(data.enabled);
                 }
@@ -74,7 +77,7 @@ export default function AIProviderConfigPage() {
             }
             return false;
         }
-    }, [model]);
+    }, []);
 
     /* ── GET /admin/ai-providers/{provider} ── */
     const loadProvider = useCallback(async (id: string) => {
@@ -132,6 +135,15 @@ export default function AIProviderConfigPage() {
     }, [key, maskedKey, provider, loadModels]);
 
     const handleSave = async () => {
+        if (!key.trim()) {
+            toast.error("API Key is required.");
+            return;
+        }
+        if (!model.trim()) {
+            toast.error("Please select a Default Model. You may need to refresh models first.");
+            return;
+        }
+
         setSaving(true);
         let finalKey = key;
         if (key === maskedKey || key.includes('****')) {
@@ -307,7 +319,7 @@ export default function AIProviderConfigPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-[var(--gray-700)]">Default Model</label>
+                            <label className="text-sm font-medium text-[var(--gray-700)]">Default Model <span className="text-red-500">*</span></label>
                             <div className="flex items-center gap-2">
                                 <select value={model} onChange={e => setModel(e.target.value)}
                                     className="h-9 flex-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--gray-700)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer">
