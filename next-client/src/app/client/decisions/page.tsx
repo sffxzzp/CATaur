@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { request } from "@/lib/request";
 import {
   CheckCircle2,
@@ -25,7 +26,7 @@ import {
 type Decision = "request-offer" | "pass" | "hold";
 
 interface APIApplication {
-  applicationId?: string;
+  id: string;
   candidateName: string;
   candidateEmail: string;
   jobOrderTitle: string;
@@ -139,7 +140,8 @@ export default function ClientDecisionsPage() {
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [noteOpen, setNoteOpen] = useState<Record<string, boolean>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Filters
   const [query, setQuery] = useState("");
@@ -171,7 +173,7 @@ export default function ClientDecisionsPage() {
       .then((res) => setApiData(res))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [page, jobFilter, query]);
+  }, [page, jobFilter, query, refreshKey]);
 
   const applications = apiData?.data || [];
   const total = apiData?.total || 0;
@@ -207,12 +209,31 @@ export default function ClientDecisionsPage() {
   const hasDecisions = Object.keys(decisions).length > 0;
   const decisionCount = Object.keys(decisions).length;
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    setDecisions({});
-    setNotes({});
-    setNoteOpen({});
-    setTimeout(() => setSubmitted(false), 5000);
+  const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+
+    try {
+      const promises = Object.entries(decisions).map(([id, type]) =>
+        request(`/client/applications/${id}/decision`, {
+          method: "PATCH",
+          json: { type, note: notes[id] || "" },
+        })
+      );
+      await Promise.all(promises);
+
+      toast.success("Decisions sent to recruiter!");
+      setDecisions({});
+      setNotes({});
+      setNoteOpen({});
+      // Refresh the API to show the latest stats and remove processed applications
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      console.error("Failed to submit decisions:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to save some decisions. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -226,20 +247,19 @@ export default function ClientDecisionsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {hasDecisions && !submitted && (
+          {hasDecisions && (
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-[var(--accent-hover)] transition"
+              disabled={submitting}
+              className="flex items-center gap-1.5 rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-[var(--accent-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <SendHorizontal className="h-4 w-4" />
-              Submit ({decisionCount})
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <SendHorizontal className="h-4 w-4" />
+              )}
+              {submitting ? "Submitting..." : `Submit (${decisionCount})`}
             </button>
-          )}
-          {submitted && (
-            <div className="flex items-center gap-2 rounded-md border border-[var(--status-green-text)]/30 bg-[var(--status-green-bg)] px-4 py-2 text-sm font-medium text-[var(--status-green-text)]">
-              <CheckCircle2 className="h-4 w-4" />
-              Sent to recruiter!
-            </div>
           )}
         </div>
       </div>
@@ -290,8 +310,8 @@ export default function ClientDecisionsPage() {
       {/* Table */}
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         {/* Header */}
-        <div className="hidden lg:grid grid-cols-[2fr_2fr_1fr_1fr_auto] items-center border-b border-[var(--border)] bg-[var(--gray-50)] px-5 py-2.5">
-          {["Candidate", "Applied For", "Applied", "Location", "Your Decision"].map((h) => (
+        <div className="hidden lg:grid grid-cols-[2.5fr_2fr_1fr_360px] items-center border-b border-[var(--border)] bg-[var(--gray-50)] px-5 py-2.5">
+          {["Candidate", "Applied For", "Applied", "Your Decision"].map((h) => (
             <span key={h} className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">{h}</span>
           ))}
         </div>
@@ -310,7 +330,7 @@ export default function ClientDecisionsPage() {
           </div>
         ) : (
           applications.map((c, idx) => {
-            const rowKey = c.applicationId || `row-${idx}`;
+            const rowKey = c.id;
             const dec = decisions[rowKey];
             const cfg = dec ? DECISION_CONFIG[dec] : null;
             const isNoteOpen = !!noteOpen[rowKey];
@@ -332,7 +352,7 @@ export default function ClientDecisionsPage() {
                 style={dec ? { backgroundColor: `color-mix(in srgb, ${cfg!.bg} 25%, transparent)` } : {}}
               >
                 {/* Main row */}
-                <div className="flex flex-col lg:grid lg:grid-cols-[2fr_2fr_1fr_1fr_auto] lg:items-center gap-3 lg:gap-4 px-5 py-4">
+                <div className="flex flex-col lg:grid lg:grid-cols-[2.5fr_2fr_1fr_360px] lg:items-center gap-3 lg:gap-4 px-5 py-4">
                   {/* Candidate */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dec === "request-offer" ? "bg-[var(--status-green-bg)] text-[var(--status-green-text)]"
@@ -342,9 +362,12 @@ export default function ClientDecisionsPage() {
                       {initials(fullName)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-[var(--gray-900)] truncate">
+                      <Link
+                        href={`/client/applications/${encodeURIComponent(c.id)}`}
+                        className="text-sm font-medium text-[var(--gray-900)] hover:text-[var(--accent)] transition truncate block"
+                      >
                         {fullName}
-                      </p>
+                      </Link>
                       <p className="text-xs text-[var(--gray-400)] truncate">{cEmail}</p>
                     </div>
                   </div>
@@ -357,11 +380,7 @@ export default function ClientDecisionsPage() {
                   {/* Applied date */}
                   <span className="text-sm text-[var(--gray-500)]">{applyDate}</span>
 
-                  {/* Location */}
-                  <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
-                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                    <span className="truncate">{locationStr}</span>
-                  </div>
+
 
                   {/* Decision buttons */}
                   <div className="flex items-center gap-2 shrink-0 flex-wrap">
