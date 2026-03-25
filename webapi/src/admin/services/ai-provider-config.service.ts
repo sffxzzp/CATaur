@@ -312,28 +312,32 @@ export class AIProviderConfigService {
       throw new BadRequestException('API key not configured');
     }
 
-    if (provider === 'openai') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.openai.com/v1/models', {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      return response.data.data.map((model) => model.id);
-    }
+    try {
+      if (provider === 'openai') {
+        const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.openai.com/v1/models', {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        return response.data.data.map((model) => model.id);
+      }
 
-    if (provider === 'anthropic') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.anthropic.com/v1/models', {
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
+      if (provider === 'anthropic') {
+        const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.anthropic.com/v1/models', {
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+        });
+        return response.data.data.map((model) => model.id);
+      }
 
-    if (provider === 'google') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      );
-      return response.data.models.map((model) => model.name);
+      if (provider === 'google') {
+        const response = await axios.get<{ models: Array<{ name: string }> }>(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
+        );
+        return response.data.models.map((model) => model.name);
+      }
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch models for provider');
     }
 
     throw new BadRequestException('Unsupported custom provider type');
