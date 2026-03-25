@@ -24,6 +24,7 @@ import { Application } from '../database/entities/application.entity';
 import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
 import { ClientJobOrder, ClientJobOrderDetail } from './dto/client-job-order.dto';
 import { ClientApplication } from './dto/client-candidate.dto';
+import { ClientDecisionsResponseDto } from './dto/client-decisions.dto';
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(ClientJobOrder);
 const PaginatedApplicationsResponseDto = createPaginatedResponseDto(ClientApplication);
@@ -38,6 +39,7 @@ const ApplicationResponseDto = createApiResponseDto(Application);
     ClientJobOrder,
     ClientJobOrderDetail,
     ClientApplication,
+    ClientDecisionsResponseDto,
     JobOrder,
     Application,
     JobOrderResponseDto,
@@ -170,15 +172,41 @@ export class ClientController {
         };
     }
 
-    @Get('candidates/:id')
-    @ApiOperation({ summary: "Get candidate application detail" })
+    @Get('decisions')
+    @ApiOperation({ summary: "List candidates for decision making with stats" })
+    @ApiQuery({ name: 'page', required: false })
+    @ApiQuery({ name: 'limit', required: false })
+    @ApiQuery({ name: 'jobId', required: false })
+    @ApiQuery({ name: 'candidateNameOrJobOrderTitle', required: false })
+    @ApiOkResponse({ type: ClientDecisionsResponseDto })
+    async decisions(
+        @GetUser() user: User,
+        @Query('page') page = '1',
+        @Query('limit') limit = '20',
+        @Query('jobId') jobId?: string,
+        @Query('candidateNameOrJobOrderTitle') candidateNameOrJobOrderTitle?: string,
+    ): Promise<ClientDecisionsResponseDto> {
+        const companyIds = await this.getCompanyIds(user);
+        return this.applicationsService.findDecisions(
+            { companyIds },
+            {
+                page: +page,
+                limit: +limit,
+                jobOrderId: jobId || undefined,
+                candidateNameOrJobTitle: candidateNameOrJobOrderTitle || undefined,
+            },
+        );
+    }
+
+    @Get('applications/:id')
+    @ApiOperation({ summary: "Get application detail" })
     @ApiOkResponse({ type: ApplicationResponseDto })
-    async getCandidate(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
+    async getApplication(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
         const companyIds = await this.getCompanyIds(user);
         return this.applicationsService.findOne(id, { companyIds });
     }
 
-    @Patch('candidates/:id/decision')
+    @Patch('applications/:id/decision')
     @AuditLog('submit candidate decision')
     @ApiOperation({ summary: 'Submit a hiring decision (request-offer / pass / hold)' })
     @ApiOkResponse({ type: ApplicationResponseDto })

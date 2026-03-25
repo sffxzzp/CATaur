@@ -110,6 +110,78 @@ export class ApplicationsService {
         };
     }
 
+    async findDecisions(
+        scope: Partial<{ companyIds: string[] }>,
+        opts: {
+            page?: number;
+            limit?: number;
+            jobOrderId?: string;
+            candidateNameOrJobTitle?: string;
+        } = {},
+    ) {
+        const { page = 1, limit = 20, jobOrderId, candidateNameOrJobTitle } = opts;
+
+        const qb = this.repo.createQueryBuilder('app')
+            .leftJoin('app.candidate', 'candidate')
+            .leftJoin('app.jobOrder', 'jobOrder');
+
+        if (scope.companyIds?.length) {
+            qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        }
+
+        // Get global counts for the client's companies (not affected by search filters)
+        const pendingCount = await qb.clone().andWhere('app.status = :status', { status: 'interview' }).getCount();
+        const requestOfferCount = await qb.clone().andWhere('app.clientDecisionType = :dt', { dt: 'request-offer' }).getCount();
+        const passCount = await qb.clone().andWhere('app.clientDecisionType = :dt', { dt: 'pass' }).getCount();
+        const holdCount = await qb.clone().andWhere('app.clientDecisionType = :dt', { dt: 'hold' }).getCount();
+
+        // Apply filters for the data list
+        if (jobOrderId) qb.andWhere('app.jobOrderId = :jobOrderId', { jobOrderId });
+
+        if (candidateNameOrJobTitle) {
+            qb.andWhere('(candidate.nickname LIKE :s OR candidate.email LIKE :s OR jobOrder.title LIKE :s)', {
+                s: `%${candidateNameOrJobTitle}%`,
+            });
+        }
+
+        // Get paginated data
+        const [data, total] = await qb
+            .select([
+                'app.id',
+                'app.createdAt',
+                'app.locationCountry',
+                'app.locationState',
+                'app.locationCity',
+                'candidate.nickname',
+                'candidate.email',
+                'jobOrder.title'
+            ])
+            .orderBy('app.createdAt', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getManyAndCount();
+
+        return {
+            pending: pendingCount,
+            'request-offer': requestOfferCount,
+            pass: passCount,
+            hold: holdCount,
+            data: data.map(app => ({
+                candidateName: app.candidate?.nickname || '',
+                candidateEmail: app.candidate?.email || '',
+                jobOrderTitle: app.jobOrder?.title || '',
+                createdAt: app.createdAt,
+                locationCountry: app.locationCountry,
+                locationState: app.locationState,
+                locationCity: app.locationCity,
+            })),
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
     async countByJobOrderId(jobOrderId: string): Promise<number> {
         return this.repo.count({ where: { jobOrderId } });
     }
