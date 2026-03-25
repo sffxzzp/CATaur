@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
-import { CANDIDATE_RECORDS, JOB_ORDERS } from "@/data/recruiter";
+import { useState, useEffect, useMemo } from "react";
+import { request } from "@/lib/request";
 import {
   CheckCircle2,
   XCircle,
@@ -18,11 +18,42 @@ import {
   SendHorizontal,
   MessageSquare,
   PenLine,
+  Loader2,
 } from "lucide-react";
 
-/* ─── Decision types ─────────────────────────────────────────────────────── */
+/* ─── Types ──────────────────────────────────────────────────────────────── */
 type Decision = "request-offer" | "pass" | "hold";
 
+interface APIApplication {
+  applicationId?: string;
+  candidateName: string;
+  candidateEmail: string;
+  jobOrderTitle: string;
+  createdAt: string;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
+  clientDecisionType?: string | null;
+}
+
+interface DecisionsResponse {
+  pending: number;
+  "request-offer": number;
+  pass: number;
+  hold: number;
+  data: APIApplication[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+interface APIJobOrder {
+  id: string;
+  title: string;
+}
+
+/* ─── Decision config ────────────────────────────────────────────────────── */
 const DECISION_CONFIG: Record<Decision, {
   label: string;
   shortLabel: string;
@@ -57,7 +88,7 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).join("").toUpperCase();
 }
 
-/* ─── Decision Button ────────────────────────────────────────────────────── */
+/* ─── Sub-components ─────────────────────────────────────────────────────── */
 function DecisionBtn({
   type, active, otherSelected, onClick,
 }: {
@@ -82,7 +113,6 @@ function DecisionBtn({
   );
 }
 
-/* ─── Summary Stat ───────────────────────────────────────────────────────── */
 function StatCard({
   label, count, icon: Icon, bg, text,
 }: {
@@ -102,52 +132,63 @@ function StatCard({
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
+const PAGE_SIZE = 10;
+
 export default function ClientDecisionsPage() {
+  // Local UI state for decisions & notes (client-side pending submit)
   const [decisions, setDecisions] = useState<Record<string, Decision>>({});
-  // Per-candidate notes: { [candidateId]: string }
   const [notes, setNotes] = useState<Record<string, string>>({});
-  // Which candidates have the note textarea open
   const [noteOpen, setNoteOpen] = useState<Record<string, boolean>>({});
-  const [query, setQuery] = useState("");
-  const [jobFilter, setJobFilter] = useState("all");
   const [submitted, setSubmitted] = useState(false);
 
-  // Only interview-stage candidates
-  const interviewCandidates = useMemo(
-    () => CANDIDATE_RECORDS.filter((c) => c.status === "interview"),
-    []
-  );
-  const allJobs = useMemo(() => JOB_ORDERS, []);
+  // Filters
+  const [query, setQuery] = useState("");
+  const [jobFilter, setJobFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
-  const filtered = useMemo(() => {
-    let rows = [...interviewCandidates];
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      rows = rows.filter((c) => c.name.toLowerCase().includes(q) || c.jobTitle.toLowerCase().includes(q));
-    }
-    if (jobFilter !== "all") rows = rows.filter((c) => c.jobId === jobFilter);
-    return rows;
-  }, [interviewCandidates, query, jobFilter]);
+  // API data
+  const [apiData, setApiData] = useState<DecisionsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [allJobs, setAllJobs] = useState<APIJobOrder[]>([]);
 
-  const counts = useMemo(() => {
-    const c = { "request-offer": 0, pass: 0, hold: 0, pending: 0 };
-    interviewCandidates.forEach((cand) => {
-      const d = decisions[cand.id];
-      if (d) c[d]++;
-      else c.pending++;
-    });
-    return c;
-  }, [decisions, interviewCandidates]);
+  // Fetch job orders for filter dropdown
+  useEffect(() => {
+    request<any>("/client/orders?limit=100")
+      .then((res) => setAllJobs(res.data || []))
+      .catch(console.error);
+  }, []);
 
+  // Fetch decisions from API
+  useEffect(() => {
+    setLoading(true);
+    const qs = new URLSearchParams();
+    qs.set("page", String(page));
+    qs.set("limit", String(PAGE_SIZE));
+    if (jobFilter !== "all") qs.set("jobId", jobFilter);
+    if (query.trim()) qs.set("candidateNameOrJobOrderTitle", query.trim());
+
+    request<DecisionsResponse>(`/client/decisions?${qs.toString()}`)
+      .then((res) => setApiData(res))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [page, jobFilter, query]);
+
+  const applications = apiData?.data || [];
+  const total = apiData?.total || 0;
+  const totalPages = apiData?.totalPages || 1;
+  const statPending = apiData?.pending ?? 0;
+  const statOffer = apiData?.["request-offer"] ?? 0;
+  const statPass = apiData?.pass ?? 0;
+  const statHold = apiData?.hold ?? 0;
+
+  /* ── Decision actions ── */
   const setDecision = (id: string, d: Decision) =>
     setDecisions((prev) => {
       if (prev[id] === d) {
-        // Toggling off — also close note
         const n = { ...prev }; delete n[id];
         setNoteOpen((no) => { const nn = { ...no }; delete nn[id]; return nn; });
         return n;
       }
-      // Auto-open note textarea when a decision is first made
       setNoteOpen((no) => ({ ...no, [id]: true }));
       return { ...prev, [id]: d };
     });
@@ -163,7 +204,6 @@ export default function ClientDecisionsPage() {
   const setNote = (id: string, val: string) =>
     setNotes((prev) => ({ ...prev, [id]: val }));
 
-  const pendingCount = interviewCandidates.filter((c) => !decisions[c.id]).length;
   const hasDecisions = Object.keys(decisions).length > 0;
   const decisionCount = Object.keys(decisions).length;
 
@@ -204,15 +244,15 @@ export default function ClientDecisionsPage() {
         </div>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — use live totals from API */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Pending" count={counts.pending} icon={CalendarClock}
+        <StatCard label="Pending" count={statPending} icon={CalendarClock}
           bg="bg-[var(--status-amber-bg)]" text="text-[var(--status-amber-text)]" />
-        <StatCard label="Offer Requested" count={counts["request-offer"]} icon={CheckCircle2}
+        <StatCard label="Offer Requested" count={statOffer} icon={CheckCircle2}
           bg="bg-[var(--status-green-bg)]" text="text-[var(--status-green-text)]" />
-        <StatCard label="Passed" count={counts.pass} icon={XCircle}
+        <StatCard label="Passed" count={statPass} icon={XCircle}
           bg="bg-[var(--danger-bg)]" text="text-[var(--status-red-text)]" />
-        <StatCard label="On Hold" count={counts.hold} icon={Clock}
+        <StatCard label="On Hold" count={statHold} icon={Clock}
           bg="bg-[var(--gray-100)]" text="text-[var(--gray-500)]" />
       </div>
 
@@ -224,7 +264,7 @@ export default function ClientDecisionsPage() {
             type="text"
             placeholder="Search candidates or roles…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             className="h-9 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-4 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)]"
           />
         </div>
@@ -232,18 +272,18 @@ export default function ClientDecisionsPage() {
           <Briefcase className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
           <select
             value={jobFilter}
-            onChange={(e) => setJobFilter(e.target.value)}
+            onChange={(e) => { setJobFilter(e.target.value); setPage(1); }}
             className="h-9 appearance-none rounded-md border border-[var(--border)] bg-[var(--surface)] pl-9 pr-8 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)] cursor-pointer"
           >
             <option value="all">All Job Orders</option>
             {allJobs.map((j) => (
-              <option key={j.id} value={j.id}>{j.title} ({j.id})</option>
+              <option key={j.id} value={j.id}>{j.title}</option>
             ))}
           </select>
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
         </div>
         <p className="ml-auto text-sm text-[var(--gray-400)] hidden sm:block">
-          <span className="font-medium text-[var(--gray-600)]">{pendingCount}</span> pending
+          <span className="font-medium text-[var(--gray-600)]">{total}</span> total
         </p>
       </div>
 
@@ -256,27 +296,38 @@ export default function ClientDecisionsPage() {
           ))}
         </div>
 
-        {/* Empty state */}
-        {interviewCandidates.length === 0 ? (
+        {/* Loading */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
+            <Loader2 className="h-7 w-7 animate-spin" />
+            <p className="text-sm">Loading decisions...</p>
+          </div>
+        ) : applications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-[var(--gray-400)]">
             <CalendarClock className="h-8 w-8" />
             <p className="text-sm font-medium">No interview-stage candidates yet.</p>
             <p className="text-xs">Candidates will appear here after the recruiter schedules and runs interviews.</p>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
-            <Users className="h-6 w-6" />
-            <p className="text-sm">No candidates match your search.</p>
-          </div>
         ) : (
-          filtered.map((c) => {
-            const dec = decisions[c.id];
+          applications.map((c, idx) => {
+            const rowKey = c.applicationId || `row-${idx}`;
+            const dec = decisions[rowKey];
             const cfg = dec ? DECISION_CONFIG[dec] : null;
-            const isNoteOpen = !!noteOpen[c.id];
-            const noteVal = notes[c.id] || "";
+            const isNoteOpen = !!noteOpen[rowKey];
+            const noteVal = notes[rowKey] || "";
+
+            const fullName = c.candidateName || "Unknown";
+            const cEmail = c.candidateEmail || "";
+            const jobTitle = c.jobOrderTitle || "Unknown Position";
+            const locationStr = [c.locationCity, c.locationState, c.locationCountry]
+              .filter(Boolean).join(", ") || "—";
+            const applyDate = c.createdAt
+              ? new Date(c.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+              : "N/A";
+
             return (
               <div
-                key={c.id}
+                key={rowKey}
                 className="border-b border-[var(--border-light)] last:border-0 transition-colors"
                 style={dec ? { backgroundColor: `color-mix(in srgb, ${cfg!.bg} 25%, transparent)` } : {}}
               >
@@ -286,37 +337,33 @@ export default function ClientDecisionsPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dec === "request-offer" ? "bg-[var(--status-green-bg)] text-[var(--status-green-text)]"
                       : dec === "pass" ? "bg-[var(--danger-bg)] text-[var(--status-red-text)]"
-                        : dec === "hold" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]"
-                          : "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]"
+                        : "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]"
                       }`}>
-                      {initials(c.name)}
+                      {initials(fullName)}
                     </div>
                     <div className="min-w-0">
-                      <Link
-                        href={`/client/applications/${encodeURIComponent(c.id)}`}
-                        className="text-sm font-medium text-[var(--gray-900)] hover:text-[var(--accent)] transition truncate block"
-                      >
-                        {c.name}
-                      </Link>
-                      <p className="text-xs text-[var(--gray-400)] truncate">{c.email}</p>
+                      <p className="text-sm font-medium text-[var(--gray-900)] truncate">
+                        {fullName}
+                      </p>
+                      <p className="text-xs text-[var(--gray-400)] truncate">{cEmail}</p>
                     </div>
                   </div>
 
                   {/* Applied For */}
                   <div className="min-w-0">
-                    <p className="text-sm text-[var(--gray-700)] truncate">{c.jobTitle}</p>
+                    <p className="text-sm text-[var(--gray-700)] truncate">{jobTitle}</p>
                   </div>
 
                   {/* Applied date */}
-                  <span className="text-sm text-[var(--gray-500)]">{c.appliedAt}</span>
+                  <span className="text-sm text-[var(--gray-500)]">{applyDate}</span>
 
                   {/* Location */}
                   <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
                     <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                    <span className="truncate">{c.location}</span>
+                    <span className="truncate">{locationStr}</span>
                   </div>
 
-                  {/* Decision buttons + note toggle */}
+                  {/* Decision buttons */}
                   <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     {(["request-offer", "pass", "hold"] as Decision[]).map((d) => (
                       <DecisionBtn
@@ -324,14 +371,13 @@ export default function ClientDecisionsPage() {
                         type={d}
                         active={dec === d}
                         otherSelected={!!dec && dec !== d}
-                        onClick={() => setDecision(c.id, d)}
+                        onClick={() => setDecision(rowKey, d)}
                       />
                     ))}
 
-                    {/* Note button — only shown after a decision is made */}
                     {dec && (
                       <button
-                        onClick={() => toggleNote(c.id)}
+                        onClick={() => toggleNote(rowKey)}
                         title={isNoteOpen ? "Hide note" : "Add a note to recruiter"}
                         className={`flex items-center justify-center h-7 w-7 rounded-md border transition cursor-pointer ${isNoteOpen || noteVal
                           ? "border-[var(--accent)]/40 bg-[var(--accent-light)] text-[var(--accent)]"
@@ -344,7 +390,7 @@ export default function ClientDecisionsPage() {
 
                     {dec && (
                       <button
-                        onClick={() => clearDecision(c.id)}
+                        onClick={() => clearDecision(rowKey)}
                         title="Clear decision"
                         className="flex items-center justify-center h-7 w-7 text-[var(--gray-400)] cursor-pointer hover:text-[var(--gray-600)] hover:bg-[var(--gray-100)] rounded-md transition"
                       >
@@ -354,13 +400,13 @@ export default function ClientDecisionsPage() {
                   </div>
                 </div>
 
-                {/* Per-candidate note textarea — expands below the row */}
+                {/* Note textarea */}
                 {dec && isNoteOpen && (
                   <div className="px-5 pb-4">
                     <div className="rounded-md border border-[var(--border)] bg-[var(--surface)] p-3">
                       <label className="flex items-center gap-1.5 text-xs font-medium text-[var(--gray-600)] mb-2">
                         <MessageSquare className="h-3.5 w-3.5 text-[var(--accent)]" />
-                        Note to recruiter for {c.name}
+                        Note to recruiter for {fullName}
                         <span className="text-[var(--gray-400)] font-normal">(optional)</span>
                       </label>
                       <textarea
@@ -373,7 +419,7 @@ export default function ClientDecisionsPage() {
                               : "e.g. Why on hold, when to revisit…"
                         }
                         value={noteVal}
-                        onChange={(e) => setNote(c.id, e.target.value)}
+                        onChange={(e) => setNote(rowKey, e.target.value)}
                         className="w-full rounded-md border border-[var(--border)] bg-[var(--gray-50)] px-3 py-2 text-sm text-[var(--gray-800)] resize-none focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-ring)]"
                         autoFocus
                       />
@@ -381,11 +427,11 @@ export default function ClientDecisionsPage() {
                   </div>
                 )}
 
-                {/* Show note preview when collapsed but note has content */}
+                {/* Note preview when collapsed */}
                 {dec && !isNoteOpen && noteVal && (
                   <div className="px-5 pb-3">
                     <button
-                      onClick={() => toggleNote(c.id)}
+                      onClick={() => toggleNote(rowKey)}
                       className="flex items-center gap-2 text-xs text-[var(--gray-500)] hover:text-[var(--accent)] transition cursor-pointer"
                     >
                       <MessageSquare className="h-3 w-3 text-[var(--accent)]" />
@@ -397,6 +443,26 @@ export default function ClientDecisionsPage() {
               </div>
             );
           })
+        )}
+
+        {/* Pagination */}
+        {!loading && total > 0 && (
+          <div className="flex items-center justify-between border-t border-[var(--border)] px-5 py-3 text-xs text-[var(--gray-500)]">
+            <span>
+              Page <span className="font-medium text-[var(--gray-700)]">{page}</span> of{" "}
+              <span className="font-medium text-[var(--gray-700)]">{totalPages}</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] disabled:opacity-30 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] disabled:opacity-30 disabled:cursor-not-allowed">
+                ›
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -412,7 +478,7 @@ export default function ClientDecisionsPage() {
               These candidates have completed their interviews. Select <strong>Request Offer</strong> for candidates you'd like to hire — the recruiter will be notified and proceed with extending an offer. Use <strong>Pass</strong> to decline or <strong>Hold</strong> to defer. Use the <strong>note icon</strong> to leave a message for the recruiter about any specific candidate.
             </p>
             <Link href="/client/applications" className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline">
-              <ArrowLeft className="h-3 w-3" /> View all candidates
+              <ArrowLeft className="h-3 w-3" /> View all applications
             </Link>
           </div>
         </div>
