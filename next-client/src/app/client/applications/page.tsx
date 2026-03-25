@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { request } from "@/lib/request";
 import { type ApplicationStatus } from "@/data/recruiter";
 import {
@@ -18,41 +19,29 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ArrowRight,
   Loader2,
 } from "lucide-react";
 
-type APICandidate = {
+type APIApplication = {
   id: string;
   status: string;
-  source?: string;
-  locationCountry?: string;
-  locationState?: string;
-  locationCity?: string;
-  recruiterNotes?: string;
-  interviewType?: string;
-  interviewDate?: string;
-  interviewTime?: string;
-  interviewSubject?: string;
-  interviewContent?: string;
-  interviewSentAt?: string;
-  clientDecisionType?: string;
-  clientDecisionNote?: string;
-  clientDecisionAt?: string;
-
-  // Fallbacks in case the backend populates nested relations transparently
-  name?: string;
-  email?: string;
-  jobTitle?: string;
-  appliedAt?: string;
-  createdAt?: string;
+  createdAt: string;
+  jobTitle: string;
+  locationCountry?: string | null;
+  locationState?: string | null;
+  locationCity?: string | null;
   candidate?: {
-    nickname?: string;
-    email?: string;
-  };
-  jobOrder?: {
-    title?: string;
-  };
+    user?: {
+      id: string;
+      email: string;
+      nickname: string;
+      candidateProfile?: {
+        locationCountry?: string | null;
+        locationState?: string | null;
+        locationCity?: string | null;
+      } | null;
+    } | null;
+  } | null;
 };
 
 /* ─── Status config ──────────────────────────────────────────────────────── */
@@ -101,15 +90,17 @@ function FilterTab({
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 const PAGE_SIZE = 10;
 
-export default function ClientCandidatesPage() {
+function ClientApplicationsPageContent() {
+  const searchParams = useSearchParams();
+  const initJobFilter = searchParams.get("jobOrderId") || "all";
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">("all");
-  const [jobFilter, setJobFilter] = useState("all");
+  const [jobFilter, setJobFilter] = useState(initJobFilter);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
-  const [list, setList] = useState<APICandidate[]>([]);
+  const [list, setList] = useState<APIApplication[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -129,7 +120,7 @@ export default function ClientCandidatesPage() {
       .catch(console.error);
   }, []);
 
-  // Fetch Candidates
+  // Fetch Applications
   useEffect(() => {
     setLoading(true);
     const qs = new URLSearchParams();
@@ -145,7 +136,7 @@ export default function ClientCandidatesPage() {
         setTotal(res.total || 0);
         setTotalPages(res.totalPages || Math.ceil((res.total || 0) / pageSize) || 1);
       })
-      .catch((err) => console.error("Failed to fetch candidates:", err))
+      .catch((err) => console.error("Failed to fetch applications:", err))
       .finally(() => setLoading(false));
   }, [page, pageSize, statusFilter, jobFilter, debouncedQuery]);
 
@@ -171,8 +162,8 @@ export default function ClientCandidatesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-[var(--gray-900)]">Candidates</h2>
-          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Track candidate progress across all of your job orders</p>
+          <h2 className="text-xl font-semibold text-[var(--gray-900)]">Applications</h2>
+          <p className="mt-0.5 text-sm text-[var(--gray-500)]">Track application progress across all of your job orders</p>
         </div>
       </div>
 
@@ -221,7 +212,7 @@ export default function ClientCandidatesPage() {
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--gray-400)]" />
         </div>
         <p className="ml-auto text-sm text-[var(--gray-400)] hidden sm:block">
-          <span className="font-medium text-[var(--gray-600)]">{total}</span> total candidates
+          <span className="font-medium text-[var(--gray-600)]">{total}</span> total applications
         </p>
       </div>
 
@@ -229,7 +220,7 @@ export default function ClientCandidatesPage() {
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         {/* Desktop header */}
         <div className="hidden lg:grid grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] items-center border-b border-[var(--border)] px-5 py-2.5 bg-[var(--gray-50)]">
-          {["Candidate", "Applied For", "Status", "Applied", "Location"].map((h) => (
+          {["Applicant", "Applied For", "Status", "Applied", "Location"].map((h) => (
             <span key={h} className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">{h}</span>
           ))}
         </div>
@@ -238,23 +229,29 @@ export default function ClientCandidatesPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Loader2 className="h-7 w-7 animate-spin" />
-            <p className="text-sm">Loading candidates...</p>
+            <p className="text-sm">Loading applications...</p>
           </div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-2 text-[var(--gray-400)]">
             <Users className="h-7 w-7" />
-            <p className="text-sm">No candidates match your filters.</p>
+            <p className="text-sm">No applications match your filters.</p>
           </div>
         ) : (
           list.map((c) => {
             const sc = STATUS_CONFIG[c.status as ApplicationStatus] || STATUS_CONFIG.new;
 
             // Computed safe fields
-            const fullName = c.candidate?.nickname || c.name || "Unknown Candidate";
-            const cEmail = c.candidate?.email || c.email || "No email";
-            const jTitle = c.jobOrder?.title || c.jobTitle || "Unknown Position";
-            const locationStr = [c.locationCity, c.locationState, c.locationCountry].filter(Boolean).join(", ") || (c.source === "self_applied" ? "Self Applied" : c.source === "recruiter_import" ? "Recruiter Import" : c.source) || "Unknown Location";
-            const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : (c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : "N/A");
+            const fullName = c.candidate?.user?.nickname || "Unknown Applicant";
+            const cEmail = c.candidate?.user?.email || "No email";
+            const jTitle = c.jobTitle || "Unknown Position";
+
+            const profile = c.candidate?.user?.candidateProfile;
+            const city = c.locationCity || profile?.locationCity;
+            const state = c.locationState || profile?.locationState;
+            const country = c.locationCountry || profile?.locationCountry;
+            const locationStr = [city, state, country].filter(Boolean).join(", ") || "Unknown Location";
+
+            const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "N/A";
 
             return (
               <Link
@@ -262,7 +259,7 @@ export default function ClientCandidatesPage() {
                 href={`/client/applications/${encodeURIComponent(c.id || "")}`}
                 className={`flex flex-col lg:grid lg:grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] lg:items-center gap-2 lg:gap-4 border-b border-[var(--border-light)] px-5 py-3 transition-colors last:border-0 hover:bg-[var(--gray-50)] ${c.status === "closed" ? "opacity-55" : ""}`}
               >
-                {/* Candidate */}
+                {/* Applicant */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${c.status === "interview" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]" : "bg-[var(--gray-200)] text-[var(--gray-600)]"}`}>
                     {initials(fullName)}
@@ -350,5 +347,17 @@ export default function ClientCandidatesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ClientApplicationsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[300px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--gray-400)]" />
+      </div>
+    }>
+      <ClientApplicationsPageContent />
+    </Suspense>
   );
 }
