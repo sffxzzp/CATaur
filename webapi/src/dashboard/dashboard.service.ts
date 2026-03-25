@@ -126,7 +126,7 @@ export class DashboardService {
                 .createQueryBuilder('app')
                 .leftJoin('app.jobOrder', 'jo')
                 .where('jo.companyId IN (:...cids)', { cids: companyIds })
-                .andWhere('app.status = :s', { s: 'offer' })
+                .andWhere('app.status = :s', { s: 'interview' })
                 .andWhere('app.clientDecisionType IS NULL')
                 .getCount(),
             this.applicationRepo
