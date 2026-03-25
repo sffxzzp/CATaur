@@ -19,11 +19,10 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ArrowRight,
   Loader2,
 } from "lucide-react";
 
-type APICandidate = {
+type APIApplication = {
   id: string;
   status: string;
   createdAt: string;
@@ -91,7 +90,7 @@ function FilterTab({
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 const PAGE_SIZE = 10;
 
-function ClientCandidatesPageContent() {
+function ClientApplicationsPageContent() {
   const searchParams = useSearchParams();
   const initJobFilter = searchParams.get("jobOrderId") || "all";
   const [query, setQuery] = useState("");
@@ -101,7 +100,7 @@ function ClientCandidatesPageContent() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
-  const [list, setList] = useState<APICandidate[]>([]);
+  const [list, setList] = useState<APIApplication[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -121,7 +120,7 @@ function ClientCandidatesPageContent() {
       .catch(console.error);
   }, []);
 
-  // Fetch Candidates
+  // Fetch Applications
   useEffect(() => {
     setLoading(true);
     const qs = new URLSearchParams();
@@ -137,7 +136,7 @@ function ClientCandidatesPageContent() {
         setTotal(res.total || 0);
         setTotalPages(res.totalPages || Math.ceil((res.total || 0) / pageSize) || 1);
       })
-      .catch((err) => console.error("Failed to fetch candidates:", err))
+      .catch((err) => console.error("Failed to fetch applications:", err))
       .finally(() => setLoading(false));
   }, [page, pageSize, statusFilter, jobFilter, debouncedQuery]);
 
@@ -221,7 +220,7 @@ function ClientCandidatesPageContent() {
       <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         {/* Desktop header */}
         <div className="hidden lg:grid grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] items-center border-b border-[var(--border)] px-5 py-2.5 bg-[var(--gray-50)]">
-          {["Candidate", "Applied For", "Status", "Applied", "Location"].map((h) => (
+          {["Applicant", "Applied For", "Status", "Applied", "Location"].map((h) => (
             <span key={h} className="text-xs font-semibold uppercase tracking-wider text-[var(--gray-400)]">{h}</span>
           ))}
         </div>
@@ -242,7 +241,7 @@ function ClientCandidatesPageContent() {
             const sc = STATUS_CONFIG[c.status as ApplicationStatus] || STATUS_CONFIG.new;
 
             // Computed safe fields
-            const fullName = c.candidate?.user?.nickname || "Unknown Candidate";
+            const fullName = c.candidate?.user?.nickname || "Unknown Applicant";
             const cEmail = c.candidate?.user?.email || "No email";
             const jTitle = c.jobTitle || "Unknown Position";
 
@@ -260,7 +259,7 @@ function ClientCandidatesPageContent() {
                 href={`/client/applications/${encodeURIComponent(c.id || "")}`}
                 className={`flex flex-col lg:grid lg:grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] lg:items-center gap-2 lg:gap-4 border-b border-[var(--border-light)] px-5 py-3 transition-colors last:border-0 hover:bg-[var(--gray-50)] ${c.status === "closed" ? "opacity-55" : ""}`}
               >
-                {/* Candidate */}
+                {/* Applicant */}
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${c.status === "interview" ? "bg-[var(--status-amber-bg)] text-[var(--status-amber-text)]" : "bg-[var(--gray-200)] text-[var(--gray-600)]"}`}>
                     {initials(fullName)}
@@ -351,14 +350,14 @@ function ClientCandidatesPageContent() {
   );
 }
 
-export default function ClientCandidatesPage() {
+export default function ClientApplicationsPage() {
   return (
     <Suspense fallback={
       <div className="flex h-[300px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[var(--gray-400)]" />
       </div>
     }>
-      <ClientCandidatesPageContent />
+      <ClientApplicationsPageContent />
     </Suspense>
   );
 }
