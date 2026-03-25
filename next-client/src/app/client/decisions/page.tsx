@@ -293,7 +293,7 @@ export default function ClientDecisionsPage() {
                     </div>
                     <div className="min-w-0">
                       <Link
-                        href={`/client/candidates/${encodeURIComponent(c.id)}`}
+                        href={`/client/applications/${encodeURIComponent(c.id)}`}
                         className="text-sm font-medium text-[var(--gray-900)] hover:text-[var(--accent)] transition truncate block"
                       >
                         {c.name}
@@ -411,7 +411,7 @@ export default function ClientDecisionsPage() {
             <p className="mt-1 text-xs text-[var(--gray-500)] leading-relaxed">
               These candidates have completed their interviews. Select <strong>Request Offer</strong> for candidates you'd like to hire — the recruiter will be notified and proceed with extending an offer. Use <strong>Pass</strong> to decline or <strong>Hold</strong> to defer. Use the <strong>note icon</strong> to leave a message for the recruiter about any specific candidate.
             </p>
-            <Link href="/client/candidates" className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline">
+            <Link href="/client/applications" className="mt-2 inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline">
               <ArrowLeft className="h-3 w-3" /> View all candidates
             </Link>
           </div>

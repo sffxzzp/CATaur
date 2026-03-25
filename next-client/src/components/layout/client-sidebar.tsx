@@ -24,7 +24,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
     { label: "Dashboard", href: "/client", icon: LayoutDashboard },
     { label: "Job Orders", href: "/client/orders", icon: BriefcaseBusiness },
-    { label: "Candidates", href: "/client/candidates", icon: Users },
+    { label: "Applications", href: "/client/applications", icon: Users },
     { label: "Decisions", href: "/client/decisions", icon: FileCheck2 },
 ];
 

@@ -213,7 +213,7 @@ export default function ClientOrderDetailPage() {
                   {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} for this position
                 </p>
               </div>
-              <Link href="/client/candidates" className="text-xs font-medium text-[var(--accent)] hover:underline">
+              <Link href="/client/applications" className="text-xs font-medium text-[var(--accent)] hover:underline">
                 View all →
               </Link>
             </div>

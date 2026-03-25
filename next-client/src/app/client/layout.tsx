@@ -10,7 +10,7 @@ import { request } from "@/lib/request";
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/client": { title: "Dashboard", subtitle: "Overview of your hiring pipeline" },
   "/client/orders": { title: "Job Orders", subtitle: "Track active positions for your company" },
-  "/client/candidates": { title: "Candidates", subtitle: "Review submitted candidates" },
+  "/client/applications": { title: "Applications", subtitle: "Review submitted applications" },
   "/client/decisions": { title: "Decisions", subtitle: "Approve or reject candidates" },
 };
 

@@ -139,7 +139,7 @@ export default function ClientCandidatesPage() {
     if (jobFilter !== "all") qs.set("jobOrderId", jobFilter);
     if (debouncedQuery) qs.set("search", debouncedQuery);
 
-    request<any>(`/client/candidates?${qs.toString()}`)
+    request<any>(`/client/applications?${qs.toString()}`)
       .then((res) => {
         setList(res.data || []);
         setTotal(res.total || 0);
@@ -259,7 +259,7 @@ export default function ClientCandidatesPage() {
             return (
               <Link
                 key={c.id || Math.random().toString()}
-                href={`/client/candidates/${encodeURIComponent(c.id || "")}`}
+                href={`/client/applications/${encodeURIComponent(c.id || "")}`}
                 className={`flex flex-col lg:grid lg:grid-cols-[2fr_2fr_1.2fr_1fr_1.2fr] lg:items-center gap-2 lg:gap-4 border-b border-[var(--border-light)] px-5 py-3 transition-colors last:border-0 hover:bg-[var(--gray-50)] ${c.status === "closed" ? "opacity-55" : ""}`}
               >
                 {/* Candidate */}

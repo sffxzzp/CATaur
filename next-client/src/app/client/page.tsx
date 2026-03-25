@@ -214,7 +214,7 @@ export default function ClientDashboard() {
               <p className="text-xs text-[var(--gray-500)] mt-0.5">Latest submitted for your positions</p>
             </div>
             <Link
-              href="/client/candidates"
+              href="/client/applications"
               className="flex items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline"
             >
               View all <ArrowRight className="h-3.5 w-3.5" />
@@ -232,7 +232,7 @@ export default function ClientDashboard() {
                 return (
                   <Link
                     key={c.id}
-                    href={`/client/candidates/${encodeURIComponent(c.id)}`}
+                    href={`/client/applications/${encodeURIComponent(c.id)}`}
                     className="flex items-center gap-3 px-5 py-3 hover:bg-[var(--gray-50)] transition-colors"
                   >
                     {/* Avatar */}
