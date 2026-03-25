@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { X, Eye, EyeOff, Loader2 } from "lucide-react";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type Role = "Recruiter" | "Client" | "Admin";
@@ -55,8 +55,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
     const [form, setForm] = useState<UserFormData>(emptyForm());
     const [showPw, setShowPw] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
-    const [serverError, setServerError] = useState<string | null>(null);
-    const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Sync form whenever the modal opens or switches mode
@@ -76,8 +74,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
             setForm(emptyForm());
         }
         setErrors({});
-        setServerError(null);
-        setSuccessMsg(null);
         setIsSubmitting(false);
         setShowPw(false);
     }, [state]);
@@ -98,19 +94,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
 
     const handleSubmit = async (ev: React.FormEvent) => {
         ev.preventDefault();
-        setServerError(null);
-        setSuccessMsg(null);
         if (!validate()) return;
 
         setIsSubmitting(true);
         try {
             await onSaved(form, editingId);
-            setSuccessMsg(editingId ? "User updated successfully!" : "User created successfully!");
             setTimeout(() => {
                 onClose();
             }, 1000);
         } catch (err: any) {
-            setServerError(err.message ?? "An error occurred while saving.");
+            console.error(err.message ?? "An error occurred while saving.");
         } finally {
             setIsSubmitting(false);
         }
@@ -132,20 +125,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                 {/* body */}
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-
-                        {serverError && (
-                            <div className="flex items-start gap-2 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
-                                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                                <span className="flex-1">{serverError}</span>
-                            </div>
-                        )}
-
-                        {successMsg && (
-                            <div className="flex items-center gap-2 rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 border border-green-200">
-                                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                                {successMsg}
-                            </div>
-                        )}
 
                         {/* Account Name */}
                         <div className="space-y-1.5">
@@ -269,10 +248,10 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                             className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isSubmitting || !!successMsg}
+                        <button type="submit" disabled={isSubmitting}
                             className="flex items-center gap-2 rounded-md border border-transparent bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-sm)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {successMsg ? "Saved" : "Confirm"}
+                            Confirm
                         </button>
                     </div>
                 </form>

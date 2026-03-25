@@ -213,7 +213,7 @@ export default function ClientOrderDetailPage() {
                   {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} for this position
                 </p>
               </div>
-              <Link href="/client/candidates" className="text-xs font-medium text-[var(--accent)] hover:underline">
+              <Link href="/client/applications" className="text-xs font-medium text-[var(--accent)] hover:underline">
                 View all →
               </Link>
             </div>
@@ -311,24 +311,6 @@ export default function ClientOrderDetailPage() {
             </div>
           )}
 
-          {/* Candidates summary */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5">
-            <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Candidate Summary</h3>
-            <div className="space-y-2">
-              {(["new", "interview", "offer", "closed"] as const).map((s) => {
-                const count = candidates.filter((c) => c.status === s).length;
-                const cs = CAND_STAGE_STYLE[s];
-                return (
-                  <div key={s} className="flex items-center justify-between text-sm">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cs.bg} ${cs.text}`}>
-                      {STAGE_LABEL[s]}
-                    </span>
-                    <span className="font-medium text-[var(--gray-700)]">{count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
     </div>

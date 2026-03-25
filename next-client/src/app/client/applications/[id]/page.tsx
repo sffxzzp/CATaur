@@ -181,7 +181,7 @@ export default function ClientCandidateDetailPage() {
     useEffect(() => {
         if (!id) return;
         setLoading(true);
-        request<any>(`/client/candidates/${id}`)
+        request<any>(`/client/applications/${id}`)
             .then((res) => {
                 const payload = res.data?.id ? res.data : res;
                 if (payload && payload.id) setCand(payload);
@@ -211,7 +211,7 @@ export default function ClientCandidateDetailPage() {
                 <div className="rounded-lg border border-red-200 bg-red-50 p-6 max-w-lg text-center shadow-sm">
                     <h2 className="text-lg font-semibold text-red-700 mb-2">Error Loading Candidate</h2>
                     <p className="text-sm text-red-600 break-all">{error}</p>
-                    <Link href="/client/candidates" className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline">
+                    <Link href="/client/applications" className="mt-4 inline-block text-sm font-medium text-[var(--accent)] hover:underline">
                         &larr; Back to Candidates
                     </Link>
                 </div>
@@ -241,7 +241,7 @@ export default function ClientCandidateDetailPage() {
 
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-1.5 text-sm text-[var(--gray-500)]">
-                    <Link href="/client/candidates" className="flex items-center gap-1 hover:text-[var(--accent)] transition">
+                    <Link href="/client/applications" className="flex items-center gap-1 hover:text-[var(--accent)] transition">
                         <ArrowLeft className="h-3.5 w-3.5" /> Candidates
                     </Link>
                     <ChevronRight className="h-3.5 w-3.5 text-[var(--gray-300)]" />
