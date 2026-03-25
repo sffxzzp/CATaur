@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { JobOrder } from '../../database/entities/job-order.entity';
 
 export class ClientJobOrder {
     @ApiProperty()
@@ -27,4 +28,15 @@ export class ClientJobOrder {
 
     @ApiProperty()
     createdAt: Date;
+}
+
+export class ClientJobOrderDetail extends JobOrder {
+    @ApiProperty({ description: 'Number of applications submitted for this job order' })
+    submitted: number;
+
+    @ApiProperty()
+    declare createdAt: Date;
+
+    @ApiProperty()
+    declare updatedAt: Date;
 }

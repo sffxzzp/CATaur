@@ -22,12 +22,13 @@ import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
 import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
-import { ClientJobOrder } from './dto/client-job-order.dto';
-import { ClientCandidate } from './dto/client-candidate.dto';
+import { ClientJobOrder, ClientJobOrderDetail } from './dto/client-job-order.dto';
+import { ClientApplication } from './dto/client-candidate.dto';
 
 const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(ClientJobOrder);
-const PaginatedApplicationsResponseDto = createPaginatedResponseDto(ClientCandidate);
+const PaginatedApplicationsResponseDto = createPaginatedResponseDto(ClientApplication);
 const JobOrderResponseDto = createApiResponseDto(JobOrder);
+const JobOrderDetailResponseDto = createApiResponseDto(ClientJobOrderDetail);
 const ApplicationResponseDto = createApiResponseDto(Application);
 
 @ApiTags('client')
@@ -35,10 +36,12 @@ const ApplicationResponseDto = createApiResponseDto(Application);
     PaginatedJobOrdersResponseDto,
     PaginatedApplicationsResponseDto,
     ClientJobOrder,
-    ClientCandidate,
+    ClientJobOrderDetail,
+    ClientApplication,
     JobOrder,
     Application,
     JobOrderResponseDto,
+    JobOrderDetailResponseDto,
     ApplicationResponseDto,
 )
 @Controller('client')
@@ -107,33 +110,37 @@ export class ClientController {
 
     @Get('orders/:id')
     @ApiOperation({ summary: "Get a job order's details" })
-    @ApiOkResponse({ type: JobOrderResponseDto })
-    async getOrder(@GetUser() user: User, @Param('id') id: string): Promise<JobOrder> {
+    @ApiOkResponse({ type: ClientJobOrderDetail })
+    async getOrder(@GetUser() user: User, @Param('id') id: string): Promise<ClientJobOrderDetail> {
         const companyIds = await this.getCompanyIds(user);
         const jo = await this.jobOrdersService.findOne(id);
         if (!companyIds.includes(jo.companyId ?? '')) {
             throw new NotFoundException('Not found');
         }
-        return jo;
+        const submitted = await this.applicationsService.countByJobOrderId(id);
+        return {
+            ...jo,
+            submitted,
+        } as ClientJobOrderDetail;
     }
 
-    // ── Candidates ────────────────────────────────────────────────────────
-    @Get('candidates')
-    @ApiOperation({ summary: "List candidates for this client's orders" })
+    // ── Applications ────────────────────────────────────────────────────────
+    @Get('applications')
+    @ApiOperation({ summary: "List applications for this client's orders" })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
     @ApiQuery({ name: 'jobOrderId', required: false })
     @ApiQuery({ name: 'candidateNameOrJobTitle', required: false })
     @ApiOkResponse({ type: PaginatedApplicationsResponseDto })
-    async listCandidates(
+    async listApplications(
         @GetUser() user: User,
         @Query('page') page = '1',
         @Query('limit') limit = '20',
         @Query('status') status?: string,
         @Query('jobOrderId') jobOrderId?: string,
         @Query('candidateNameOrJobTitle') candidateNameOrJobTitle?: string,
-    ): Promise<PaginatedResponse<ClientCandidate>> {
+    ): Promise<PaginatedResponse<ClientApplication>> {
         const companyIds = await this.getCompanyIds(user);
         const result = await this.applicationsService.findAll(
             { companyIds },

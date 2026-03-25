@@ -6,7 +6,7 @@ export class CandidateUserWrapper {
     user: UserEntity;
 }
 
-export class ClientCandidate {
+export class ClientApplication {
     @ApiProperty()
     id: string;
 

@@ -110,6 +110,10 @@ export class ApplicationsService {
         };
     }
 
+    async countByJobOrderId(jobOrderId: string): Promise<number> {
+        return this.repo.count({ where: { jobOrderId } });
+    }
+
     async findOne(
         id: string,
         scope: Partial<{ companyIds: string[] }> = {},
