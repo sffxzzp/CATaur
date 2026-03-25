@@ -36,7 +36,7 @@ export class ApplicationsService {
         private emailService: EmailService,
         private notificationsService: NotificationsService,
         private encryptionService: EncryptionService,
-    ) {}
+    ) { }
 
     /**
      * scope:
@@ -57,6 +57,9 @@ export class ApplicationsService {
 
         if (scope.companyIds?.length) {
             qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        }
+        else {
+            qb.andWhere('1=0')
         }
         if (scope.candidateId) {
             qb.andWhere('app.candidateId = :candidateId', { candidateId: scope.candidateId });
@@ -127,6 +130,9 @@ export class ApplicationsService {
 
         if (scope.companyIds?.length) {
             qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        }
+        else {
+            qb.andWhere('1=0')
         }
 
         // Get global counts for the client's companies (not affected by search filters)

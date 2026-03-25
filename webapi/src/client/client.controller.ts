@@ -75,7 +75,6 @@ export class ClientController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
-    @ApiQuery({ name: 'statuses', required: false, isArray: true })
     @ApiQuery({ name: 'search', required: false })
     @ApiOkResponse({ type: PaginatedJobOrdersResponseDto })
     async listOrders(

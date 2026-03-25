@@ -19,7 +19,7 @@ export class JobOrdersService {
         private userRepo: Repository<User>,
         private ulidService: UlidService,
         private encryptionService: EncryptionService,
-    ) {}
+    ) { }
 
     async findAll(
         where: FindOptionsWhere<JobOrder> & { companyIds?: string[] },
@@ -61,6 +61,9 @@ export class JobOrdersService {
         }
         if (where.companyIds?.length) {
             qb.andWhere('jo.companyId IN (:...companyIds)', { companyIds: where.companyIds });
+        }
+        else {
+            qb.andWhere('1=0')
         }
         if (status) {
             qb.andWhere('jo.status = :status', { status });
