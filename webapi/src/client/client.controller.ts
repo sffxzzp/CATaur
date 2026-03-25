@@ -85,7 +85,7 @@ export class ClientController {
     ): Promise<PaginatedResponse<ClientJobOrder>> {
         const companyIds = await this.getCompanyIds(user);
         const result = await this.jobOrdersService.findAll(
-            { companyIds },
+            { companyIds, role: Role.CLIENT },
             {
                 page: +page,
                 limit: +limit,
@@ -144,7 +144,7 @@ export class ClientController {
     ): Promise<PaginatedResponse<ClientApplication>> {
         const companyIds = await this.getCompanyIds(user);
         const result = await this.applicationsService.findAll(
-            { companyIds },
+            { companyIds, role: Role.CLIENT },
             {
                 page: +page,
                 limit: +limit,
@@ -187,7 +187,7 @@ export class ClientController {
     ): Promise<ClientDecisionsResponseDto> {
         const companyIds = await this.getCompanyIds(user);
         return this.applicationsService.findDecisions(
-            { companyIds },
+            { companyIds, role: Role.CLIENT },
             {
                 page: +page,
                 limit: +limit,
@@ -224,7 +224,7 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' } } } })
     async reportJobOrders(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getJobOrderStats({ companyIds });
+        return this.reportsService.getJobOrderStats({ companyIds, role: Role.CLIENT });
     }
 
     @Get('reports/applications')
@@ -232,7 +232,7 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' }, bySource: { type: 'object' } } } })
     async reportApplications(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number>; bySource: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getApplicationStats({ companyIds });
+        return this.reportsService.getApplicationStats({ companyIds, role: Role.CLIENT });
     }
 
     // ── Dashboard ─────────────────────────────────────────────────────────

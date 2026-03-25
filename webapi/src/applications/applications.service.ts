@@ -10,6 +10,7 @@ import { Repository, FindOptionsWhere } from 'typeorm';
 import { Application } from '../database/entities/application.entity';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { User } from '../database/entities/user.entity';
+import { Role } from '../database/entities/user-role.entity';
 import {
     CreateApplicationDto,
     UpdateApplicationStatusDto,
@@ -44,7 +45,7 @@ export class ApplicationsService {
      *   Admin     → {}
      */
     async findAll(
-        scope: Partial<{ companyIds: string[]; candidateId: string }>,
+        scope: Partial<{ companyIds: string[]; candidateId: string; role?: Role }>,
         opts: { page?: number; limit?: number; status?: string; jobOrderId?: string; search?: string; candidateNameOrJobTitle?: string; location?: string } = {},
     ) {
         const { page = 1, limit = 20, status, jobOrderId, search, candidateNameOrJobTitle, location } = opts;
@@ -55,12 +56,19 @@ export class ApplicationsService {
             .leftJoinAndSelect('app.jobOrder', 'jobOrder')
             .leftJoinAndSelect('jobOrder.company', 'company');
 
-        if (scope.companyIds?.length) {
-            qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                qb.andWhere('1=0');
+            }
+        } else {
+            // Non-client: filter by companyIds if provided, else all data
+            if (scope.companyIds?.length) {
+                qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
-        else {
-            qb.andWhere('1=0')
-        }
+
         if (scope.candidateId) {
             qb.andWhere('app.candidateId = :candidateId', { candidateId: scope.candidateId });
         }
@@ -114,7 +122,7 @@ export class ApplicationsService {
     }
 
     async findDecisions(
-        scope: Partial<{ companyIds: string[] }>,
+        scope: Partial<{ companyIds: string[]; role?: Role }>,
         opts: {
             page?: number;
             limit?: number;
@@ -128,11 +136,17 @@ export class ApplicationsService {
             .leftJoin('app.candidate', 'candidate')
             .leftJoin('app.jobOrder', 'jobOrder');
 
-        if (scope.companyIds?.length) {
-            qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
-        }
-        else {
-            qb.andWhere('1=0')
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                qb.andWhere('1=0');
+            }
+        } else {
+            // Non-client: filter by companyIds if provided, else all data
+            if (scope.companyIds?.length) {
+                qb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         // Get global counts for the client's companies (not affected by search filters)
