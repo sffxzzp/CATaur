@@ -173,6 +173,7 @@ export class ApplicationsService {
             pass: passCount,
             hold: holdCount,
             data: data.map(app => ({
+                id: app.id,
                 candidateName: app.candidate?.nickname || '',
                 candidateEmail: app.candidate?.email || '',
                 jobOrderTitle: app.jobOrder?.title || '',
