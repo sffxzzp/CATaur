@@ -25,15 +25,13 @@ type StatusFilter = "all" | "active" | "onhold" | "closed";
 type APIJobOrder = {
   id: string;
   title: string;
-  description: string;
+  locationCountry: string | null;
+  locationState: string | null;
+  locationCity: string | null;
+  employmentType: string | null;
   status: string;
-  priority: string;
-  location: string;
-  openings: number;
-  salary: string;
-  tags: string[];
-  companyId: string;
-  applicants?: number;
+  candidateCount: number;
+  createdAt: string;
 };
 
 type APIResponse = {
@@ -197,10 +195,10 @@ export default function ClientOrdersPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="py-4 text-sm text-[var(--gray-600)]">
-                        {j?.location || "Unspecified Location"}
+                        {[j?.locationCity, j?.locationState, j?.locationCountry].filter(Boolean).join(", ") || "Unspecified Location"}
                       </TableCell>
                       <TableCell className="py-4 text-sm text-[var(--gray-600)]">
-                        Full-time
+                        {j?.employmentType || "Unspecified"}
                       </TableCell>
                       <TableCell className="py-4">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${sc.bg} ${sc.text}`}>
@@ -211,7 +209,7 @@ export default function ClientOrdersPage() {
                       <TableCell className="py-4 text-right pr-6">
                         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--gray-700)]">
                           <Users className="h-3.5 w-3.5 text-[var(--gray-400)]" />
-                          {j?.openings ?? j?.applicants ?? 0}
+                          {j?.candidateCount ?? 0}
                         </span>
                       </TableCell>
                     </TableRow>
