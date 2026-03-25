@@ -84,8 +84,9 @@ export class ClientController {
         @Query('status') status?: string,
     ): Promise<PaginatedResponse<ClientJobOrder>> {
         const companyIds = await this.getCompanyIds(user);
+        const role = user.roles?.[0]?.role;
         const result = await this.jobOrdersService.findAll(
-            { companyIds, role: Role.CLIENT },
+            { companyIds, role },
             {
                 page: +page,
                 limit: +limit,
@@ -143,8 +144,9 @@ export class ClientController {
         @Query('candidateNameOrJobTitle') candidateNameOrJobTitle?: string,
     ): Promise<PaginatedResponse<ClientApplication>> {
         const companyIds = await this.getCompanyIds(user);
+        const role = user.roles?.[0]?.role;
         const result = await this.applicationsService.findAll(
-            { companyIds, role: Role.CLIENT },
+            { companyIds, role },
             {
                 page: +page,
                 limit: +limit,
@@ -186,8 +188,9 @@ export class ClientController {
         @Query('candidateNameOrJobOrderTitle') candidateNameOrJobOrderTitle?: string,
     ): Promise<ClientDecisionsResponseDto> {
         const companyIds = await this.getCompanyIds(user);
+        const role = user.roles?.[0]?.role;
         return this.applicationsService.findDecisions(
-            { companyIds, role: Role.CLIENT },
+            { companyIds, role },
             {
                 page: +page,
                 limit: +limit,
@@ -224,7 +227,8 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' } } } })
     async reportJobOrders(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getJobOrderStats({ companyIds, role: Role.CLIENT });
+        const role = user.roles?.[0]?.role;
+        return this.reportsService.getJobOrderStats({ companyIds, role });
     }
 
     @Get('reports/applications')
@@ -232,7 +236,8 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' }, bySource: { type: 'object' } } } })
     async reportApplications(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number>; bySource: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getApplicationStats({ companyIds, role: Role.CLIENT });
+        const role = user.roles?.[0]?.role;
+        return this.reportsService.getApplicationStats({ companyIds, role });
     }
 
     // ── Dashboard ─────────────────────────────────────────────────────────
