@@ -228,17 +228,11 @@ export default function ProfilePage() {
         if (data.locationState) setLocRegion(data.locationState);
         if (data.locationCity) setLocCity(data.locationCity);
 
-        // Check if onboarding was already completed (via localStorage or profileStatus)
-        const userId = data.id;
-        const hasCompletedBasic = localStorage.getItem(`candidateProfileBasic_${userId}`) === "1";
-        const hasCompletedResume = localStorage.getItem(`candidateProfileResume_${userId}`) === "1";
+        // Check if onboarding was already completed
+        const hasBasicData = Boolean(data.phone || data.locationCountry || data.linkedin || data.resumeUrl);
 
-        if (data.profileStatus === "active" || hasCompletedBasic || hasCompletedResume) {
+        if (data.profileStatus === "active" || hasBasicData) {
           setStep("complete");
-          localStorage.setItem(`candidateProfileBasic_${userId}`, "1");
-        }
-        if (data.resumeUrl) {
-          localStorage.setItem(`candidateProfileResume_${userId}`, "1");
         }
       } catch {
         // Not yet a candidate or no profile — stay on basic-info step
@@ -271,10 +265,6 @@ export default function ProfilePage() {
         setProfile(full);
       } else {
         setProfile(updated);
-      }
-      const userId = updated.id || profile?.id;
-      if (userId) {
-        localStorage.setItem(`candidateProfileBasic_${userId}`, "1");
       }
       if (!localStorage.getItem("candidateName")) {
         localStorage.setItem("candidateName", nickname || "Candidate");
