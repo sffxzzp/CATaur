@@ -327,12 +327,19 @@ export default function ProfilePage() {
                                 <div>
                                     <label className={labelClass}>{asterisk} Phone number</label>
                                     <input
-                                        maxLength={100}
+                                        type="tel"
+                                        inputMode="numeric"
+                                        maxLength={15}
                                         className={inpClass}
                                         value={basicForm.phone}
-                                        onChange={(e) => setBasicForm({ ...basicForm, phone: e.target.value })}
+                                        onChange={(e) =>
+                                            setBasicForm({
+                                                ...basicForm,
+                                                phone: e.target.value.replace(/\D/g, "").slice(0, 15),
+                                            })
+                                        }
                                     />
-                                    {basicForm.phone.length >= 100 && (
+                                    {basicForm.phone.length >= 15 && (
                                         <p className="text-xs text-[var(--error)]">Phone number is too long</p>
                                     )}
                                 </div>
