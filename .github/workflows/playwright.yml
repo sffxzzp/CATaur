@@ -1,17 +1,32 @@
 name: Playwright Tests
 
+# on:
+#   push:
+#     branches: [yanling]
+#   branches: [main]
+# pull_request:
+#   branches: [main]
+# workflow_dispatch:
+
 on:
   push:
-    branches: [yanling]
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
-  # workflow_dispatch:
+    branches: [main, yanling]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        include:
+          - site: http://candidate.kawaiimonkey.top
+            role: candidate
+          - site: http://client.kawaiimonkey.top
+            role: client
+          - site: http://manager.kawaiimonkey.top
+            role: admin
     defaults:
       run:
         working-directory: next-client
@@ -31,18 +46,23 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
+        run:
+          npx playwright install --with-deps
+          # ✅ wait for deployment to be ready (adjust time as needed)
+      - name: Wait for deployment
+        run: sleep 40
       - name: Run Playwright tests
         env:
           CI: true
-          
+          PLAYWRIGHT_BASE_URL: ${{ matrix.site }}
+          TEST_ROLE: ${{ matrix.role }}
 
-          NEXT_PUBLIC_API_BASE: ${{ secrets.NEXT_PUBLIC_API_BASE }}
-          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+        #          NEXT_PUBLIC_API_BASE: ${{ secrets.NEXT_PUBLIC_API_BASE }}
+        #          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+        #          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+        #          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+        #          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
         run: npx playwright test --project=chromium
 
       - name: Upload Playwright HTML report
