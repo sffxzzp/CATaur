@@ -408,8 +408,20 @@ export default function RecruiterClientsPage() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
-                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
-                  {formData.phone.length >= 100 && (
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={15}
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        phone: e.target.value.replace(/\D/g, "").slice(0, 15),
+                      })
+                    }
+                    className="mt-1 w-full rounded-lg border border-[var(--border)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                  />
+                  {formData.phone.length >= 15 && (
                     <p className="text-xs text-[var(--error)]">Phone is too long</p>
                   )}
                 </div>
