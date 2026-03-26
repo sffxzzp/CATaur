@@ -2,6 +2,7 @@ import { request } from "./request";
 import type { User, PaginatedResponse } from "./types";
 
 export const usersClient = {
+  //Obtain the list of users for a specific role and support pagination
   listByRole: (role: string, params?: { page?: number; limit?: number }) =>
     request<PaginatedResponse<User>>(
       `/api/admin/users?${new URLSearchParams({
@@ -9,6 +10,6 @@ export const usersClient = {
         limit: String(params?.limit || 100),
         role,
       })}`,
-      { method: "GET" }
+      { method: "GET" },
     ),
 };
