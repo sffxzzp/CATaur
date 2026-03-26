@@ -14,17 +14,17 @@ import { toast } from "sonner";
 export default function ClientDetails({ params }: { params: Promise<{ id: string }> }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [clientUser, setClientUser] = useState<User | null>(null);
-  const [clientUsers, setClientUsers] = useState<User[]>([]);
+  const [clientUsers, setClientUsers] = useState<User[]>([]);//All client users (for dropdown selection)
   const [jobs, setJobs] = useState<JobOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);//Control the pop-up window switch. The default setting is to disable it.
+  const [submitting, setSubmitting] = useState(false);//controlling the "in submission" status
   const [formData, setFormData] = useState({
     name: "", contact: "", email: "", phone: "", website: "",
     country: "", state: "", city: "", keyTechnologies: "", clientAccount: "",
-  });
+  });//Store the data input by the user
 
   useEffect(() => {
     params.then(p => setCompanyId(p.id));
@@ -35,14 +35,14 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
     const loadData = async () => {
       try {
-        const companyData = await companiesClient.getById(companyId);
+        const companyData = await companiesClient.getById(companyId);//Call the API to obtain the company data and store the result in "companyData"
         setCompany(companyData);
 
         const usersRes = await usersClient.listByRole("Client", { page: 1, limit: 100 });
         setClientUsers(usersRes.data);
 
         if (companyData.clientId) {
-          const user = usersRes.data.find(u => u.id === companyData.clientId);
+          const user = usersRes.data.find(u => u.id === companyData.clientId);//Store the matched user object in the variable "user"
           if (user) setClientUser(user);
         }
 
@@ -89,7 +89,7 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
         contact: formData.contact || undefined,
         phone: formData.phone || undefined,
         website: formData.website || undefined,
-        locationCountry: formData.country || undefined,
+        locationCountry: formData.country || undefined,//Indicates that this field will not be updated.
         locationState: formData.state || undefined,
         locationCity: formData.city || undefined,
         keyTechnologies: formData.keyTechnologies || undefined,
