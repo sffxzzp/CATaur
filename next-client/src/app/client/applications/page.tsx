@@ -128,7 +128,7 @@ function ClientApplicationsPageContent() {
     qs.set("limit", String(pageSize));
     if (statusFilter !== "all") qs.set("status", statusFilter);
     if (jobFilter !== "all") qs.set("jobOrderId", jobFilter);
-    if (debouncedQuery) qs.set("search", debouncedQuery);
+    if (debouncedQuery) qs.set("candidateNameOrJobTitle", debouncedQuery);
 
     request<any>(`/client/applications?${qs.toString()}`)
       .then((res) => {

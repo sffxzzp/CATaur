@@ -49,13 +49,35 @@ export async function login(
   await expect(loginBtn).toBeEnabled();
   await loginBtn.click();
 
-  // Wait for UI change instead of URL change
+  // Ensure we are no longer on the login page before asserting role-specific UI
+  await expect(page).not.toHaveURL(/\/login(\?|$)/, { timeout: 15000 });
+
+  if (role === "admin") {
+    await expect(page.getByText(/user management/i)).toBeVisible({
+      timeout: 15000,
+    });
+    return;
+  }
+
+  if (role === "recruiter") {
+    await expect(
+      page
+        .getByRole("link", { name: /dashboard/i })
+        .or(page.getByText(/user management/i)),
+    ).toBeVisible({ timeout: 15000 });
+    return;
+  }
+
+  if (role === "client") {
+    await expect(page.getByRole("link", { name: /dashboard/i })).toBeVisible({
+      timeout: 15000,
+    });
+    return;
+  }
+
   await expect(
-    page
-      .getByText(/dashboard/i)
-      .or(page.getByText(/profile/i))
-      .or(page.locator("header")),
-  ).toBeVisible();
+    page.getByRole("link", { name: /job search/i }).first(),
+  ).toBeVisible({ timeout: 15000 });
 }
 
 /**
@@ -149,14 +171,24 @@ export async function forgotPassword(page: Page, role: string, email: string) {
   // Open reset form
   await page.getByText(/forgot password/i).click();
 
+  // Wait until forgot-password page is ready before interacting with inputs
+  await page.waitForURL(/\/forgot-password/, { timeout: 15000 });
+
   // Fill email
-  const emailInput = page.locator('input[type="email"]');
+  const emailInput = page
+    .getByPlaceholder(/you@example\.com/i)
+    .or(page.locator('input[type="email"]'))
+    .first();
+  await expect(emailInput).toBeVisible();
   await emailInput.fill(email);
+  await expect(emailInput).toHaveValue(email);
 
   // Submit request
   const submitBtn = page.getByRole("button", {
     name: /send reset/i,
   });
+
+  await expect(submitBtn).toBeEnabled();
 
   await submitBtn.click();
 

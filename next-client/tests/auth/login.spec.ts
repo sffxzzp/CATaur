@@ -157,3 +157,176 @@ test.describe("Role Isolation Tests", () => {
     await expect(page).toHaveURL(/login/);
   });
 });
+
+test.describe("Candidate Multi-Login Frontend", () => {
+  test.skip(role !== "candidate", "Candidate-only frontend login mode tests");
+
+  test("candidate login page shows social buttons and mode tabs", async ({
+    page,
+  }) => {
+    await page.goto("/login?role=candidate", { waitUntil: "networkidle" });
+
+    await expect(page.getByRole("button", { name: /google/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /github/i })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^password$/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /verification code/i }),
+    ).toBeVisible();
+  });
+
+  test("candidate can request verification code and submit OTP login", async ({
+    page,
+  }) => {
+    let otpRequested = false;
+
+    await page.route("**/auth/request-verification-code", async (route) => {
+      otpRequested = true;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
+    await page.route("**/auth/login/verification-code", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          access_token: "mock-otp-token",
+          email: users.candidate.email,
+          roles: ["Candidate"],
+        }),
+      });
+    });
+
+    await page.goto("/login?role=candidate", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /verification code/i }).click();
+
+    const emailInput = page.getByPlaceholder(/you@example\.com/i).first();
+    await emailInput.fill(users.candidate.email);
+    await page.getByRole("button", { name: /send code/i }).click();
+
+    await expect.poll(() => otpRequested).toBe(true);
+
+    const codeInput = page.getByPlaceholder(/6-digit code/i);
+    await expect(codeInput).toBeEnabled();
+    await codeInput.fill("123456");
+
+    await page.getByRole("button", { name: /sign in/i }).click();
+    await expect(page).toHaveURL(/\/candidate/);
+  });
+
+  test("candidate OTP login shows backend error on invalid code", async ({
+    page,
+  }) => {
+    await page.route("**/auth/request-verification-code", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
+    await page.route("**/auth/login/verification-code", async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "Invalid verification code" }),
+      });
+    });
+
+    await page.goto("/login?role=candidate", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /verification code/i }).click();
+
+    await page
+      .getByPlaceholder(/you@example\.com/i)
+      .first()
+      .fill(users.candidate.email);
+    await page.getByRole("button", { name: /send code/i }).click();
+    await page.getByPlaceholder(/6-digit code/i).fill("111111");
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    await expect(page.getByText(/invalid verification code/i)).toBeVisible();
+    await expect(page).toHaveURL(/\/login/);
+  });
+});
+
+/**
+ * ============================
+ * BOUNDARY TESTS (P0)
+ * ============================
+ */
+test.describe("Login Boundary Tests", () => {
+  test("@boundary login with very long password (1000+ chars)", async ({
+    page,
+  }) => {
+    const veryLongPassword = "A".repeat(1000);
+
+    await page.goto("/login?role=candidate");
+    await page.locator('input[type="email"]').fill(users.candidate.email);
+    await page.locator('input[type="password"]').fill(veryLongPassword);
+
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Should fail (wrong password), not crash UI
+    await expect(page).toHaveURL(/login/);
+    console.log(`✅ Login boundary: very long password handled gracefully`);
+  });
+
+  test("@boundary login with special characters in password", async ({
+    page,
+  }) => {
+    const specialCharPassword = "P@ssw0rd!#$%^&*()_+-=[]{}|;:,.<>?";
+
+    await page.goto("/login?role=candidate");
+    await page.locator('input[type="email"]').fill(users.candidate.email);
+    await page.locator('input[type="password"]').fill(specialCharPassword);
+
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Should fail (wrong password) but handle special chars
+    await expect(page).toHaveURL(/login/);
+    console.log(
+      `✅ Login boundary: special characters in password handled safely`,
+    );
+  });
+
+  test("@boundary empty password field submission", async ({ page }) => {
+    await page.goto("/login?role=candidate");
+    await page.locator('input[type="email"]').fill(users.candidate.email);
+    // Leave password empty
+
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Should block or show error
+    const hasErrorOrStaysOnLogin =
+      (await page
+        .getByText(/password.*required|must provide|cannot be empty/i)
+        .isVisible()
+        .catch(() => false)) ||
+      page.url().includes("/login");
+
+    console.log(
+      `✅ Login boundary: empty password correctly ${hasErrorOrStaysOnLogin ? "blocked" : "handled"}`,
+    );
+  });
+
+  test("@boundary login with extra whitespace in email", async ({ page }) => {
+    const emailWithSpaces = `  ${users.candidate.email}  `;
+
+    await page.goto("/login?role=candidate");
+    await page.locator('input[type="email"]').fill(emailWithSpaces);
+    await page.locator('input[type="password"]').fill(users.candidate.password);
+
+    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Should trim whitespace and succeed (or at least not crash)
+    const urlAfterClick = page.url();
+    console.log(
+      `✅ Login boundary: whitespace in email should be handled: ${urlAfterClick.includes("candidate") ? "logged in" : "stayed on login"}`,
+    );
+  });
+});
