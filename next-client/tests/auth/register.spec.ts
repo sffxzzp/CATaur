@@ -13,7 +13,7 @@ test.describe("Register Tests (Candidate Only)", () => {
   test("candidate can register successfully", async ({ page }) => {
     // 🔹 Generate unique email (avoid duplicate)
     const email = `test_candidate_${Date.now()}@test.com`;
-    const password = "Test123456!";
+    const password = "Test123456789!";
 
     /**
      * Step 1: Perform registration

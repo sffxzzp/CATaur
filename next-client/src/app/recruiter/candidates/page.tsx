@@ -124,8 +124,21 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
             </div>
             <div className="space-y-1">
               <label className={lbl}>Phone *</label>
-              <input maxLength={100} type="tel" className={inp} placeholder="416-555-0100" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
-              {form.phone.length >= 100 && (
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={15}
+                className={inp}
+                placeholder="4165550100"
+                value={form.phone}
+                onChange={e =>
+                  setForm(f => ({
+                    ...f,
+                    phone: e.target.value.replace(/\D/g, "").slice(0, 15),
+                  }))
+                }
+              />
+              {form.phone.length >= 15 && (
                 <p className="text-xs text-[var(--error)]">Phone is too long</p>
               )}
             </div>

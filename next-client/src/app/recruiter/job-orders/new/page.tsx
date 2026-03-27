@@ -160,12 +160,12 @@ export default function NewJobOrderPage() {
               required
               className={inpClass}
               value={form.title}
-              maxLength={100}
+              maxLength={180}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g., Senior Full-stack Engineer"
             />
-            {form.title.length >= 100 && (
-              <p className="text-sm text-red-500">Job title cannot exceed 100 characters</p>
+            {form.title.length >= 180 && (
+              <p className="text-sm text-red-500">Job title cannot exceed 180 characters</p>
             )}
           </div>
 
