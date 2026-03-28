@@ -3,14 +3,14 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = !!process.env.CI;
 
-// 1) 默认本地跑这个地址
+// 1) defaultBaseURL
 const defaultBaseURL = "http://127.0.0.1:3001";
 
-// 2) 如果你想跑 staging，就在命令行传 PLAYWRIGHT_BASE_URL
-//    例如：PLAYWRIGHT_BASE_URL=https://staging.xxx.com npx playwright test
+// 2) If you want to run staging, just pass PLAYWRIGHT_BASE_URL in the command line.
+//    Example：PLAYWRIGHT_BASE_URL=https://staging.xxx.com npx playwright test
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || defaultBaseURL;
 
-// 3) 只要你设置了 PLAYWRIGHT_BASE_URL（比如 staging），就不启动本地 webServer
+// 3) As long as you set PLAYWRIGHT_BASE_URL (for example, staging), the local webServer will not be started.
 const shouldStartWebServer = !process.env.PLAYWRIGHT_BASE_URL;
 
 export default defineConfig({
@@ -37,10 +37,10 @@ export default defineConfig({
     navigationTimeout: 30_000,
   },
 
-  // ✅ 重点：本地/CI 自动启动 next-client 的 server；staging 不启动
+  // ✅ Key point: The local/CI automatically starts the server for the next-client; staging does not start.
   webServer: shouldStartWebServer
     ? {
-        // 本地：dev；CI：build + start（更稳）
+        // Local: dev; CI: build + start (more stable)
         command: isCI
           ? "npm run build && npm run start -- -p 3001"
           : "npm run dev -- --hostname 127.0.0.1 --port 3001",
@@ -52,7 +52,7 @@ export default defineConfig({
 
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    // 想省时间就先只跑 chromium
+    // Want to save time? Just run chromium
     // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
     // { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],

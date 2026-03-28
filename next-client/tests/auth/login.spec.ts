@@ -306,8 +306,7 @@ test.describe("Login Boundary Tests", () => {
       (await page
         .getByText(/password.*required|must provide|cannot be empty/i)
         .isVisible()
-        .catch(() => false)) ||
-      page.url().includes("/login");
+        .catch(() => false)) || page.url().includes("/login");
 
     console.log(
       `✅ Login boundary: empty password correctly ${hasErrorOrStaysOnLogin ? "blocked" : "handled"}`,

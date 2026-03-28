@@ -1,353 +1,483 @@
-2026-03-27 00:29:45,189 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
-2026-03-27 00:29:45,211 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
-2026-03-27 00:29:45,212 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: Version 5.6.3
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: java.version=21.0.10
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: os.name=Mac OS X
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: os.arch=aarch64
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: os.version=26.2
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: file.encoding=UTF-8
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: java.awt.headless=null
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: Max memory     =1073741824
-2026-03-27 00:29:45,215 INFO o.a.j.JMeter: Available Processors =10
-2026-03-27 00:29:45,221 INFO o.a.j.JMeter: Default Locale=English (EN)
-2026-03-27 00:29:45,221 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
-2026-03-27 00:29:45,221 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
-2026-03-27 00:29:45,221 INFO o.a.j.JMeter: user.dir  =/Users/carletts/CATaur/next-client
-2026-03-27 00:29:45,221 INFO o.a.j.JMeter: PWD       =/Users/carletts/CATaur/next-client
-2026-03-27 00:29:45,226 INFO o.a.j.JMeter: IP: 127.0.2.3 Name: Scarlett-2.local FullName: connectivity-check.warp-svc
-2026-03-27 00:29:45,233 INFO o.a.j.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties
-2026-03-27 00:29:46,476 INFO o.a.j.JMeterGuiLauncher: Setting LAF to: com.github.weisj.darklaf.DarkLaf:com.github.weisj.darklaf.theme.DarculaTheme
-2026-03-27 00:29:47,971 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.action.Command], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
-2026-03-27 00:29:48,038 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.plugin.MenuCreator], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
-2026-03-27 00:29:48,101 INFO o.j.r.JARSourceHTTP: Requesting https://jmeter-plugins.org/repo/?installID=mac_os_x-3fcfd10d7156b9ecf6626a57f4953c24-gui
-2026-03-27 00:29:49,148 INFO o.j.r.PluginManager: Plugins Status: [jpgc-plugins-manager=1.9, jmeter-core=5.6.3, jmeter-ftp=5.6.3, jmeter-http=5.6.3, jmeter-jdbc=5.6.3, jmeter-jms=5.6.3, jmeter-junit=5.6.3, jmeter-java=5.6.3, jmeter-ldap=5.6.3, jmeter-mail=5.6.3, jmeter-mongodb=5.6.3, jmeter-native=5.6.3, jmeter-tcp=5.6.3, jmeter-components=5.6.3]
-2026-03-27 00:29:49,149 INFO o.j.r.PluginManagerMenuItem: Plugins Manager has upgrades: [jpgc-plugins-manager]
-2026-03-27 00:30:05,327 INFO o.a.j.s.FileServer: Default base='/Users/carletts/CATaur/next-client'
-2026-03-27 00:30:05,335 INFO o.a.j.g.a.Load: Loading file: /Users/carletts/CATaur/performance-tests/jmeter/Thread Group-Auth APIs.jmx
-2026-03-27 00:30:05,335 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur/performance-tests/jmeter'
-2026-03-27 00:30:05,431 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
-2026-03-27 00:30:05,435 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
-2026-03-27 00:30:05,436 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
-2026-03-27 00:30:05,437 INFO o.a.j.s.SaveService: Loading file: /Users/carletts/CATaur/performance-tests/jmeter/Thread Group-Auth APIs.jmx
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
-2026-03-27 00:30:05,489 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
-2026-03-27 00:30:05,697 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
-2026-03-27 00:30:05,697 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
-2026-03-27 00:30:05,697 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
-2026-03-27 00:30:05,698 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
-2026-03-27 00:30:05,760 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.ResultRenderer], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
-2026-03-27 00:30:05,770 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.RequestView], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
-2026-03-27 00:30:05,793 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur/performance-tests/jmeter'
-2026-03-27 00:38:44,935 INFO o.a.j.e.StandardJMeterEngine: Running the test!
-2026-03-27 00:38:44,936 INFO o.a.j.s.SampleEvent: List of sample_variables: []
-2026-03-27 00:38:44,936 INFO o.a.j.s.SampleEvent: List of sample_variables: []
-2026-03-27 00:38:44,937 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
-2026-03-27 00:38:44,937 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
-2026-03-27 00:38:44,959 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
-2026-03-27 00:38:44,963 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
-2026-03-27 00:38:45,033 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
-2026-03-27 00:38:45,034 INFO o.a.j.e.StandardJMeterEngine: Starting 10 threads for group Thread Group-Auth APIs.
-2026-03-27 00:38:45,034 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
-2026-03-27 00:38:45,034 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=10 ramp-up=10 delayedStart=false
-2026-03-27 00:38:45,037 INFO o.a.j.t.ThreadGroup: Started thread group number 1
-2026-03-27 00:38:45,037 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
-2026-03-27 00:38:45,037 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
-2026-03-27 00:38:45,038 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:38:45,045 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = Scarlett-2.local
-2026-03-27 00:38:45,048 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
-2026-03-27 00:38:45,098 INFO o.a.j.p.h.s.h.LazyLayeredConnectionSocketFactory: Setting up HTTPS TrustAll Socket Factory
-2026-03-27 00:38:45,099 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
-2026-03-27 00:38:45,099 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
-2026-03-27 00:38:45,128 INFO o.a.j.u.SSLManager: JmeterKeyStore Location:  type JKS
-2026-03-27 00:38:45,128 INFO o.a.j.u.SSLManager: KeyStore created OK
-2026-03-27 00:38:45,128 WARN o.a.j.u.SSLManager: Keystore file not found, loading empty keystore
-2026-03-27 00:38:46,041 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-2
-2026-03-27 00:38:47,042 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-3
-2026-03-27 00:38:48,042 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-4
-2026-03-27 00:38:49,036 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-5
-2026-03-27 00:38:50,040 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-6
-2026-03-27 00:38:51,040 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-7
-2026-03-27 00:38:52,040 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-8
-2026-03-27 00:38:53,039 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-9
-2026-03-27 00:38:54,039 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-10
-2026-03-27 00:38:59,325 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
-2026-03-27 00:38:59,325 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
-2026-03-27 00:39:01,213 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-2
-2026-03-27 00:39:01,213 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-2
-2026-03-27 00:39:03,832 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-3
-2026-03-27 00:39:03,832 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-3
-2026-03-27 00:39:04,150 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-4
-2026-03-27 00:39:04,150 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-4
-2026-03-27 00:39:06,128 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-5
-2026-03-27 00:39:06,128 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-5
-2026-03-27 00:39:07,012 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-6
-2026-03-27 00:39:07,013 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-6
-2026-03-27 00:39:07,898 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-7
-2026-03-27 00:39:07,898 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-7
-2026-03-27 00:39:08,964 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-9
-2026-03-27 00:39:08,964 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-9
-2026-03-27 00:39:09,258 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-8
-2026-03-27 00:39:09,258 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-8
-2026-03-27 00:39:09,413 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-10
-2026-03-27 00:39:09,414 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-10
-2026-03-27 00:39:09,414 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
-2026-03-27 00:39:09,414 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:39:09,415 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
-2026-03-27 00:42:18,660 INFO o.a.j.e.StandardJMeterEngine: Running the test!
-2026-03-27 00:42:18,661 INFO o.a.j.s.SampleEvent: List of sample_variables: []
-2026-03-27 00:42:18,662 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
-2026-03-27 00:42:18,722 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
-2026-03-27 00:42:18,722 INFO o.a.j.e.StandardJMeterEngine: Starting 25 threads for group Thread Group-Auth APIs.
-2026-03-27 00:42:18,722 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
-2026-03-27 00:42:18,722 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=25 ramp-up=50 delayedStart=false
-2026-03-27 00:42:18,723 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
-2026-03-27 00:42:18,723 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:42:18,726 INFO o.a.j.t.ThreadGroup: Started thread group number 1
-2026-03-27 00:42:18,727 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
-2026-03-27 00:42:20,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-2
-2026-03-27 00:42:22,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-3
-2026-03-27 00:42:24,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-4
-2026-03-27 00:42:26,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-5
-2026-03-27 00:42:28,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-6
-2026-03-27 00:42:29,183 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
-2026-03-27 00:42:29,183 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
-2026-03-27 00:42:30,724 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-7
-2026-03-27 00:42:32,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-8
-2026-03-27 00:42:32,798 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-2
-2026-03-27 00:42:32,798 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-2
-2026-03-27 00:42:34,537 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-3
-2026-03-27 00:42:34,537 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-3
-2026-03-27 00:42:34,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-9
-2026-03-27 00:42:36,724 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-10
-2026-03-27 00:42:37,156 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-4
-2026-03-27 00:42:37,157 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-4
-2026-03-27 00:42:38,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-11
-2026-03-27 00:42:38,779 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-5
-2026-03-27 00:42:38,779 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-5
-2026-03-27 00:42:40,724 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-12
-2026-03-27 00:42:41,555 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-6
-2026-03-27 00:42:41,555 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-6
-2026-03-27 00:42:42,726 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-13
-2026-03-27 00:42:44,374 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-7
-2026-03-27 00:42:44,374 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-7
-2026-03-27 00:42:44,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-14
-2026-03-27 00:42:45,414 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-8
-2026-03-27 00:42:45,414 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-8
-2026-03-27 00:42:46,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-15
-2026-03-27 00:42:48,247 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-9
-2026-03-27 00:42:48,247 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-9
-2026-03-27 00:42:48,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-16
-2026-03-27 00:42:50,724 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-17
-2026-03-27 00:42:50,841 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-10
-2026-03-27 00:42:50,842 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-10
-2026-03-27 00:42:52,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-18
-2026-03-27 00:42:53,088 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-11
-2026-03-27 00:42:53,088 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-11
-2026-03-27 00:42:54,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-19
-2026-03-27 00:42:55,608 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-12
-2026-03-27 00:42:55,608 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-12
-2026-03-27 00:42:56,700 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-13
-2026-03-27 00:42:56,700 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-13
-2026-03-27 00:42:56,725 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-20
-2026-03-27 00:42:58,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-21
-2026-03-27 00:42:59,202 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-14
-2026-03-27 00:42:59,203 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-14
-2026-03-27 00:43:00,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-22
-2026-03-27 00:43:01,764 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-15
-2026-03-27 00:43:01,765 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-15
-2026-03-27 00:43:02,727 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-23
-2026-03-27 00:43:03,431 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-16
-2026-03-27 00:43:03,431 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-16
-2026-03-27 00:43:04,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-24
-2026-03-27 00:43:06,183 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-17
-2026-03-27 00:43:06,183 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-17
-2026-03-27 00:43:06,728 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-25
-2026-03-27 00:43:08,656 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-18
-2026-03-27 00:43:08,656 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-18
-2026-03-27 00:43:10,386 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-19
-2026-03-27 00:43:10,387 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-19
-2026-03-27 00:43:12,122 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-20
-2026-03-27 00:43:12,123 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-20
-2026-03-27 00:43:12,893 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-21
-2026-03-27 00:43:12,893 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-21
-2026-03-27 00:43:14,844 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-22
-2026-03-27 00:43:14,844 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-22
-2026-03-27 00:43:16,735 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-23
-2026-03-27 00:43:16,735 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-23
-2026-03-27 00:43:18,280 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-24
-2026-03-27 00:43:18,281 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-24
-2026-03-27 00:43:18,936 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-25
-2026-03-27 00:43:18,936 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-25
-2026-03-27 00:43:18,937 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
-2026-03-27 00:43:18,937 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:43:18,937 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
-2026-03-27 00:52:42,939 INFO o.a.j.e.StandardJMeterEngine: Running the test!
-2026-03-27 00:52:42,941 INFO o.a.j.s.SampleEvent: List of sample_variables: []
-2026-03-27 00:52:42,941 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
-2026-03-27 00:52:43,005 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Auth APIs
-2026-03-27 00:52:43,005 INFO o.a.j.e.StandardJMeterEngine: Starting 50 threads for group Thread Group-Auth APIs.
-2026-03-27 00:52:43,005 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
-2026-03-27 00:52:43,005 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=50 ramp-up=60 delayedStart=false
-2026-03-27 00:52:43,006 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-1
-2026-03-27 00:52:43,006 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:52:43,014 INFO o.a.j.t.ThreadGroup: Started thread group number 1
-2026-03-27 00:52:43,014 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
-2026-03-27 00:52:44,210 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-2
-2026-03-27 00:52:45,410 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-3
-2026-03-27 00:52:46,609 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-4
-2026-03-27 00:52:47,810 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-5
-2026-03-27 00:52:49,007 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-6
-2026-03-27 00:52:50,206 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-7
-2026-03-27 00:52:51,410 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-8
-2026-03-27 00:52:52,612 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-9
-2026-03-27 00:52:53,811 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-10
-2026-03-27 00:52:55,010 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-11
-2026-03-27 00:52:56,210 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-12
-2026-03-27 00:52:56,411 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-1
-2026-03-27 00:52:56,411 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-1
-2026-03-27 00:52:57,407 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-13
-2026-03-27 00:52:57,591 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-2
-2026-03-27 00:52:57,591 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-2
-2026-03-27 00:52:58,610 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-14
-2026-03-27 00:52:59,810 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-15
-2026-03-27 00:53:01,008 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-16
-2026-03-27 00:53:01,996 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-3
-2026-03-27 00:53:01,996 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-3
-2026-03-27 00:53:02,210 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-17
-2026-03-27 00:53:03,405 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-18
-2026-03-27 00:53:04,611 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-19
-2026-03-27 00:53:05,811 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-20
-2026-03-27 00:53:06,206 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-4
-2026-03-27 00:53:06,206 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-4
-2026-03-27 00:53:07,010 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-21
-2026-03-27 00:53:08,206 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-22
-2026-03-27 00:53:09,410 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-23
-2026-03-27 00:53:10,149 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-5
-2026-03-27 00:53:10,150 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-5
-2026-03-27 00:53:10,609 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-24
-2026-03-27 00:53:11,807 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-25
-2026-03-27 00:53:13,010 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-26
-2026-03-27 00:53:13,645 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-6
-2026-03-27 00:53:13,645 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-6
-2026-03-27 00:53:14,210 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-27
-2026-03-27 00:53:15,411 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-28
-2026-03-27 00:53:16,608 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-29
-2026-03-27 00:53:17,270 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-7
-2026-03-27 00:53:17,270 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-7
-2026-03-27 00:53:17,811 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-30
-2026-03-27 00:53:19,009 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-31
-2026-03-27 00:53:20,209 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-32
-2026-03-27 00:53:21,410 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-33
-2026-03-27 00:53:21,637 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-8
-2026-03-27 00:53:21,637 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-8
-2026-03-27 00:53:22,605 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-34
-2026-03-27 00:53:23,810 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-35
-2026-03-27 00:53:25,010 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-36
-2026-03-27 00:53:25,567 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-9
-2026-03-27 00:53:25,568 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-9
-2026-03-27 00:53:26,209 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-37
-2026-03-27 00:53:27,411 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-38
-2026-03-27 00:53:28,609 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-39
-2026-03-27 00:53:29,215 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-10
-2026-03-27 00:53:29,215 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-10
-2026-03-27 00:53:29,805 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-40
-2026-03-27 00:53:31,016 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-41
-2026-03-27 00:53:32,207 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-42
-2026-03-27 00:53:32,729 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-11
-2026-03-27 00:53:32,729 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-11
-2026-03-27 00:53:33,409 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-43
-2026-03-27 00:53:34,609 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-44
-2026-03-27 00:53:35,809 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-45
-2026-03-27 00:53:37,010 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-46
-2026-03-27 00:53:37,604 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-12
-2026-03-27 00:53:37,605 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-12
-2026-03-27 00:53:38,206 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-47
-2026-03-27 00:53:39,410 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-48
-2026-03-27 00:53:39,977 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-13
-2026-03-27 00:53:39,977 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-13
-2026-03-27 00:53:40,610 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-49
-2026-03-27 00:53:41,809 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Auth APIs 1-50
-2026-03-27 00:53:44,456 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-14
-2026-03-27 00:53:44,457 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-14
-2026-03-27 00:53:48,228 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-15
-2026-03-27 00:53:48,228 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-15
-2026-03-27 00:53:52,521 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-16
-2026-03-27 00:53:52,521 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-16
-2026-03-27 00:53:55,550 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-17
-2026-03-27 00:53:55,550 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-17
-2026-03-27 00:53:57,187 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-18
-2026-03-27 00:53:57,187 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-18
-2026-03-27 00:54:00,267 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-19
-2026-03-27 00:54:00,268 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-19
-2026-03-27 00:54:02,781 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-20
-2026-03-27 00:54:02,781 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-20
-2026-03-27 00:54:05,095 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-21
-2026-03-27 00:54:05,095 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-21
-2026-03-27 00:54:07,670 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-22
-2026-03-27 00:54:07,672 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-22
-2026-03-27 00:54:09,258 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-23
-2026-03-27 00:54:09,258 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-23
-2026-03-27 00:54:11,806 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-24
-2026-03-27 00:54:11,806 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-24
-2026-03-27 00:54:13,262 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-25
-2026-03-27 00:54:13,262 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-25
-2026-03-27 00:54:14,360 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-26
-2026-03-27 00:54:14,360 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-26
-2026-03-27 00:54:16,246 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-27
-2026-03-27 00:54:16,246 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-27
-2026-03-27 00:54:17,598 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-28
-2026-03-27 00:54:17,598 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-28
-2026-03-27 00:54:18,565 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-29
-2026-03-27 00:54:18,565 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-29
-2026-03-27 00:54:20,103 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-30
-2026-03-27 00:54:20,103 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-30
-2026-03-27 00:54:21,135 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-31
-2026-03-27 00:54:21,136 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-31
-2026-03-27 00:54:22,695 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-32
-2026-03-27 00:54:22,696 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-32
-2026-03-27 00:54:22,931 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-33
-2026-03-27 00:54:22,931 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-33
-2026-03-27 00:54:23,839 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-34
-2026-03-27 00:54:23,839 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-34
-2026-03-27 00:54:24,857 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-35
-2026-03-27 00:54:24,857 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-35
-2026-03-27 00:54:25,552 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-36
-2026-03-27 00:54:25,552 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-36
-2026-03-27 00:54:26,034 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-37
-2026-03-27 00:54:26,035 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-37
-2026-03-27 00:54:27,123 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-38
-2026-03-27 00:54:27,123 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-38
-2026-03-27 00:54:27,427 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-39
-2026-03-27 00:54:27,427 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-39
-2026-03-27 00:54:27,771 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-40
-2026-03-27 00:54:27,771 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-40
-2026-03-27 00:54:28,535 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-41
-2026-03-27 00:54:28,535 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-41
-2026-03-27 00:54:28,799 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-42
-2026-03-27 00:54:28,799 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-42
-2026-03-27 00:54:28,984 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-43
-2026-03-27 00:54:28,985 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-43
-2026-03-27 00:54:29,509 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-44
-2026-03-27 00:54:29,509 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-44
-2026-03-27 00:54:29,936 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-45
-2026-03-27 00:54:29,936 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-45
-2026-03-27 00:54:30,034 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-46
-2026-03-27 00:54:30,034 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-46
-2026-03-27 00:54:30,185 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-47
-2026-03-27 00:54:30,185 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-47
-2026-03-27 00:54:30,570 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-48
-2026-03-27 00:54:30,571 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-48
-2026-03-27 00:54:30,625 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-50
-2026-03-27 00:54:30,625 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-50
-2026-03-27 00:54:30,662 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Auth APIs 1-49
-2026-03-27 00:54:30,662 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Auth APIs 1-49
-2026-03-27 00:54:30,663 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
-2026-03-27 00:54:30,664 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/user.csv
-2026-03-27 00:54:30,664 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 10:44:54,251 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-03-28 10:44:54,272 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2026-03-28 10:44:54,273 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: Version 5.6.3
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: java.version=21.0.10
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: os.arch=aarch64
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: os.version=26.2
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: java.awt.headless=null
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-03-28 10:44:54,276 INFO o.a.j.JMeter: Available Processors =10
+2026-03-28 10:44:54,282 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-03-28 10:44:54,282 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-03-28 10:44:54,282 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2026-03-28 10:44:54,282 INFO o.a.j.JMeter: user.dir  =/Users/carletts/CATaur/next-client
+2026-03-28 10:44:54,282 INFO o.a.j.JMeter: PWD       =/Users/carletts/CATaur/next-client
+2026-03-28 10:44:54,287 INFO o.a.j.JMeter: IP: 127.0.2.3 Name: Scarlett-2.local FullName: connectivity-check.warp-svc
+2026-03-28 10:44:54,294 INFO o.a.j.JMeter: Loaded icon properties from org/apache/jmeter/images/icon.properties
+2026-03-28 10:44:55,073 INFO o.a.j.JMeterGuiLauncher: Setting LAF to: com.github.weisj.darklaf.DarkLaf:com.github.weisj.darklaf.theme.DarculaTheme
+2026-03-28 10:44:56,387 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.action.Command], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-28 10:44:56,454 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.gui.plugin.MenuCreator], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-28 10:44:56,531 INFO o.j.r.JARSourceHTTP: Requesting https://jmeter-plugins.org/repo/?installID=mac_os_x-7aad4679c13932d6474e36792d7f6808-gui
+2026-03-28 10:44:57,587 INFO o.j.r.PluginManager: Plugins Status: [jpgc-plugins-manager=1.9, jmeter-core=5.6.3, jmeter-ftp=5.6.3, jmeter-http=5.6.3, jmeter-jdbc=5.6.3, jmeter-jms=5.6.3, jmeter-junit=5.6.3, jmeter-java=5.6.3, jmeter-ldap=5.6.3, jmeter-mail=5.6.3, jmeter-mongodb=5.6.3, jmeter-native=5.6.3, jmeter-tcp=5.6.3, jmeter-components=5.6.3]
+2026-03-28 10:44:57,587 INFO o.j.r.PluginManagerMenuItem: Plugins Manager has upgrades: [jpgc-plugins-manager]
+2026-03-28 10:45:14,143 INFO o.a.j.s.FileServer: Default base='/Users/carletts/CATaur/next-client'
+2026-03-28 10:45:14,148 INFO o.a.j.g.a.Load: Loading file: /Users/carletts/CATaur/performance-tests/jmeter/Thread Group-Auth APIs.jmx
+2026-03-28 10:45:14,149 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur/performance-tests/jmeter'
+2026-03-28 10:45:14,242 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-03-28 10:45:14,245 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-03-28 10:45:14,246 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-03-28 10:45:14,247 INFO o.a.j.s.SaveService: Loading file: /Users/carletts/CATaur/performance-tests/jmeter/Thread Group-Auth APIs.jmx
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-03-28 10:45:14,298 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-03-28 10:45:14,487 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-03-28 10:45:14,487 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-03-28 10:45:14,487 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-03-28 10:45:14,487 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-03-28 10:45:14,564 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.ResultRenderer], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-28 10:45:14,575 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.visualizers.RequestView], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-28 10:45:14,600 INFO o.a.j.s.FileServer: Set new base='/Users/carletts/CATaur/performance-tests/jmeter'
+2026-03-28 10:57:23,504 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 10:57:23,505 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 10:57:23,505 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 10:57:23,506 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-03-28 10:57:23,506 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-03-28 10:57:23,527 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-03-28 10:57:23,531 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 10:57:23,596 INFO o.a.j.e.StandardJMeterEngine: No enabled thread groups found
+2026-03-28 10:57:23,596 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 10:57:23,597 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 10:57:28,913 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 10:57:28,914 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 10:57:28,914 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 10:57:28,942 INFO o.a.j.e.StandardJMeterEngine: No enabled thread groups found
+2026-03-28 10:57:28,943 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 10:57:28,943 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 10:57:40,735 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 10:57:40,736 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 10:57:40,737 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 10:57:40,765 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 10:57:40,765 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 10:57:40,765 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 10:57:40,765 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 10:57:40,768 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 10:57:40,768 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 10:57:40,770 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 10:57:40,771 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 10:57:40,780 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = Scarlett-2.local
+2026-03-28 10:57:40,783 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-03-28 10:57:40,839 INFO o.a.j.p.h.s.h.LazyLayeredConnectionSocketFactory: Setting up HTTPS TrustAll Socket Factory
+2026-03-28 10:57:40,840 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
+2026-03-28 10:57:40,840 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
+2026-03-28 10:57:40,872 INFO o.a.j.u.SSLManager: JmeterKeyStore Location:  type JKS
+2026-03-28 10:57:40,873 INFO o.a.j.u.SSLManager: KeyStore created OK
+2026-03-28 10:57:40,873 WARN o.a.j.u.SSLManager: Keystore file not found, loading empty keystore
+2026-03-28 10:57:42,782 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 10:57:42,782 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 10:57:42,784 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 10:57:42,784 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 10:57:42,784 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:16:13,691 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:16:13,693 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:16:13,693 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:16:13,736 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:16:13,736 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:16:13,736 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:16:13,736 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:16:13,737 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:16:13,737 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:16:13,737 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:16:13,737 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:16:15,761 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:16:15,761 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:16:15,762 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:16:15,762 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:16:15,762 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:35:25,522 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:35:25,524 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:35:25,525 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:35:25,629 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:35:25,630 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:35:25,630 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:35:25,630 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:35:25,632 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:35:25,632 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:35:25,632 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:35:25,633 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:35:27,544 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:35:27,544 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:35:27,545 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:35:27,545 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:35:27,545 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:36:26,272 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:36:26,273 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:36:26,274 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:36:26,321 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:36:26,322 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:36:26,322 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:36:26,322 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:36:26,323 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:36:26,323 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:36:26,323 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:36:26,324 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:36:28,210 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:36:28,210 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:36:28,210 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:36:28,210 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:36:28,210 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:38:58,889 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:38:58,891 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:38:58,892 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:38:58,953 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:38:58,954 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:38:58,954 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:38:58,954 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:38:58,954 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:38:58,954 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:38:58,954 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:38:58,955 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:39:00,069 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:39:00,069 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:39:00,070 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:39:00,070 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:39:00,070 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:49:12,234 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:49:12,236 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:49:12,237 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:49:12,277 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:49:12,277 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:49:12,277 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:49:12,277 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:49:12,277 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:49:12,277 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:49:12,278 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:49:12,278 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:49:13,401 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:49:13,402 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:49:13,402 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:49:13,402 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:49:13,402 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:50:26,210 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:50:26,212 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:50:26,212 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:50:26,262 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:50:26,262 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:50:26,262 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:50:26,262 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:50:26,263 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:50:26,263 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:50:26,263 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:26,263 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:50:27,324 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:27,324 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:27,324 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:50:27,325 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:50:27,325 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:50:36,854 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:50:36,854 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:50:36,855 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:50:36,884 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:50:36,884 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:50:36,884 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:50:36,884 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:50:36,885 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:50:36,885 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:50:36,885 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:36,885 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:50:37,807 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:37,807 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:50:37,807 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:50:37,808 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:50:37,808 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:52:22,605 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:52:22,606 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:52:22,607 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:52:22,652 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:52:22,652 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:52:22,652 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:52:22,652 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:52:22,653 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:52:22,653 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:52:22,653 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:52:22,654 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:52:23,812 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:52:23,812 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:52:23,812 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:52:23,812 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:52:23,812 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:54:24,874 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:54:24,875 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:54:24,875 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:54:24,912 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:54:24,913 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:54:24,913 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:54:24,913 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:54:24,917 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:54:24,917 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:54:24,918 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:54:24,918 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:54:26,120 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:54:26,120 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:54:26,121 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:54:26,121 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:54:26,121 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 11:56:55,489 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 11:56:55,490 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 11:56:55,490 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 11:56:55,533 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 11:56:55,533 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 11:56:55,533 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 11:56:55,534 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 11:56:55,534 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 11:56:55,534 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 11:56:55,534 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:56:55,535 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:56:56,643 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:56:56,643 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 11:56:56,644 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 11:56:56,644 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 11:56:56,644 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:01:26,249 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:01:26,253 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:01:26,255 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:01:26,332 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 12:01:26,332 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 12:01:26,332 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:01:26,333 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:01:26,337 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:01:26,338 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:01:26,338 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:01:26,340 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:01:27,630 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:01:27,630 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:01:27,630 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:01:27,630 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:01:27,630 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:03:09,044 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:03:09,045 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:03:09,046 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:03:09,081 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 12:03:09,082 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 12:03:09,082 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:03:09,082 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:03:09,082 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:03:09,082 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:03:09,083 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:03:09,083 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:03:10,377 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:03:10,377 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:03:10,378 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:03:10,378 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:03:10,378 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:06:22,522 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:06:22,524 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:06:22,524 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:06:22,591 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Recruiter APIs (recruiter account)
+2026-03-28 12:06:22,591 INFO o.a.j.e.StandardJMeterEngine: Starting 5 threads for group Thread Group-Recruiter APIs (recruiter account).
+2026-03-28 12:06:22,591 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:06:22,591 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=5 ramp-up=10 delayedStart=false
+2026-03-28 12:06:22,592 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:06:22,593 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:06:22,593 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:06:22,593 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:06:24,595 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-2
+2026-03-28 12:06:26,595 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-3
+2026-03-28 12:06:28,598 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-4
+2026-03-28 12:06:30,595 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Recruiter APIs (recruiter account) 1-5
+2026-03-28 12:06:42,266 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:06:42,267 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-1
+2026-03-28 12:06:43,973 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-2
+2026-03-28 12:06:43,973 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-2
+2026-03-28 12:06:45,763 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-3
+2026-03-28 12:06:45,763 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-3
+2026-03-28 12:06:47,757 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-4
+2026-03-28 12:06:47,757 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-4
+2026-03-28 12:06:50,460 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Recruiter APIs (recruiter account) 1-5
+2026-03-28 12:06:50,460 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Recruiter APIs (recruiter account) 1-5
+2026-03-28 12:06:50,461 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:06:50,461 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:06:50,461 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:22:47,537 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:22:47,539 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:22:47,539 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:22:47,630 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Application APIs
+2026-03-28 12:22:47,631 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Application APIs.
+2026-03-28 12:22:47,631 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:22:47,631 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:22:47,631 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:22:47,631 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:22:47,631 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Application APIs 1-1
+2026-03-28 12:22:47,632 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:22:49,314 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Application APIs 1-1
+2026-03-28 12:22:49,314 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Application APIs 1-1
+2026-03-28 12:22:49,314 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:22:49,314 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:22:49,314 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:23:14,798 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:23:14,799 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:23:14,800 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:23:14,838 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Application APIs
+2026-03-28 12:23:14,838 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Application APIs.
+2026-03-28 12:23:14,838 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:23:14,838 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:23:14,839 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:23:14,839 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:23:14,839 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Application APIs 1-1
+2026-03-28 12:23:14,839 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:23:16,328 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Application APIs 1-1
+2026-03-28 12:23:16,328 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Application APIs 1-1
+2026-03-28 12:23:16,328 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:23:16,328 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:23:16,328 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:23:42,036 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:23:42,037 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:23:42,038 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:23:42,062 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Application APIs
+2026-03-28 12:23:42,062 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Application APIs.
+2026-03-28 12:23:42,063 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:23:42,063 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:23:42,063 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:23:42,063 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:23:42,063 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Application APIs 1-1
+2026-03-28 12:23:42,063 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:23:43,674 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Application APIs 1-1
+2026-03-28 12:23:43,674 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Application APIs 1-1
+2026-03-28 12:23:43,674 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:23:43,674 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:23:43,675 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:35:34,579 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:35:34,580 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:35:34,580 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:35:34,643 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Candidate APIs (candidate account)
+2026-03-28 12:35:34,643 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Candidate APIs (candidate account).
+2026-03-28 12:35:34,643 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:35:34,643 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:35:34,644 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:35:34,644 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:35:34,644 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:34,644 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:35:36,626 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:36,626 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:36,626 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:35:36,626 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:35:36,627 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:35:41,518 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:35:41,519 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:35:41,519 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:35:41,547 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Candidate APIs (candidate account)
+2026-03-28 12:35:41,547 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Candidate APIs (candidate account).
+2026-03-28 12:35:41,547 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:35:41,547 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:35:41,548 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:35:41,548 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:35:41,548 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:41,548 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:35:43,698 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:43,698 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 12:35:43,699 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:35:43,699 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:35:43,699 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:37:25,607 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:37:25,609 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:37:25,609 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-User APIs
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-User APIs.
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:37:25,656 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:37:25,656 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 2 : Thread Group-Candidate APIs (candidate account)
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Candidate APIs (candidate account).
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:37:25,656 INFO o.a.j.t.ThreadGroup: Starting thread group... number=2 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:37:25,656 INFO o.a.j.t.ThreadGroup: Started thread group number 2
+2026-03-28 12:37:25,656 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:37:25,657 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-User APIs 1-1
+2026-03-28 12:37:25,657 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:37:25,657 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:37:26,850 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-User APIs 1-1
+2026-03-28 12:37:26,850 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-User APIs 1-1
+2026-03-28 12:37:27,758 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:37:27,758 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:37:27,759 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:37:27,759 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:37:27,759 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:56:32,990 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:56:32,991 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:56:32,992 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:56:33,080 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-User APIs
+2026-03-28 12:56:33,080 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-User APIs.
+2026-03-28 12:56:33,080 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:56:33,080 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:56:33,081 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:56:33,081 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 2 : Thread Group-Candidate APIs (candidate account)
+2026-03-28 12:56:33,081 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Candidate APIs (candidate account).
+2026-03-28 12:56:33,081 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:56:33,081 INFO o.a.j.t.ThreadGroup: Starting thread group... number=2 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:56:33,081 INFO o.a.j.t.ThreadGroup: Started thread group number 2
+2026-03-28 12:56:33,082 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:56:33,081 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-User APIs 1-1
+2026-03-28 12:56:33,082 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:56:33,082 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:56:33,965 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-User APIs 1-1
+2026-03-28 12:56:33,965 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-User APIs 1-1
+2026-03-28 12:56:35,189 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:56:35,189 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Candidate APIs (candidate account) 2-1
+2026-03-28 12:56:35,190 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:56:35,190 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:56:35,190 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 12:57:28,629 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 12:57:28,631 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 12:57:28,632 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 12:57:28,718 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-User APIs
+2026-03-28 12:57:28,724 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-User APIs.
+2026-03-28 12:57:28,724 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 12:57:28,725 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 12:57:28,727 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 12:57:28,729 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 12:57:28,729 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-User APIs 1-1
+2026-03-28 12:57:28,730 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:57:29,432 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-User APIs 1-1
+2026-03-28 12:57:29,432 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-User APIs 1-1
+2026-03-28 12:57:29,433 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 12:57:29,433 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 12:57:29,433 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 13:01:15,590 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 13:01:15,591 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 13:01:15,591 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 13:01:15,637 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread Group-Candidate APIs (candidate account)
+2026-03-28 13:01:15,638 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread Group-Candidate APIs (candidate account).
+2026-03-28 13:01:15,638 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 13:01:15,638 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 13:01:15,638 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 13:01:15,638 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 13:01:15,639 INFO o.a.j.t.JMeterThread: Thread started: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 13:01:15,639 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 13:01:17,549 INFO o.a.j.t.JMeterThread: Thread is done: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 13:01:17,550 INFO o.a.j.t.JMeterThread: Thread finished: Thread Group-Candidate APIs (candidate account) 1-1
+2026-03-28 13:01:17,550 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 13:01:17,550 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 13:01:17,550 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
+2026-03-28 13:05:49,654 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-03-28 13:05:49,656 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-03-28 13:05:49,656 INFO o.a.j.g.u.JMeterMenuBar: setRunning(true, *local*)
+2026-03-28 13:05:49,729 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Thread recuiter/Group-Application APIs
+2026-03-28 13:05:49,729 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Thread recuiter/Group-Application APIs.
+2026-03-28 13:05:49,730 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-03-28 13:05:49,730 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-03-28 13:05:49,730 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-03-28 13:05:49,730 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-03-28 13:05:49,730 INFO o.a.j.t.JMeterThread: Thread started: Thread recuiter/Group-Application APIs 1-1
+2026-03-28 13:05:49,731 INFO o.a.j.s.FileServer: Stored: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 13:05:51,194 INFO o.a.j.t.JMeterThread: Thread is done: Thread recuiter/Group-Application APIs 1-1
+2026-03-28 13:05:51,194 INFO o.a.j.t.JMeterThread: Thread finished: Thread recuiter/Group-Application APIs 1-1
+2026-03-28 13:05:51,194 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-03-28 13:05:51,194 INFO o.a.j.s.FileServer: Close: /Users/carletts/CATaur/performance-tests/jmeter/recruiter-users.csv
+2026-03-28 13:05:51,194 INFO o.a.j.g.u.JMeterMenuBar: setRunning(false, *local*)
