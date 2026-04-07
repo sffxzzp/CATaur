@@ -25,3 +25,11 @@ http://manager.kawaiimonkey.top {
 http://client.kawaiimonkey.top {
   reverse_proxy frontend:3000
 }
+
+http://candidate.aurora-forge-digital.com {
+  reverse_proxy frontend:3000
+}
+
+http://manager.aurora-forge-digital.com {
+  reverse_proxy frontend:3000
+}
