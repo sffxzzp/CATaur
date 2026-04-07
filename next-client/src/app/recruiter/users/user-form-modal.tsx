@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Eye, EyeOff, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { X, Eye, EyeOff, Loader2 } from "lucide-react";
 
 /* ─── Types ───────────────────────────────────────────────────────────────── */
 export type Role = "Recruiter" | "Client" | "Admin";
@@ -55,8 +55,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
     const [form, setForm] = useState<UserFormData>(emptyForm());
     const [showPw, setShowPw] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
-    const [serverError, setServerError] = useState<string | null>(null);
-    const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Sync form whenever the modal opens or switches mode
@@ -76,8 +74,6 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
             setForm(emptyForm());
         }
         setErrors({});
-        setServerError(null);
-        setSuccessMsg(null);
         setIsSubmitting(false);
         setShowPw(false);
     }, [state]);
@@ -98,19 +94,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
 
     const handleSubmit = async (ev: React.FormEvent) => {
         ev.preventDefault();
-        setServerError(null);
-        setSuccessMsg(null);
         if (!validate()) return;
 
         setIsSubmitting(true);
         try {
             await onSaved(form, editingId);
-            setSuccessMsg(editingId ? "User updated successfully!" : "User created successfully!");
             setTimeout(() => {
                 onClose();
             }, 1000);
         } catch (err: any) {
-            setServerError(err.message ?? "An error occurred while saving.");
+            console.error(err.message ?? "An error occurred while saving.");
         } finally {
             setIsSubmitting(false);
         }
@@ -133,31 +126,22 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
 
-                        {serverError && (
-                            <div className="flex items-start gap-2 rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200">
-                                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                                <span className="flex-1">{serverError}</span>
-                            </div>
-                        )}
-
-                        {successMsg && (
-                            <div className="flex items-center gap-2 rounded-md bg-green-50 p-3 text-sm font-medium text-green-700 border border-green-200">
-                                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                                {successMsg}
-                            </div>
-                        )}
-
                         {/* Account Name */}
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">
                                 Account Name <span className="text-red-500">*</span>
                             </label>
                             <input
+                                type="text"
+                                maxLength={100}
                                 value={form.accountName}
                                 onChange={e => setForm({ ...form, accountName: e.target.value })}
                                 className={inputCls(errors.accountName)}
                                 placeholder="e.g. Jane Smith"
                             />
+                            {form.accountName.length >= 100 && (
+                                <p className="text-xs text-red-500">Account name cannot exceed 100 characters</p>
+                            )}
                             {errors.accountName && <p className="text-xs text-red-500">{errors.accountName}</p>}
                         </div>
 
@@ -183,12 +167,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                                 Email <span className="text-red-500">*</span>
                             </label>
                             <input
+                                maxLength={100}
                                 type="email"
                                 value={form.email}
                                 onChange={e => setForm({ ...form, email: e.target.value })}
                                 className={inputCls(errors.email)}
                                 placeholder="user@example.com"
                             />
+                            {form.email.length >= 100 && (
+                                <p className="text-xs text-red-500">Email cannot exceed 100 characters</p>
+                            )}
                             {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
                         </div>
 
@@ -196,12 +184,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
                             <input
+                                maxLength={15}
                                 type="tel"
                                 value={form.phone}
                                 onChange={e => setForm({ ...form, phone: e.target.value })}
                                 className={inputCls()}
                                 placeholder="+1 416-555-0000"
                             />
+                            {form.phone.length >= 15 && (
+                                <p className="text-xs text-red-500">Phone number cannot exceed 15 characters</p>
+                            )}
                         </div>
 
                         {/* Status toggle */}
@@ -229,12 +221,16 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                             </label>
                             <div className="relative">
                                 <input
+                                    maxLength={100}
                                     type={showPw ? "text" : "password"}
                                     value={form.password}
                                     onChange={e => setForm({ ...form, password: e.target.value })}
                                     className={inputCls(errors.password) + " pr-10"}
                                     placeholder={editingId ? (form.password ? "" : "No password on record") : "••••••••"}
                                 />
+                                {form.password.length >= 100 && (
+                                    <p className="text-xs text-red-500">Password cannot exceed 100 characters</p>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setShowPw(v => !v)}
@@ -252,10 +248,10 @@ export default function UserFormModal({ state, onClose, onSaved }: Props) {
                             className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] shadow-[var(--shadow-sm)] hover:bg-[var(--gray-50)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isSubmitting || !!successMsg}
+                        <button type="submit" disabled={isSubmitting}
                             className="flex items-center gap-2 rounded-md border border-transparent bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white shadow-[var(--shadow-sm)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {successMsg ? "Saved" : "Confirm"}
+                            Confirm
                         </button>
                     </div>
                 </form>

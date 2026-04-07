@@ -648,12 +648,17 @@ export default function RecruiterJobOrdersPage() {
                   <label className="text-sm font-medium text-[var(--gray-700)]">
                     Job Title <span className="text-red-500">*</span>
                   </label>
+                  {/* todo: 当达到100个字符时，给出提示  */}
                   <input
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.title}
+                    maxLength={100}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                   />
+                  {editForm.title.length >= 100 && (
+                    <p className="text-sm text-red-500">Job title cannot exceed 100 characters</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -700,23 +705,31 @@ export default function RecruiterJobOrdersPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Department</label>
                   <input
+                    maxLength={100}
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.department}
                     onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
                     placeholder="e.g., Engineering"
                   />
+                  {editForm.department.length >= 100 && (
+                    <p className="text-sm text-red-500">Department cannot exceed 100 characters</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Salary</label>
                   <input
+                    maxLength={50}
                     type="text"
                     className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                     value={editForm.salary}
                     onChange={(e) => setEditForm({ ...editForm, salary: e.target.value })}
                     placeholder="e.g., $120k - $150k"
                   />
+                  {editForm.salary.length >= 50 && (
+                    <p className="text-sm text-red-500">Salary cannot exceed 50 characters</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -761,13 +774,20 @@ export default function RecruiterJobOrdersPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-[var(--gray-700)]">Description</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-[var(--gray-700)]">Description</label>
+                  <span className="text-xs text-[var(--gray-500)]">{editForm.description.length} / 8000</span>
+                </div>
                 <textarea
+                  maxLength={8000}
                   className="w-full min-h-[200px] resize-y rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]"
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   placeholder="Job description..."
                 />
+                {editForm.description.length >= 8000 && (
+                  <p className="text-sm text-red-500">Description cannot exceed 8000 characters</p>
+                )}
               </div>
             </div>
 

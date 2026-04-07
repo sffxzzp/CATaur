@@ -160,9 +160,13 @@ export default function NewJobOrderPage() {
               required
               className={inpClass}
               value={form.title}
+              maxLength={180}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g., Senior Full-stack Engineer"
             />
+            {form.title.length >= 180 && (
+              <p className="text-sm text-red-500">Job title cannot exceed 180 characters</p>
+            )}
           </div>
 
           {/* Left Column */}
@@ -208,10 +212,14 @@ export default function NewJobOrderPage() {
               <label className={labelClass}>Department</label>
               <input
                 className={inpClass}
+                maxLength={100}
                 value={form.department}
                 onChange={(e) => setForm({ ...form, department: e.target.value })}
                 placeholder="e.g., Engineering"
               />
+              {form.department.length >= 100 && (
+                <p className="text-sm text-red-500">Department cannot exceed 100 characters</p>
+              )}
             </div>
 
             <div>
@@ -221,10 +229,14 @@ export default function NewJobOrderPage() {
               </label>
               <input
                 className={inpClass}
+                maxLength={50}
                 value={form.salary}
                 onChange={(e) => setForm({ ...form, salary: e.target.value })}
                 placeholder="e.g., $120k - $150k"
               />
+              {form.salary.length >= 50 && (
+                <p className="text-sm text-red-500">Salary cannot exceed 50 characters</p>
+              )}
             </div>
           </div>
 
@@ -290,6 +302,9 @@ export default function NewJobOrderPage() {
             <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-2 mb-2">
               <label className="text-sm font-semibold text-[var(--gray-800)] flex items-center gap-2">
                 Description
+                <span className="text-xs font-normal text-[var(--gray-500)] ml-2">
+                  {form.description.length} / 8000
+                </span>
               </label>
               <div className="flex gap-1 bg-[var(--gray-50)] p-1 rounded-md border border-[var(--border)]">
                 <button
@@ -316,6 +331,7 @@ export default function NewJobOrderPage() {
             <div className="rounded-md border border-[var(--border)] overflow-hidden bg-[var(--surface)] transition-all">
               {activeTab === "edit" ? (
                 <textarea
+                  maxLength={8000}
                   className="w-full min-h-[400px] resize-y bg-transparent px-4 py-4 text-sm font-mono text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -325,6 +341,9 @@ export default function NewJobOrderPage() {
                 <div className="w-full min-h-[400px] prose prose-sm prose-blue dark:prose-invert max-w-none px-6 py-4">
                   <ReactMarkdown>{form.description || "*No description provided yet.*"}</ReactMarkdown>
                 </div>
+              )}
+              {form.description.length >= 8000 && (
+                <p className="text-sm text-red-500">Description cannot exceed 8000 characters</p>
               )}
             </div>
           </div>

@@ -87,12 +87,12 @@ export type Application = {
   updatedAt: string;
   jobOrder?: JobOrder;
   candidate?: User & {
-    candidate?: {
+    candidateProfile?: {
       resumeUrl: string | null;
       portfolioUrl: string | null;
-      currentLocationCountry: string | null;
-      currentLocationState: string | null;
-      currentLocationCity: string | null;
+      locationCountry: string | null;
+      locationState: string | null;
+      locationCity: string | null;
       noticePeriod: number | null;
       availableDate: string | null;
       profileStatus: string | null;

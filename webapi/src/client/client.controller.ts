@@ -21,19 +21,29 @@ import { createPaginatedResponseDto, PaginatedResponse } from '../common/dto/pag
 import { createApiResponseDto } from '../common/dto/api-response.dto';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
+import { ClientDashboardResponseDto } from '../dashboard/dto/client-dashboard-response.dto';
+import { ClientJobOrder, ClientJobOrderDetail } from './dto/client-job-order.dto';
+import { ClientApplication } from './dto/client-candidate.dto';
+import { ClientDecisionsResponseDto } from './dto/client-decisions.dto';
 
-const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(JobOrder);
-const PaginatedApplicationsResponseDto = createPaginatedResponseDto(Application);
+const PaginatedJobOrdersResponseDto = createPaginatedResponseDto(ClientJobOrder);
+const PaginatedApplicationsResponseDto = createPaginatedResponseDto(ClientApplication);
 const JobOrderResponseDto = createApiResponseDto(JobOrder);
+const JobOrderDetailResponseDto = createApiResponseDto(ClientJobOrderDetail);
 const ApplicationResponseDto = createApiResponseDto(Application);
 
 @ApiTags('client')
 @ApiExtraModels(
     PaginatedJobOrdersResponseDto,
     PaginatedApplicationsResponseDto,
+    ClientJobOrder,
+    ClientJobOrderDetail,
+    ClientApplication,
+    ClientDecisionsResponseDto,
     JobOrder,
     Application,
     JobOrderResponseDto,
+    JobOrderDetailResponseDto,
     ApplicationResponseDto,
 )
 @Controller('client')
@@ -48,7 +58,7 @@ export class ClientController {
         private companiesRepository: Repository<Company>,
         private reportsService: ReportsService,
         private dashboardService: DashboardService,
-    ) {}
+    ) { }
 
     /** Resolve all company IDs this client user belongs to */
     private async getCompanyIds(user: User): Promise<string[]> {
@@ -65,7 +75,6 @@ export class ClientController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
-    @ApiQuery({ name: 'statuses', required: false, isArray: true })
     @ApiQuery({ name: 'search', required: false })
     @ApiOkResponse({ type: PaginatedJobOrdersResponseDto })
     async listOrders(
@@ -73,76 +82,133 @@ export class ClientController {
         @Query('page') page = '1',
         @Query('limit') limit = '20',
         @Query('status') status?: string,
-        @Query('statuses') statusesRaw?: string | string[],
-        @Query('search') search?: string,
-    ): Promise<PaginatedResponse<JobOrder>> {
+    ): Promise<PaginatedResponse<ClientJobOrder>> {
         const companyIds = await this.getCompanyIds(user);
-        if (!companyIds.length) return { data: [], total: 0, page: 1, limit: 20, totalPages: 0 };
+        const role = user.roles?.[0]?.role;
+        const result = await this.jobOrdersService.findAll(
+            { companyIds, role },
+            {
+                page: +page,
+                limit: +limit,
+                status: status || undefined,
+            },
+        );
 
-        let statuses: string[] | undefined;
-        if (Array.isArray(statusesRaw)) {
-            statuses = statusesRaw;
-        } else if (typeof statusesRaw === 'string') {
-            statuses = statusesRaw.split(',');
-        }
-        if (statuses) {
-            statuses = statuses.map((s) => s.trim()).filter(Boolean);
-            if (!statuses.length) statuses = undefined;
-        }
-
-        return this.jobOrdersService.findAll({ companyIds }, {
-            page: +page,
-            limit: +limit,
-            status,
-            statuses,
-            search,
-        });
+        return {
+            ...result,
+            data: result.data.map((jo: any) => ({
+                id: jo.id,
+                title: jo.title,
+                locationCountry: jo.locationCountry,
+                locationState: jo.locationState,
+                locationCity: jo.locationCity,
+                employmentType: jo.employmentType,
+                status: jo.status,
+                candidateCount: jo.applicants || 0,
+                createdAt: jo.createdAt,
+            })),
+        };
     }
 
     @Get('orders/:id')
     @ApiOperation({ summary: "Get a job order's details" })
-    @ApiOkResponse({ type: JobOrderResponseDto })
-    async getOrder(@GetUser() user: User, @Param('id') id: string): Promise<JobOrder> {
+    @ApiOkResponse({ type: ClientJobOrderDetail })
+    async getOrder(@GetUser() user: User, @Param('id') id: string): Promise<ClientJobOrderDetail> {
         const companyIds = await this.getCompanyIds(user);
         const jo = await this.jobOrdersService.findOne(id);
         if (!companyIds.includes(jo.companyId ?? '')) {
             throw new NotFoundException('Not found');
         }
-        return jo;
+        const submitted = await this.applicationsService.countByJobOrderId(id);
+        return {
+            ...jo,
+            submitted,
+        } as ClientJobOrderDetail;
     }
 
-    // ── Candidates ────────────────────────────────────────────────────────
-    @Get('candidates')
-    @ApiOperation({ summary: "List candidates for this client's orders" })
+    // ── Applications ────────────────────────────────────────────────────────
+    @Get('applications')
+    @ApiOperation({ summary: "List applications for this client's orders" })
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiQuery({ name: 'status', required: false })
     @ApiQuery({ name: 'jobOrderId', required: false })
-    @ApiQuery({ name: 'search', required: false })
+    @ApiQuery({ name: 'candidateNameOrJobTitle', required: false })
     @ApiOkResponse({ type: PaginatedApplicationsResponseDto })
-    async listCandidates(
+    async listApplications(
         @GetUser() user: User,
         @Query('page') page = '1',
         @Query('limit') limit = '20',
         @Query('status') status?: string,
         @Query('jobOrderId') jobOrderId?: string,
-        @Query('search') search?: string,
-    ): Promise<PaginatedResponse<Application>> {
+        @Query('candidateNameOrJobTitle') candidateNameOrJobTitle?: string,
+    ): Promise<PaginatedResponse<ClientApplication>> {
         const companyIds = await this.getCompanyIds(user);
-        return this.applicationsService.findAll({ companyIds }, {
-            page: +page, limit: +limit, status, jobOrderId, search,
-        });
+        const role = user.roles?.[0]?.role;
+        const result = await this.applicationsService.findAll(
+            { companyIds, role },
+            {
+                page: +page,
+                limit: +limit,
+                status: status || undefined,
+                jobOrderId: jobOrderId || undefined,
+                candidateNameOrJobTitle: candidateNameOrJobTitle || undefined,
+            },
+        );
+
+        return {
+            ...result,
+            data: result.data.map((app: any) => ({
+                id: app.id,
+                candidate: {
+                    user: app.candidate,
+                },
+                jobTitle: app.jobOrder?.title,
+                status: app.status,
+                createdAt: app.createdAt,
+                locationCountry: app.locationCountry,
+                locationState: app.locationState,
+                locationCity: app.locationCity,
+            })),
+        };
     }
 
-    @Get('candidates/:id')
-    @ApiOperation({ summary: "Get candidate application detail" })
+    @Get('decisions')
+    @ApiOperation({ summary: "List candidates for decision making with stats" })
+    @ApiQuery({ name: 'page', required: false })
+    @ApiQuery({ name: 'limit', required: false })
+    @ApiQuery({ name: 'jobId', required: false })
+    @ApiQuery({ name: 'candidateNameOrJobOrderTitle', required: false })
+    @ApiOkResponse({ type: ClientDecisionsResponseDto })
+    async decisions(
+        @GetUser() user: User,
+        @Query('page') page = '1',
+        @Query('limit') limit = '20',
+        @Query('jobId') jobId?: string,
+        @Query('candidateNameOrJobOrderTitle') candidateNameOrJobOrderTitle?: string,
+    ): Promise<ClientDecisionsResponseDto> {
+        const companyIds = await this.getCompanyIds(user);
+        const role = user.roles?.[0]?.role;
+        return this.applicationsService.findDecisions(
+            { companyIds, role },
+            {
+                page: +page,
+                limit: +limit,
+                jobOrderId: jobId || undefined,
+                candidateNameOrJobTitle: candidateNameOrJobOrderTitle || undefined,
+            },
+        );
+    }
+
+    @Get('applications/:id')
+    @ApiOperation({ summary: "Get application detail" })
     @ApiOkResponse({ type: ApplicationResponseDto })
-    async getCandidate(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
+    async getApplication(@GetUser() user: User, @Param('id') id: string): Promise<Application> {
         const companyIds = await this.getCompanyIds(user);
         return this.applicationsService.findOne(id, { companyIds });
     }
 
-    @Patch('candidates/:id/decision')
+    @Patch('applications/:id/decision')
     @AuditLog('submit candidate decision')
     @ApiOperation({ summary: 'Submit a hiring decision (request-offer / pass / hold)' })
     @ApiOkResponse({ type: ApplicationResponseDto })
@@ -161,7 +227,8 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' } } } })
     async reportJobOrders(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getJobOrderStats({ companyIds });
+        const role = user.roles?.[0]?.role;
+        return this.reportsService.getJobOrderStats({ companyIds, role });
     }
 
     @Get('reports/applications')
@@ -169,24 +236,15 @@ export class ClientController {
     @ApiOkResponse({ schema: { type: 'object', properties: { total: { type: 'number' }, byStatus: { type: 'object' }, bySource: { type: 'object' } } } })
     async reportApplications(@GetUser() user: User): Promise<{ total: number; byStatus: Record<string, number>; bySource: Record<string, number> }> {
         const companyIds = await this.getCompanyIds(user);
-        return this.reportsService.getApplicationStats({ companyIds });
+        const role = user.roles?.[0]?.role;
+        return this.reportsService.getApplicationStats({ companyIds, role });
     }
 
     // ── Dashboard ─────────────────────────────────────────────────────────
     @Get('dashboard')
     @ApiOperation({ summary: 'Client dashboard KPIs' })
-    @ApiOkResponse({
-        schema: {
-            type: 'object',
-            properties: {
-                activeOrders: { type: 'number' },
-                candidatesInReview: { type: 'number' },
-                pendingDecisions: { type: 'number' },
-                recentCandidates: { type: 'array', items: { $ref: '#/components/schemas/Application' } },
-            },
-        },
-    })
-    async dashboard(@GetUser() user: User): Promise<{ activeOrders: number; candidatesInReview: number; pendingDecisions: number; recentCandidates: Application[] }> {
+    @ApiOkResponse({ type: ClientDashboardResponseDto })
+    async dashboard(@GetUser() user: User): Promise<ClientDashboardResponseDto> {
         const companyIds = await this.getCompanyIds(user);
         return this.dashboardService.getClientDashboard(companyIds);
     }

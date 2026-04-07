@@ -291,8 +291,8 @@ export default function ProfilePage() {
                         <button
                             onClick={() => setActiveTab("basic")}
                             className={`pt-4 pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer ${activeTab === "basic"
-                                    ? "border-[var(--accent)] text-[var(--accent)]"
-                                    : "border-transparent text-[var(--gray-500)] cursor-pointer hover:text-[var(--gray-700)] cursor-pointer hover:border-[var(--gray-300)]"
+                                ? "border-[var(--accent)] text-[var(--accent)]"
+                                : "border-transparent text-[var(--gray-500)] cursor-pointer hover:text-[var(--gray-700)] cursor-pointer hover:border-[var(--gray-300)]"
                                 }`}
                         >
                             Basic Information
@@ -300,8 +300,8 @@ export default function ProfilePage() {
                         <button
                             onClick={() => setActiveTab("password")}
                             className={`pt-4 pb-3 text-sm font-medium border-b-2 transition-colors cursor-pointer ${activeTab === "password"
-                                    ? "border-[var(--accent)] text-[var(--accent)]"
-                                    : "border-transparent text-[var(--gray-500)] cursor-pointer hover:text-[var(--gray-700)] cursor-pointer hover:border-[var(--gray-300)]"
+                                ? "border-[var(--accent)] text-[var(--accent)]"
+                                : "border-transparent text-[var(--gray-500)] cursor-pointer hover:text-[var(--gray-700)] cursor-pointer hover:border-[var(--gray-300)]"
                                 }`}
                         >
                             Change Password
@@ -315,27 +315,46 @@ export default function ProfilePage() {
                                 <div>
                                     <label className={labelClass}>{asterisk} Account name</label>
                                     <input
+                                        maxLength={100}
                                         className={inpClass}
                                         value={basicForm.nickname}
                                         onChange={(e) => setBasicForm({ ...basicForm, nickname: e.target.value })}
                                     />
+                                    {basicForm.nickname.length >= 100 && (
+                                        <p className="text-xs text-[var(--error)]">Account name is too long</p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className={labelClass}>{asterisk} Phone number</label>
                                     <input
+                                        type="tel"
+                                        inputMode="numeric"
+                                        maxLength={15}
                                         className={inpClass}
                                         value={basicForm.phone}
-                                        onChange={(e) => setBasicForm({ ...basicForm, phone: e.target.value })}
+                                        onChange={(e) =>
+                                            setBasicForm({
+                                                ...basicForm,
+                                                phone: e.target.value.replace(/\D/g, "").slice(0, 15),
+                                            })
+                                        }
                                     />
+                                    {basicForm.phone.length >= 15 && (
+                                        <p className="text-xs text-[var(--error)]">Phone number is too long</p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className={labelClass}>{asterisk} Email</label>
                                     <input
                                         type="email"
+                                        maxLength={100}
                                         className={inpClass}
                                         value={basicForm.email}
                                         onChange={(e) => setBasicForm({ ...basicForm, email: e.target.value })}
                                     />
+                                    {basicForm.email.length >= 100 && (
+                                        <p className="text-xs text-[var(--error)]">Email is too long</p>
+                                    )}
                                 </div>
                                 {basicMsg && (
                                     <p className={`text-sm ${basicMsg.type === "success" ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>
@@ -353,32 +372,44 @@ export default function ProfilePage() {
                                 <div>
                                     <label className={labelClass}>{asterisk} Old Password</label>
                                     <input
+                                        maxLength={100}
                                         type="password"
                                         placeholder="Enter old password"
                                         className={inpClass}
                                         value={pwdForm.oldPwd}
                                         onChange={(e) => setPwdForm({ ...pwdForm, oldPwd: e.target.value })}
                                     />
+                                    {pwdForm.oldPwd.length >= 100 && (
+                                        <p className="text-xs text-[var(--error)]">Old password is too long</p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className={labelClass}>{asterisk} New Password</label>
                                     <input
+                                        maxLength={100}
                                         type="password"
                                         placeholder="Enter new password"
                                         className={inpClass}
                                         value={pwdForm.newPwd}
                                         onChange={(e) => setPwdForm({ ...pwdForm, newPwd: e.target.value })}
                                     />
+                                    {pwdForm.newPwd.length >= 100 && (
+                                        <p className="text-xs text-[var(--error)]">New password is too long</p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className={labelClass}>{asterisk} Confirm Password</label>
                                     <input
+                                        maxLength={100}
                                         type="password"
                                         placeholder="Confirm new password"
                                         className={inpClass}
                                         value={pwdForm.confirmPwd}
                                         onChange={(e) => setPwdForm({ ...pwdForm, confirmPwd: e.target.value })}
                                     />
+                                    {pwdForm.confirmPwd.length >= 100 && (
+                                        <p className="text-xs text-[var(--error)]">Confirm password is too long</p>
+                                    )}
                                 </div>
                                 {pwdMsg && (
                                     <p className={`text-sm ${pwdMsg.type === "success" ? "text-[var(--accent)]" : "text-[var(--danger)]"}`}>

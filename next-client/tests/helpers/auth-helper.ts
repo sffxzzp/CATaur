@@ -1,28 +1,22 @@
 import { Page, expect } from "@playwright/test";
 
 /**
- * Debug helper: prints useful info when something fails
+ * Debug helper
+ * Prints basic page info and takes a screenshot when needed
  */
 export async function printLoginDebugInfo(page: Page) {
-  const url = page.url();
-  const content = await page.textContent("body");
-
   console.log("\n===== DEBUG INFO =====");
-  console.log("Current URL:", url);
-  console.log("Page Content Preview:\n", content?.slice(0, 500));
-  console.log("======================\n");
-
-  // take a screenshot for debugging
+  console.log("URL:", page.url());
+  console.log("Title:", await page.title());
   await page.screenshot({ path: `debug-${Date.now()}.png` });
+  console.log("======================\n");
 }
 
 /**
- * Stable login helper (ALL roles)
- *
- * ✔ does not depend on URL change
- * ✔ works with SPA (Next.js / React)
- * ✔ handles slow loading and re-render
- * ✔ supports different dashboards for each role
+ * LOGIN (for deployed environment)
+ * - Uses relative path instead of full URL
+ * - Works for SPA apps (Next.js)
+ * - Does not depend on URL change
  */
 export async function login(
   page: Page,
@@ -30,103 +24,108 @@ export async function login(
   email: string,
   password: string,
 ) {
-  await page.goto(`/login?role=${role}`);
+  // Go to login page for specific role
+  await page.goto(`/login?role=${role}`, { waitUntil: "networkidle" });
 
-  /**
-   * Step 1: find email input (reliable selector)
-   */
+  // Fill email
   const emailInput = page
-    .locator(
-      'input[type="email"], input[name="email"], input[placeholder*="example"]',
-    )
+    .locator('input[type="email"], input[name="email"]')
     .first();
 
   await expect(emailInput).toBeVisible();
+  await emailInput.fill(email);
 
-  await emailInput.fill("");
-  await emailInput.type(email, { delay: 30 });
-
-  /**
-   * Step 2: fill password
-   */
+  // Fill password
   const passwordInput = page
     .locator('input[type="password"], input[name="password"]')
     .first();
 
   await expect(passwordInput).toBeVisible();
+  await passwordInput.fill(password);
 
-  await passwordInput.fill("");
-  await passwordInput.type(password, { delay: 30 });
-
-  /**
-   * Step 3: click login button
-   */
+  // Click login button
   const loginBtn = page.getByRole("button", { name: /login|sign in/i });
 
   await expect(loginBtn).toBeEnabled();
   await loginBtn.click();
 
-  /**
-   * Step 4: wait for UI update (not URL)
-   */
-  await Promise.race([
-    page.locator("header").waitFor(),
-    page.getByText(/dashboard/i).waitFor(),
-    page.getByText(/profile/i).waitFor(),
-    page.getByText(/user management/i).waitFor(),
-  ]);
-}
+  // Ensure we are no longer on the login page before asserting role-specific UI
+  await expect(page).not.toHaveURL(/\/login(\?|$)/, { timeout: 15000 });
 
-/**
- * Robust logout helper (final stable version)
- */
-export async function logout(page: Page, role: string) {
-  // Step 1: make sure page is stable
-  await page.waitForLoadState("networkidle");
-
-  // Step 2: find avatar button (top right, usually uppercase letter)
-  const avatar = page
-    .locator("header button")
-    .filter({
-      hasText: /^[A-Z]/,
-    })
-    .first();
-
-  await expect(avatar).toBeVisible();
-  await avatar.click();
-
-  // Step 3: wait for dropdown menu (important)
-  const logoutBtn = page.getByText(/(sign out|log out)/i);
-  await expect(logoutBtn).toBeVisible({ timeout: 5000 });
-
-  // Step 4: click logout
-  await logoutBtn.click();
-
-  // Step 5: wait for UI change (better than fixed timeout)
-  await page.waitForLoadState("networkidle");
-
-  // Step 6: verify logout success (UI check is better than URL)
-  const loginInput = page.getByPlaceholder("you@example.com");
-
-  if (await loginInput.isVisible()) {
-    await expect(loginInput).toBeVisible();
+  if (role === "admin") {
+    await expect(page.getByText(/user management/i)).toBeVisible({
+      timeout: 15000,
+    });
     return;
   }
 
-  // fallback: if logout redirect fails
-  console.log("[DEBUG] Logout redirect failed, forcing navigation");
+  if (role === "recruiter") {
+    await expect(
+      page
+        .getByRole("link", { name: /dashboard/i })
+        .or(page.getByText(/user management/i)),
+    ).toBeVisible({ timeout: 15000 });
+    return;
+  }
 
-  await page.goto(`/login?role=${role}`);
+  if (role === "client") {
+    await expect(page.getByRole("link", { name: /dashboard/i })).toBeVisible({
+      timeout: 15000,
+    });
+    return;
+  }
 
-  await expect(loginInput).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /job search/i }).first(),
+  ).toBeVisible({ timeout: 15000 });
 }
 
 /**
- * Register helper (Candidate only)
- *
- * This function runs the full registration flow.
- * It handles dynamic UI (React), validation states,
- * and multiple inputs (password + confirm password).
+ * LOGOUT (for deployed environment)
+ * - Uses UI validation instead of URL
+ * - Includes fallback if logout redirect fails
+ */
+export async function logout(page: Page, role: string) {
+  await page.waitForLoadState("networkidle");
+
+  /**
+   * STEP 1: Click user dropdown (CORRECT WAY)
+   */
+
+  // ✅ Find the "button with letters" (S / A / M) in the upper right corner.
+  const userButton = page.getByRole("button").filter({
+    hasText: /^[A-Z]$/, // Match the letter of the profile picture
+  });
+
+  await expect(userButton.first()).toBeVisible({ timeout: 15000 });
+  await userButton.first().click();
+
+  /**
+   * STEP 2: Click logout
+   */
+
+  const logoutBtn = page.getByText(/log out|sign out/i);
+
+  await expect(logoutBtn.first()).toBeVisible({ timeout: 15000 });
+  await logoutBtn.first().click();
+
+  /**
+   * STEP 3: Verify the real post-logout landing state
+   */
+  if (role === "candidate") {
+    await page.waitForURL(/\/candidate\/jobs/, { timeout: 15000 });
+    await expect(page.getByText(/log in/i)).toBeVisible();
+    return;
+  }
+
+  await page.waitForURL(/\/login/, { timeout: 15000 });
+  await expect(page.locator('input[type="email"]')).toBeVisible();
+}
+
+/**
+ * REGISTER (candidate flow)
+ * - Uses relative path (no localhost)
+ * - Handles basic form submission
  */
 export async function register(
   page: Page,
@@ -134,144 +133,72 @@ export async function register(
   email: string,
   password: string,
 ) {
-  // go to login page for this role
   await page.goto(`/login?role=${role}`);
 
-  // wait for page to load
-  await page.waitForLoadState("networkidle");
+  // Open register form
+  await page.getByText(/register|sign up/i).click();
 
-  /**
-   * Step 1: open register form
-   */
-  const createBtn = page.getByText(/create one|sign up|register/i);
-  await expect(createBtn).toBeVisible();
-  await createBtn.click();
-
-  /**
-   * Step 2: wait for form to appear
-   */
-  const emailInput = page.getByPlaceholder("you@example.com");
+  // Fill email
+  const emailInput = page.locator('input[type="email"]');
   await expect(emailInput).toBeVisible();
+  await emailInput.fill(email);
 
-  /**
-   * Step 3: fill email (React-safe)
-   */
-
-  // clear input first
-  await emailInput.fill("");
-
-  // use type instead of fill (more stable)
-  await emailInput.click();
-  await emailInput.type(email, { delay: 50 });
-
-  // verify value
-  await expect(emailInput).toHaveValue(email);
-
-  /**
-   * Step 4: fill password
-   */
-  const passwordInput = page.getByPlaceholder(/at least 8/i);
-  await expect(passwordInput).toBeVisible();
+  // Fill password
+  const passwordInput = page.locator('input[type="password"]').first();
   await passwordInput.fill(password);
 
-  if ((await passwordInput.inputValue()) !== password) {
-    await passwordInput.fill(password);
-  }
+  // Confirm password
+  const confirmInput = page.locator('input[type="password"]').nth(1);
+  await confirmInput.fill(password);
 
-  await expect(passwordInput).toHaveValue(password);
-
-  /**
-   * Step 5: fill confirm password
-   */
-  const confirmPasswordInput = page.getByPlaceholder(/repeat password/i);
-  await expect(confirmPasswordInput).toBeVisible();
-  await confirmPasswordInput.fill(password);
-
-  if ((await confirmPasswordInput.inputValue()) !== password) {
-    await confirmPasswordInput.fill(password);
-  }
-
-  await expect(confirmPasswordInput).toHaveValue(password);
-
-  /**
-   * Step 6: handle optional checkbox (terms & conditions)
-   */
-  const checkbox = page.locator('input[type="checkbox"]');
-
-  if ((await checkbox.count()) > 0) {
-    await checkbox.first().check();
-  }
-
-  /**
-   * Step 7: submit form (wait until enabled)
-   */
+  // Submit form
   const submitBtn = page.getByRole("button", {
     name: /create account|sign up/i,
   });
 
-  await expect(submitBtn).toBeEnabled();
   await submitBtn.click();
 
-  /**
-   * Step 8: wait for UI update
-   */
   await page.waitForLoadState("networkidle");
 }
 
 /**
- * Forgot password helper (Candidate only)
- *
- * This function simulates a password reset request.
- * It handles dynamic UI and ensures correct input.
+ * FORGOT PASSWORD
+ * - Simulates password reset request
  */
 export async function forgotPassword(page: Page, role: string, email: string) {
-  // go to login page
   await page.goto(`/login?role=${role}`);
 
-  await page.waitForLoadState("networkidle");
+  // Open reset form
+  await page.getByText(/forgot password/i).click();
 
-  /**
-   * Step 1: click "Forgot password"
-   */
-  const forgotBtn = page.getByText(/forgot password/i);
-  await expect(forgotBtn).toBeVisible();
-  await forgotBtn.click();
+  // Wait until forgot-password page is ready before interacting with inputs
+  await page.waitForURL(/\/forgot-password/, { timeout: 15000 });
 
-  /**
-   * Step 2: wait for reset form
-   */
-  const emailInput = page.getByPlaceholder("you@example.com");
+  // Fill email
+  const emailInput = page
+    .getByPlaceholder(/you@example\.com/i)
+    .or(page.locator('input[type="email"]'))
+    .first();
   await expect(emailInput).toBeVisible();
-
-  /**
-   * Step 3: fill email (React-safe)
-   */
-  await emailInput.fill("");
-
-  await emailInput.click();
-  await emailInput.type(email, { delay: 50 });
-
+  await emailInput.fill(email);
   await expect(emailInput).toHaveValue(email);
 
-  /**
-   * Step 4: submit request
-   */
+  // Submit request
   const submitBtn = page.getByRole("button", {
-    name: /send reset link/i,
+    name: /send reset/i,
   });
 
   await expect(submitBtn).toBeEnabled();
+
   await submitBtn.click();
 
-  /**
-   * Step 5: wait for UI update
-   */
   await page.waitForLoadState("networkidle");
 }
 
 /**
- * Create user (Admin only)
- * Final stable version
+ * CREATE USER (admin only)
+ * - Opens user management
+ * - Fills form and submits
  */
 export async function createUser(
   page: Page,
@@ -280,81 +207,29 @@ export async function createUser(
   email: string,
   password: string,
 ) {
-  /**
-   * Step 1: go to User Management
-   */
-  const userMgmtBtn = page.getByText(/user management/i);
+  // Open user management page
+  await page.getByText(/user management/i).click();
 
-  await expect(userMgmtBtn).toBeVisible();
-  await userMgmtBtn.click();
+  // Click "Add User"
+  await page.getByRole("button", { name: /add user/i }).click();
 
-  /**
-   * Step 2: wait for page ready
-   */
-  await expect(
-    page.getByRole("heading", { name: /user management/i }),
-  ).toBeVisible();
+  // Fill name
+  await page.getByPlaceholder(/name/i).fill(name);
 
-  /**
-   * Step 3: click Add User
-   */
-  const addBtn = page.getByRole("button", { name: /add user/i });
-
-  await expect(addBtn).toBeVisible();
-  await expect(addBtn).toBeEnabled();
-  await addBtn.click();
-
-  /**
-   * Step 4: wait for modal (input is most reliable)
-   */
-  const nameInput = page.getByPlaceholder("e.g. Jane Smith");
-  await expect(nameInput).toBeVisible();
-
-  /**
-   * Step 5: fill form
-   */
-
-  // name
-  await nameInput.fill("");
-  await nameInput.type(name, { delay: 30 });
-
-  // role dropdown (use last select = modal)
+  // Select role
   const roleSelect = page.locator("select").last();
-  await expect(roleSelect).toBeVisible();
   await roleSelect.selectOption({ label: role });
 
-  // email
-  const emailInput = page.getByPlaceholder("user@example.com");
-  await expect(emailInput).toBeVisible();
+  // Fill email
+  await page.getByPlaceholder(/email/i).fill(email);
 
-  await emailInput.fill("");
-  await emailInput.type(email, { delay: 30 });
-
-  // phone (optional)
-  const phoneInput = page.getByPlaceholder("+1 416-555-0000");
-  if (await phoneInput.isVisible()) {
-    await phoneInput.fill("1234567890");
-  }
-
-  // password (important fix)
+  // Fill password
   const passwordInput = page.locator('input[type="password"]').last();
-  await expect(passwordInput).toBeVisible();
+  await passwordInput.fill(password);
 
-  await passwordInput.fill("");
-  await passwordInput.type(password, { delay: 30 });
+  // Submit form
+  await page.getByRole("button", { name: /confirm/i }).click();
 
-  /**
-   * Step 6: submit (make sure button is clickable)
-   */
-  const confirmBtn = page.getByRole("button", { name: /confirm/i });
-
-  await expect(confirmBtn).toBeVisible();
-  await expect(confirmBtn).toBeEnabled();
-
-  await confirmBtn.click();
-
-  /**
-   * Step 7: verify success (new user appears in table)
-   */
+  // Verify user created
   await expect(page.getByText(email)).toBeVisible();
 }

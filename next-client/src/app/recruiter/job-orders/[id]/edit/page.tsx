@@ -220,6 +220,7 @@ export default function EditJobOrderPage() {
                         <input
                             required
                             className={inpClass}
+                            maxLength={100}
                             value={form.title}
                             onChange={(e) => setForm({ ...form, title: e.target.value })}
                             placeholder="e.g., Senior Full-stack Engineer"
@@ -261,6 +262,7 @@ export default function EditJobOrderPage() {
                         <div>
                             <label className={labelClass}>Department</label>
                             <input
+                                maxLength={100}
                                 className={inpClass}
                                 value={form.department}
                                 onChange={(e) => setForm({ ...form, department: e.target.value })}
@@ -274,6 +276,7 @@ export default function EditJobOrderPage() {
                                 Salary
                             </label>
                             <input
+                                maxLength={50}
                                 className={inpClass}
                                 value={form.salary}
                                 onChange={(e) => setForm({ ...form, salary: e.target.value })}
@@ -347,6 +350,9 @@ export default function EditJobOrderPage() {
                         <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-2 mb-2">
                             <label className="text-sm font-semibold text-[var(--gray-800)] flex items-center gap-2">
                                 Description
+                                <span className="text-xs font-normal text-[var(--gray-500)] ml-2">
+                                    {form.description.length} / 5000
+                                </span>
                             </label>
                             <div className="flex gap-1 bg-[var(--gray-50)] p-1 rounded-md border border-[var(--border)]">
                                 <button
@@ -373,6 +379,7 @@ export default function EditJobOrderPage() {
                         <div className="rounded-md border border-[var(--border)] overflow-hidden bg-[var(--surface)] transition-all">
                             {activeTab === "edit" ? (
                                 <textarea
+                                    maxLength={5000}
                                     className="w-full min-h-[400px] resize-y bg-transparent px-4 py-4 text-sm font-mono text-[var(--gray-900)] placeholder:text-[var(--gray-400)] focus:outline-none"
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}

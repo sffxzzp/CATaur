@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { JobOrder, JobOrderEmploymentType, JobOrderWorkArrangement } from '../database/entities/job-order.entity';
 import { User } from '../database/entities/user.entity';
+import { Role } from '../database/entities/user-role.entity';
 import { CreateJobOrderDto } from './dto/create-job-order.dto';
 import { UpdateJobOrderDto } from './dto/update-job-order.dto';
 import { UlidService } from '../common/ulid.service';
@@ -19,10 +20,10 @@ export class JobOrdersService {
         private userRepo: Repository<User>,
         private ulidService: UlidService,
         private encryptionService: EncryptionService,
-    ) {}
+    ) { }
 
     async findAll(
-        where: FindOptionsWhere<JobOrder> & { companyIds?: string[] },
+        where: FindOptionsWhere<JobOrder> & { companyIds?: string[]; role?: Role },
         opts: {
             page?: number;
             limit?: number;
@@ -52,14 +53,23 @@ export class JobOrdersService {
         } = opts;
 
         const qb = this.repo.createQueryBuilder('jo')
-            .leftJoinAndSelect('jo.company', 'company');
-
-        // Apply caller-supplied scope (e.g. companyId)
+            .leftJoinAndSelect('jo.company', 'company')
+            .loadRelationCountAndMap('jo.applicants', 'jo.applications');
         if (where.companyId) {
             qb.andWhere('jo.companyId = :companyId', { companyId: where.companyId });
         }
-        if (where.companyIds?.length) {
-            qb.andWhere('jo.companyId IN (:...companyIds)', { companyIds: where.companyIds });
+        // Apply scoping based on role
+        if (where.role === Role.CLIENT) {
+            if (where.companyIds?.length) {
+                qb.andWhere('jo.companyId IN (:...companyIds)', { companyIds: where.companyIds });
+            } else {
+                qb.andWhere('1=0');
+            }
+        } else {
+            // For admins/recruiters, only filter by company if explicitly requested
+            if (where.companyIds?.length) {
+                qb.andWhere('jo.companyId IN (:...companyIds)', { companyIds: where.companyIds });
+            }
         }
         if (status) {
             qb.andWhere('jo.status = :status', { status });

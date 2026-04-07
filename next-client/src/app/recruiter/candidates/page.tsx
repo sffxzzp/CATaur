@@ -110,15 +110,37 @@ function AddCandidateModal({ activeJobs, onAdd, onClose }: {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1 sm:col-span-2">
               <label className={lbl}>Full Name *</label>
-              <input autoFocus type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <input autoFocus maxLength={100} type="text" className={inp} placeholder="e.g. Jane Doe" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              {form.name.length >= 100 && (
+                <p className="text-xs text-[var(--error)]">Name is too long</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className={lbl}>Email *</label>
-              <input type="email" className={inp} placeholder="jane@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+              <input maxLength={100} type="email" className={inp} placeholder="jane@example.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+              {form.email.length >= 100 && (
+                <p className="text-xs text-[var(--error)]">Email is too long</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className={lbl}>Phone *</label>
-              <input type="tel" className={inp} placeholder="416-555-0100" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={15}
+                className={inp}
+                placeholder="4165550100"
+                value={form.phone}
+                onChange={e =>
+                  setForm(f => ({
+                    ...f,
+                    phone: e.target.value.replace(/\D/g, "").slice(0, 15),
+                  }))
+                }
+              />
+              {form.phone.length >= 15 && (
+                <p className="text-xs text-[var(--error)]">Phone is too long</p>
+              )}
             </div>
           </div>
           <div className="space-y-1">
@@ -397,7 +419,11 @@ export default function RecruiterCandidatesPage() {
   const locations = useMemo(() => {
     const locs = [...new Set(
       candidates
-        .map(c => formatLocation(c.locationCity || null, c.locationState || null))
+        .map(c => {
+          const city = c.candidate?.candidateProfile?.locationCity ?? c.locationCity;
+          const state = c.candidate?.candidateProfile?.locationState ?? c.locationState;
+          return formatLocation(city || null, state || null);
+        })
         .filter((l): l is string => typeof l === "string" && Boolean(l.trim()) && l !== "—"),
     )].sort();
     return locs;
@@ -523,49 +549,51 @@ export default function RecruiterCandidatesPage() {
             const name = c.candidate?.nickname || c.candidate?.email || "Candidate";
             const email = c.candidate?.email || "—";
             const role = c.jobOrder?.title || "—";
-            const loc = formatLocation(c.locationCity, c.locationState);
+            const locCity = c.candidate?.candidateProfile?.locationCity ?? c.locationCity;
+            const locState = c.candidate?.candidateProfile?.locationState ?? c.locationState;
+            const loc = formatLocation(locCity, locState);
             const phone = c.candidate?.phone || "—";
             const added = formatShortDate(c.createdAt as any);
             return (
-            <Link href={`/recruiter/candidates/${c.id}`} key={c.id}
-              className="flex flex-col xl:grid xl:grid-cols-[2fr_1.5fr_2fr_1.3fr_1.2fr_1fr_1.1fr] xl:items-center gap-2 xl:gap-3 border-b border-[var(--border-light)] px-5 py-3 last:border-0 hover:bg-[var(--gray-50)] transition-colors cursor-pointer">
+              <Link href={`/recruiter/candidates/${c.id}`} key={c.id}
+                className="flex flex-col xl:grid xl:grid-cols-[2fr_1.5fr_2fr_1.3fr_1.2fr_1fr_1.1fr] xl:items-center gap-2 xl:gap-3 border-b border-[var(--border-light)] px-5 py-3 last:border-0 hover:bg-[var(--gray-50)] transition-colors cursor-pointer">
 
-              {/* Name only (no ID) */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-light)] text-xs font-semibold text-[var(--accent)]">
-                  {initials(name)}
+                {/* Name only (no ID) */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-light)] text-xs font-semibold text-[var(--accent)]">
+                    {initials(name)}
+                  </div>
+                  <p className="text-sm font-medium text-[var(--gray-900)] truncate">{name}</p>
                 </div>
-                <p className="text-sm font-medium text-[var(--gray-900)] truncate">{name}</p>
-              </div>
 
-              {/* Role */}
-              <p className="text-sm text-[var(--gray-700)] truncate">{role}</p>
+                {/* Role */}
+                <p className="text-sm text-[var(--gray-700)] truncate">{role}</p>
 
-              {/* Email */}
-              <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
-                <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)] xl:hidden" />
-                <span className="truncate">{email}</span>
-              </div>
+                {/* Email */}
+                <div className="flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)] xl:hidden" />
+                  <span className="truncate">{email}</span>
+                </div>
 
-              {/* Location — hidden on tablet compact view */}
-              <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                <span className="truncate">{loc}</span>
-              </div>
+                {/* Location — hidden on tablet compact view */}
+                <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)] min-w-0">
+                  <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
+                  <span className="truncate">{loc}</span>
+                </div>
 
-              {/* Phone — xl only */}
-              <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)]">
-                <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
-                <span>{phone}</span>
-              </div>
+                {/* Phone — xl only */}
+                <div className="hidden xl:flex items-center gap-1 text-sm text-[var(--gray-500)]">
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
+                  <span>{phone}</span>
+                </div>
 
-              {/* Added (createdAt = appliedAt) */}
-              <span className="text-sm text-[var(--gray-500)]">{added}</span>
+                {/* Added (createdAt = appliedAt) */}
+                <span className="text-sm text-[var(--gray-500)]">{added}</span>
 
-              {/* Source */}
-              <SourceBadge source={c.source} />
-            </Link>
-          );
+                {/* Source */}
+                <SourceBadge source={c.source} />
+              </Link>
+            );
           })
         )}
 

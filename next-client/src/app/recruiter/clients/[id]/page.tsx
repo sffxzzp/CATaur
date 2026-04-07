@@ -14,17 +14,17 @@ import { toast } from "sonner";
 export default function ClientDetails({ params }: { params: Promise<{ id: string }> }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [clientUser, setClientUser] = useState<User | null>(null);
-  const [clientUsers, setClientUsers] = useState<User[]>([]);
+  const [clientUsers, setClientUsers] = useState<User[]>([]);//All client users (for dropdown selection)
   const [jobs, setJobs] = useState<JobOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);//Control the pop-up window switch. The default setting is to disable it.
+  const [submitting, setSubmitting] = useState(false);//controlling the "in submission" status
   const [formData, setFormData] = useState({
     name: "", contact: "", email: "", phone: "", website: "",
     country: "", state: "", city: "", keyTechnologies: "", clientAccount: "",
-  });
+  });//Store the data input by the user
 
   useEffect(() => {
     params.then(p => setCompanyId(p.id));
@@ -35,14 +35,14 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
     const loadData = async () => {
       try {
-        const companyData = await companiesClient.getById(companyId);
+        const companyData = await companiesClient.getById(companyId);//Call the API to obtain the company data and store the result in "companyData"
         setCompany(companyData);
 
         const usersRes = await usersClient.listByRole("Client", { page: 1, limit: 100 });
         setClientUsers(usersRes.data);
 
         if (companyData.clientId) {
-          const user = usersRes.data.find(u => u.id === companyData.clientId);
+          const user = usersRes.data.find(u => u.id === companyData.clientId);//Store the matched user object in the variable "user"
           if (user) setClientUser(user);
         }
 
@@ -89,7 +89,7 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
         contact: formData.contact || undefined,
         phone: formData.phone || undefined,
         website: formData.website || undefined,
-        locationCountry: formData.country || undefined,
+        locationCountry: formData.country || undefined,//Indicates that this field will not be updated.
         locationState: formData.state || undefined,
         locationCity: formData.city || undefined,
         keyTechnologies: formData.keyTechnologies || undefined,
@@ -289,28 +289,43 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Name <span className="text-red-500">*</span></label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  {formData.name.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Name is too long</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Email <span className="text-red-500">*</span></label>
-                  <input type="email" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                  <input type="email" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                  {formData.email.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Email is too long</p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Contact</label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })} />
+                  {formData.contact.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Contact is too long</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-[var(--gray-700)]">Phone</label>
-                  <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                  <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                  {formData.phone.length >= 100 && (
+                    <p className="text-xs text-[var(--error)]">Phone is too long</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Web Site</label>
-                <input type="text" className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+                <input type="text" maxLength={100} className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} />
+                {formData.website.length >= 100 && (
+                  <p className="text-xs text-[var(--error)]">Web Site is too long</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -327,7 +342,10 @@ export default function ClientDetails({ params }: { params: Promise<{ id: string
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-[var(--gray-700)]">Key Technologies</label>
-                <input type="text" placeholder="e.g. React, Node.js, AWS..." className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.keyTechnologies} onChange={e => setFormData({ ...formData, keyTechnologies: e.target.value })} />
+                <input type="text" maxLength={100} placeholder="e.g. React, Node.js, AWS..." className="w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)]" value={formData.keyTechnologies} onChange={e => setFormData({ ...formData, keyTechnologies: e.target.value })} />
+                {formData.keyTechnologies.length >= 100 && (
+                  <p className="text-xs text-[var(--error)]">Key Technologies is too long</p>
+                )}
               </div>
 
               <div className="space-y-1.5">

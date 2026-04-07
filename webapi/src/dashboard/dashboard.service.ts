@@ -2,10 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobOrder } from '../database/entities/job-order.entity';
-import { Application } from '../database/entities/application.entity';
+import { Application, ClientDecisionType } from '../database/entities/application.entity';
 import { User } from '../database/entities/user.entity';
 import { UserRole } from '../database/entities/user-role.entity';
 import { Company } from '../database/entities/company.entity';
+import { ClientDashboardResponseDto } from './dto/client-dashboard-response.dto';
 
 @Injectable()
 export class DashboardService {
@@ -20,7 +21,7 @@ export class DashboardService {
         private userRepo: Repository<User>,
         @InjectRepository(Company)
         private companyRepo: Repository<Company>,
-    ) {}
+    ) { }
 
     /** Admin dashboard — system-wide KPIs */
     async getAdminDashboard() {
@@ -89,21 +90,27 @@ export class DashboardService {
     }
 
     /** Client dashboard — scoped to their company's job orders */
-    async getClientDashboard(companyIds: string[]) {
+    async getClientDashboard(companyIds: string[]): Promise<ClientDashboardResponseDto> {
         if (!companyIds.length) {
             return {
                 activeOrders: 0,
-                candidatesInReview: 0,
+                totalCandidates: 0,
                 pendingDecisions: 0,
+                offersInProgress: 0,
                 recentCandidates: [],
+                myDecisions: [],
+                myJobOrders: [],
             };
         }
 
         const [
             activeOrders,
-            candidatesInReview,
+            totalCandidates,
             pendingDecisions,
+            offersInProgress,
             recentCandidates,
+            decisionRows,
+            myJobOrderRows,
         ] = await Promise.all([
             this.jobOrderRepo
                 .createQueryBuilder('jo')
@@ -114,14 +121,20 @@ export class DashboardService {
                 .createQueryBuilder('app')
                 .leftJoin('app.jobOrder', 'jo')
                 .where('jo.companyId IN (:...cids)', { cids: companyIds })
+                .getCount(),
+            this.applicationRepo
+                .createQueryBuilder('app')
+                .leftJoin('app.jobOrder', 'jo')
+                .where('jo.companyId IN (:...cids)', { cids: companyIds })
                 .andWhere('app.status = :s', { s: 'interview' })
+                .andWhere('app.clientDecisionType IS NULL')
                 .getCount(),
             this.applicationRepo
                 .createQueryBuilder('app')
                 .leftJoin('app.jobOrder', 'jo')
                 .where('jo.companyId IN (:...cids)', { cids: companyIds })
                 .andWhere('app.status = :s', { s: 'offer' })
-                .andWhere('app.clientDecisionType IS NULL')
+                .andWhere('app.clientDecisionType = :dt', { dt: 'request-offer' })
                 .getCount(),
             this.applicationRepo
                 .createQueryBuilder('app')
@@ -132,14 +145,59 @@ export class DashboardService {
                 .orderBy('app.createdAt', 'DESC')
                 .limit(5)
                 .getMany(),
+            this.applicationRepo
+                .createQueryBuilder('app')
+                .select('app.clientDecisionType', 'decision')
+                .addSelect('COUNT(*)', 'count')
+                .leftJoin('app.jobOrder', 'jo')
+                .where('jo.companyId IN (:...cids)', { cids: companyIds })
+                .andWhere('app.clientDecisionType IS NOT NULL')
+                .groupBy('app.clientDecisionType')
+                .getRawMany(),
+            this.jobOrderRepo
+                .createQueryBuilder('jo')
+                .leftJoin('jo.applications', 'app')
+                .select('jo.id', 'id')
+                .addSelect('jo.title', 'title')
+                .addSelect('jo.status', 'status')
+                .addSelect('jo.workArrangement', 'workArrangement')
+                .addSelect('jo.locationCity', 'locationCity')
+                .addSelect('jo.locationCountry', 'locationCountry')
+                .addSelect('COUNT(app.id)', 'candidateCount')
+                .where('jo.companyId IN (:...cids)', { cids: companyIds })
+                .groupBy('jo.id')
+                .orderBy('jo.createdAt', 'DESC')
+                .limit(5)
+                .getRawMany(),
         ]);
+
+        const decisionTypes: ClientDecisionType[] = ['request-offer', 'pass', 'hold'];
+        const myDecisions = decisionTypes.map((dt) => {
+            const row = decisionRows.find((r) => r.decision === dt);
+            return { decision: dt, count: row ? Number(row.count) : 0 };
+        });
+
+        const myJobOrders = myJobOrderRows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            status: row.status,
+            workArrangement: row.workArrangement,
+            locationCity: row.locationCity,
+            locationCountry: row.locationCountry,
+            candidateCount: Number(row.candidateCount),
+        }));
 
         this.logger.log(`getClientDashboard companyIds=[${companyIds}] → activeOrders=${activeOrders} pendingDecisions=${pendingDecisions}`);
         return {
             activeOrders,
-            candidatesInReview,
+            totalCandidates,
             pendingDecisions,
+            offersInProgress,
             recentCandidates,
+            myDecisions,
+            myJobOrders,
         };
     }
+
+
 }

@@ -4,7 +4,6 @@ import { useMemo, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { request } from "@/lib/request";
-import { CANDIDATE_RECORDS } from "@/data/recruiter";
 import {
   ArrowLeft,
   MapPin,
@@ -112,10 +111,17 @@ export default function ClientOrderDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const candidates = useMemo(
-    () => CANDIDATE_RECORDS.filter((c) => c.jobId === id),
-    [id]
-  );
+  const [applications, setApplications] = useState<any[]>([]);
+  const [applicationsTotal, setApplicationsTotal] = useState(0);
+
+  useEffect(() => {
+    request<any>(`/client/applications?page=1&limit=5&jobOrderId=${id}`)
+      .then((res) => {
+        setApplications(res.data || []);
+        setApplicationsTotal(res.total || 0);
+      })
+      .catch(console.error);
+  }, [id]);
 
   if (loading) {
     return (
@@ -208,47 +214,52 @@ export default function ClientOrderDetailPage() {
           <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)]">
             <div className="flex items-center justify-between border-b border-[var(--border-light)] px-5 py-4">
               <div>
-                <h3 className="text-sm font-semibold text-[var(--gray-900)]">Submitted Candidates</h3>
+                <h3 className="text-sm font-semibold text-[var(--gray-900)]">Submitted Applications</h3>
                 <p className="text-xs text-[var(--gray-500)] mt-0.5">
-                  {candidates.length} candidate{candidates.length !== 1 ? "s" : ""} for this position
+                  {applicationsTotal} application{applicationsTotal !== 1 ? "s" : ""} for this position
                 </p>
               </div>
-              <Link href="/client/candidates" className="text-xs font-medium text-[var(--accent)] hover:underline">
+              <Link href={`/client/applications?jobOrderId=${id}`} className="text-xs font-medium text-[var(--accent)] hover:underline">
                 View all →
               </Link>
             </div>
 
-            {candidates.length === 0 ? (
+            {applications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-5 py-10">
                 <UserCheck className="h-8 w-8 text-[var(--gray-300)]" />
-                <p className="text-sm text-[var(--gray-500)]">No candidates submitted for this position yet.</p>
+                <p className="text-sm text-[var(--gray-500)]">No applications submitted for this position yet.</p>
               </div>
             ) : (
               <div className="divide-y divide-[var(--border-light)]">
-                {candidates.map((c) => {
-                  const cs = CAND_STAGE_STYLE[c.status] ?? CAND_STAGE_STYLE.new;
+                {applications.map((c) => {
+                  const cs = CAND_STAGE_STYLE[c.status] || CAND_STAGE_STYLE.new;
+                  const candName = c.candidate?.user?.nickname || "Unknown Candidate";
+                  const profile = c.candidate?.user?.candidateProfile;
+                  const locationStr = [c.locationCity || profile?.locationCity, c.locationState || profile?.locationState, c.locationCountry || profile?.locationCountry].filter(Boolean).join(", ") || "Unknown Location";
+                  const applyDate = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "N/A";
+
                   return (
-                    <div
+                    <Link
                       key={c.id}
+                      href={`/client/applications/${encodeURIComponent(c.id)}`}
                       className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--gray-50)] transition-colors"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[var(--gray-900)] truncate">{c.name}</p>
+                        <p className="text-sm font-semibold text-[var(--gray-900)] truncate">{candName}</p>
                         <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-[var(--gray-500)]">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {c.location}
+                            {locationStr}
                           </span>
-                          <span>Available: {c.availability}</span>
-                          <span>Applied: {c.appliedAt}</span>
+                          <span>Applied: {applyDate}</span>
                         </div>
                       </div>
                       <div className="shrink-0">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cs.bg} ${cs.text}`}>
-                          {STAGE_LABEL[c.status] ?? c.status}
+                          {STAGE_LABEL[c.status] || c.status}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -289,46 +300,11 @@ export default function ClientOrderDetailPage() {
                 <dt className="flex items-center gap-2 text-[var(--gray-500)]">
                   <Users className="h-3.5 w-3.5" /> Submitted
                 </dt>
-                <dd className="font-medium text-[var(--gray-900)]">{job?.applicants ?? candidates.length}</dd>
+                <dd className="font-medium text-[var(--gray-900)]">{job?.applicants ?? applications.length}</dd>
               </div>
             </dl>
           </div>
 
-          {/* Tags */}
-          {job?.tags && job.tags.length > 0 && (
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5">
-              <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Required Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {(job.tags || []).map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-md border border-[var(--border)] bg-[var(--gray-50)] px-2.5 py-1 text-xs font-medium text-[var(--gray-700)]"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Candidates summary */}
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5">
-            <h3 className="text-sm font-semibold text-[var(--gray-900)] mb-3">Candidate Summary</h3>
-            <div className="space-y-2">
-              {(["new", "interview", "offer", "closed"] as const).map((s) => {
-                const count = candidates.filter((c) => c.status === s).length;
-                const cs = CAND_STAGE_STYLE[s];
-                return (
-                  <div key={s} className="flex items-center justify-between text-sm">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cs.bg} ${cs.text}`}>
-                      {STAGE_LABEL[s]}
-                    </span>
-                    <span className="font-medium text-[var(--gray-700)]">{count}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -188,7 +188,7 @@ export default function JobOrderDetails() {
           <p className="text-sm font-bold text-[var(--gray-800)] mb-4">Description</p>
           <div className={`rounded-md border border-[var(--border-light)] min-h-[300px] px-6 py-5 ${!description ? "flex items-center justify-center" : ""}`}>
             {description ? (
-              <div className="prose prose-sm prose-blue dark:prose-invert max-w-none text-[var(--gray-800)]">
+              <div className="prose prose-sm prose-blue dark:prose-invert max-w-none text-[var(--gray-800)] break-words [overflow-wrap:anywhere]">
                 <ReactMarkdown>{description}</ReactMarkdown>
               </div>
             ) : (

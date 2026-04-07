@@ -25,7 +25,7 @@ export class AIProviderConfigService {
     @InjectRepository(SystemConfig)
     private readonly systemConfigsRepository: Repository<SystemConfig>,
     private readonly encryptionService: EncryptionService,
-  ) {}
+  ) { }
 
   /**
    * Save or update AI provider configuration
@@ -44,8 +44,13 @@ export class AIProviderConfigService {
         ...existing,
         ...config,
         apiKey,
+        enabled: config.enabled ?? existing?.enabled ?? false,
         updatedAt: Date.now(),
       };
+
+      if (responseDto.enabled) {
+        await this.disableAllProvidersExcept(config.provider);
+      }
 
       await this.saveConfigToDb(config.provider, responseDto);
 
@@ -131,6 +136,39 @@ export class AIProviderConfigService {
   }
 
   /**
+   * Enable specific AI provider
+   */
+  async enableConfig(provider: string): Promise<AIProviderResponseDto> {
+    try {
+      const existing = await this.getConfig(provider);
+      if (!existing) {
+        throw new BadRequestException('AI Provider config not found');
+      }
+
+      if (existing.enabled) {
+        return this.maskConfig(existing);
+      }
+
+      await this.disableAllProvidersExcept(provider);
+
+      const updated: AIProviderResponseDto = {
+        ...existing,
+        enabled: true,
+        updatedAt: Date.now(),
+      };
+
+      await this.saveConfigToDb(provider, updated);
+      await this.cacheManager.set(this.getConfigKey(provider), this.encryptionService.encryptJson(updated), 0);
+
+      this.logger.log(`AI Provider enabled: ${provider}`);
+      return this.maskConfig(updated);
+    } catch (error) {
+      this.logger.error(`Failed to enable AI Provider config: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Delete specific AI provider configuration
    */
   async deleteConfig(provider: string): Promise<void> {
@@ -155,25 +193,19 @@ export class AIProviderConfigService {
     return config !== null;
   }
 
-  async getProviderModels(provider: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
-    const cached = await this.cacheManager.get<Buffer>(this.getModelsKey(provider));
-    if (cached) {
-      return this.encryptionService.decryptJson<{ models: string[]; defaultModel?: string; updatedAt: number }>(cached);
-    }
-
-    return this.refreshProviderModels(provider);
-  }
-
-  async refreshProviderModels(provider: string): Promise<{ models: string[]; defaultModel?: string; updatedAt: number } | null> {
+  async refreshProviderModels(provider: string, apiKey?: string): Promise<{ models: string[]; defaultModel?: string; enabled: boolean; updatedAt: number } | null> {
     const config = await this.getConfig(provider);
-    if (!config) {
-      return null;
+    apiKey = apiKey ?? config?.apiKey;
+    if (!apiKey) {
+      throw new BadRequestException('API key is required');
     }
 
-    const models = await this.fetchModelsForProvider(provider, config);
+
+    const models = await this.fetchModelsForProvider(provider, apiKey);
     const payload = {
       models,
-      defaultModel: config.defaultModel,
+      defaultModel: config?.defaultModel,
+      enabled: config?.enabled ?? false,
       updatedAt: Date.now(),
     };
     await this.cacheManager.set(this.getModelsKey(provider), this.encryptionService.encryptJson(payload), 0);
@@ -250,6 +282,7 @@ export class AIProviderConfigService {
     return {
       ...config,
       apiKey: this.maskApiKey(config.apiKey),
+      enabled: config.enabled ?? false,
     };
   }
 
@@ -274,85 +307,37 @@ export class AIProviderConfigService {
     }
   }
 
-  private async fetchModelsForProvider(provider: string, config: AIProviderResponseDto): Promise<string[]> {
-    const apiKey = config.apiKey;
+  private async fetchModelsForProvider(provider: string, apiKey: string): Promise<string[]> {
     if (!apiKey) {
       throw new BadRequestException('API key not configured');
     }
 
-    if (provider === 'openai') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.openai.com/v1/models', {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (provider === 'anthropic') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.anthropic.com/v1/models', {
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (provider === 'google') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      );
-      return response.data.models.map((model) => model.name);
-    }
-
-    if (provider === 'azure') {
-      if (!config.baseUrl || !config.apiVersion) {
-        throw new BadRequestException('Azure OpenAI requires baseUrl and apiVersion');
+    try {
+      if (provider === 'openai') {
+        const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.openai.com/v1/models', {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        });
+        return response.data.data.map((model) => model.id);
       }
-      const url = `${config.baseUrl.replace(/\/+$/, '')}/openai/models?api-version=${encodeURIComponent(config.apiVersion)}`;
-      const response = await axios.get<{ data: Array<{ id: string }> }>(url, {
-        headers: {
-          'api-key': apiKey,
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
 
-    const customProviders = await this.getCustomProviders();
-    const custom = customProviders.find((item) => item.id === provider);
-    if (!custom) {
-      throw new BadRequestException('Unknown provider');
-    }
+      if (provider === 'anthropic') {
+        const response = await axios.get<{ data: Array<{ id: string }> }>('https://api.anthropic.com/v1/models', {
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+        });
+        return response.data.data.map((model) => model.id);
+      }
 
-    const baseUrl = custom.baseUrl.replace(/\/+$/, '');
-    if (custom.providerType === 'openai') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>(`${baseUrl}/v1/models`, {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (custom.providerType === 'anthropic') {
-      const response = await axios.get<{ data: Array<{ id: string }> }>(`${baseUrl}/v1/models`, {
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-      });
-      return response.data.data.map((model) => model.id);
-    }
-
-    if (custom.providerType === 'gemini') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(
-        `${baseUrl}/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      );
-      return response.data.models.map((model) => model.name);
-    }
-
-    if (custom.providerType === 'ollama') {
-      const response = await axios.get<{ models: Array<{ name: string }> }>(`${baseUrl}/api/tags`);
-      return response.data.models.map((model) => model.name);
+      if (provider === 'google') {
+        const response = await axios.get<{ models: Array<{ name: string }> }>(
+          `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
+        );
+        return response.data.models.map((model) => model.name);
+      }
+    } catch (error) {
+      throw new BadRequestException('Failed to fetch models for provider');
     }
 
     throw new BadRequestException('Unsupported custom provider type');
@@ -484,6 +469,34 @@ export class AIProviderConfigService {
     }
 
     return providers;
+  }
+
+  private async disableAllProvidersExcept(currentProvider: string): Promise<void> {
+    const allConfigs = await this.systemConfigsRepository.find({
+      where: { category: AI_PROVIDER_CONFIG_CATEGORY },
+    });
+
+    const currentDbKey = this.getConfigDbKey(currentProvider);
+
+    for (const record of allConfigs) {
+      if (record.key === currentDbKey) continue;
+
+      if (record.value) {
+        const config = this.encryptionService.decryptJson<AIProviderResponseDto>(record.value as Buffer);
+        if (config.enabled) {
+          config.enabled = false;
+          config.updatedAt = Date.now();
+          const encrypted = this.encryptionService.encryptJson(config);
+          record.value = encrypted as unknown as string;
+          await this.systemConfigsRepository.save(record);
+
+          // Also update cache
+          const providerId = record.key.replace('provider:', '');
+          const cacheKey = this.getConfigKey(providerId);
+          await this.cacheManager.set(cacheKey, encrypted, 0);
+        }
+      }
+    }
   }
 
   private async ensureConfigPersisted(provider: string, payload: AIProviderResponseDto): Promise<void> {

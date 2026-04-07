@@ -74,9 +74,9 @@ export class CandidateProfileService {
             preferredLocation: null,
             linkedin: null,
             phone: null,
-            currentLocationCountry: null,
-            currentLocationState: null,
-            currentLocationCity: null,
+            locationCountry: null,
+            locationState: null,
+            locationCity: null,
             noticePeriod: null,
             availableDate: null,
             profileStatus: 'draft',
@@ -122,9 +122,9 @@ export class CandidateProfileService {
             linkedin: candidate.linkedin ?? null,
             resumeUrl: candidate.resumeUrl ?? null,
             portfolioUrl: candidate.portfolioUrl ?? null,
-            currentLocationCountry: candidate.currentLocationCountry ?? null,
-            currentLocationState: candidate.currentLocationState ?? null,
-            currentLocationCity: candidate.currentLocationCity ?? null,
+            locationCountry: candidate.locationCountry ?? null,
+            locationState: candidate.locationState ?? null,
+            locationCity: candidate.locationCity ?? null,
             noticePeriod: candidate.noticePeriod ?? null,
             availableDate: candidate.availableDate ?? null,
             profileStatus: candidate.profileStatus ?? null,
@@ -150,9 +150,9 @@ export class CandidateProfileService {
         if (dto.targetSalary !== undefined) candidate.targetSalary = dto.targetSalary ?? null;
         if (dto.preferredLocation !== undefined) candidate.preferredLocation = dto.preferredLocation ?? null;
         if (dto.linkedin !== undefined) candidate.linkedin = dto.linkedin ?? null;
-        if (dto.currentLocationCountry !== undefined) candidate.currentLocationCountry = dto.currentLocationCountry ?? null;
-        if (dto.currentLocationState !== undefined) candidate.currentLocationState = dto.currentLocationState ?? null;
-        if (dto.currentLocationCity !== undefined) candidate.currentLocationCity = dto.currentLocationCity ?? null;
+        if (dto.locationCountry !== undefined) candidate.locationCountry = dto.locationCountry ?? null;
+        if (dto.locationState !== undefined) candidate.locationState = dto.locationState ?? null;
+        if (dto.locationCity !== undefined) candidate.locationCity = dto.locationCity ?? null;
         if (dto.noticePeriod !== undefined) candidate.noticePeriod = dto.noticePeriod ?? null;
         if (dto.availableDate !== undefined) candidate.availableDate = dto.availableDate ?? null;
         if (dto.profileStatus !== undefined) candidate.profileStatus = dto.profileStatus ?? null;

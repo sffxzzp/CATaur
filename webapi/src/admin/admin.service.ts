@@ -50,8 +50,8 @@ export class AdminService {
         if (role) {
             queryBuilder.andWhere('roles.role = :role', { role });
         }
-        else{
-            queryBuilder.andWhere('roles.role <> :role', { role:Role.CANDIDATE });
+        else {
+            queryBuilder.andWhere('roles.role <> :role', { role: Role.CANDIDATE });
         }
 
         if (search) {
@@ -498,6 +498,13 @@ export class AdminService {
     }
 
     /**
+     * Enable specific AI provider
+     */
+    async enableAIProviderConfig(provider: string): Promise<AIProviderResponseDto> {
+        return await this.aiProviderConfigService.enableConfig(provider);
+    }
+
+    /**
      * Get specific AI provider configuration
      */
     async getAIProviderConfig(provider: string): Promise<AIProviderResponseDto | null> {
@@ -515,19 +522,6 @@ export class AdminService {
     }
 
     async getAIProviderModels(provider: string): Promise<AIProviderModelsResponseDto | null> {
-        const models = await this.aiProviderConfigService.getProviderModels(provider);
-        if (!models) {
-            return null;
-        }
-        return {
-            provider,
-            models: models.models,
-            defaultModel: models.defaultModel,
-            updatedAt: models.updatedAt,
-        };
-    }
-
-    async refreshAIProviderModels(provider: string): Promise<AIProviderModelsResponseDto | null> {
         const models = await this.aiProviderConfigService.refreshProviderModels(provider);
         if (!models) {
             return null;
@@ -536,6 +530,21 @@ export class AdminService {
             provider,
             models: models.models,
             defaultModel: models.defaultModel,
+            enabled: models.enabled,
+            updatedAt: models.updatedAt,
+        };
+    }
+
+    async refreshAIProviderModels(provider: string, apiKey?: string): Promise<AIProviderModelsResponseDto | null> {
+        const models = await this.aiProviderConfigService.refreshProviderModels(provider, apiKey);
+        if (!models) {
+            return null;
+        }
+        return {
+            provider,
+            models: models.models,
+            defaultModel: models.defaultModel,
+            enabled: models.enabled,
             updatedAt: models.updatedAt,
         };
     }

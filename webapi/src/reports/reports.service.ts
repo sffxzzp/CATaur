@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobOrder } from '../database/entities/job-order.entity';
 import { Application } from '../database/entities/application.entity';
+import { Role } from '../database/entities/user-role.entity';
 
 export interface JobOrderStats {
     total: number;
@@ -30,6 +31,7 @@ export interface ActivityPoint {
 
 export interface ReportScope {
     companyIds?: string[];
+    role?: Role;
 }
 
 @Injectable()
@@ -49,8 +51,16 @@ export class ReportsService {
             .select('jo.status', 'status')
             .addSelect('COUNT(*)', 'count');
 
-        if (scope.companyIds?.length) {
-            qb.where('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                qb.where('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                qb.where('1=0');
+            }
+        } else {
+            if (scope.companyIds?.length) {
+                qb.where('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         const rows: { status: string; count: string }[] = await qb
@@ -73,8 +83,16 @@ export class ReportsService {
         const qb = this.applicationRepo.createQueryBuilder('app')
             .leftJoin('app.jobOrder', 'jobOrder');
 
-        if (scope.companyIds?.length) {
-            qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                qb.where('1=0');
+            }
+        } else {
+            if (scope.companyIds?.length) {
+                qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         const all = await qb.getMany();
@@ -105,8 +123,16 @@ export class ReportsService {
             .orderBy('applicationCount', 'DESC')
             .limit(limit);
 
-        if (scope.companyIds?.length) {
-            qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                qb.where('1=0');
+            }
+        } else {
+            if (scope.companyIds?.length) {
+                qb.where('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         const rows = await qb.getRawMany();
@@ -133,8 +159,16 @@ export class ReportsService {
             .groupBy('date')
             .orderBy('date', 'ASC');
 
-        if (scope.companyIds?.length) {
-            joQb.andWhere('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                joQb.andWhere('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                joQb.andWhere('1=0');
+            }
+        } else {
+            if (scope.companyIds?.length) {
+                joQb.andWhere('jo.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         // Applications
@@ -146,8 +180,16 @@ export class ReportsService {
             .groupBy('date')
             .orderBy('date', 'ASC');
 
-        if (scope.companyIds?.length) {
-            appQb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+        if (scope.role === Role.CLIENT) {
+            if (scope.companyIds?.length) {
+                appQb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            } else {
+                appQb.andWhere('1=0');
+            }
+        } else {
+            if (scope.companyIds?.length) {
+                appQb.andWhere('jobOrder.companyId IN (:...cids)', { cids: scope.companyIds });
+            }
         }
 
         const [joRows, appRows]: [{ date: string; count: string }[], { date: string; count: string }[]] =
