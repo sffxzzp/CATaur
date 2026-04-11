@@ -8,7 +8,6 @@ interface ContentSafetyModalProps {
     isOpen: boolean;
     result: ContentSafetyResult | null;
     onClose: () => void;
-    onSubmitAnyway?: () => void;
 }
 
 const categoryConfig: Record<string, { icon: string; color: string; bg: string; border: string }> = {
@@ -91,7 +90,6 @@ export function ContentSafetyModal({
     isOpen,
     result,
     onClose,
-    onSubmitAnyway,
 }: ContentSafetyModalProps) {
     const [mounted, setMounted] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -217,14 +215,6 @@ export function ContentSafetyModal({
 
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
-                    {onSubmitAnyway && (
-                        <button
-                            onClick={onSubmitAnyway}
-                            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 transition-colors"
-                        >
-                            Submit Anyway
-                        </button>
-                    )}
                     <button
                         onClick={onClose}
                         className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"

@@ -890,11 +890,6 @@ export default function RecruiterJobOrdersPage() {
         isOpen={safetyModal.isOpen}
         result={safetyModal.result}
         onClose={() => setSafetyModal({ isOpen: false, result: null })}
-        onSubmitAnyway={() => {
-          setSafetyModal({ isOpen: false, result: null });
-          pendingEditSubmitRef.current = true;
-          handleEditSubmit();
-        }}
       />
     </div>
   );

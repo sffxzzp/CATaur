@@ -404,13 +404,6 @@ export default function NewJobOrderPage() {
         isOpen={safetyModal.isOpen}
         result={safetyModal.result}
         onClose={() => setSafetyModal({ isOpen: false, result: null })}
-        onSubmitAnyway={() => {
-          setSafetyModal({ isOpen: false, result: null });
-          pendingSubmitRef.current = true;
-          // Re-trigger submit via form
-          const form = document.querySelector('form');
-          form?.requestSubmit();
-        }}
       />
     </>   
   );
