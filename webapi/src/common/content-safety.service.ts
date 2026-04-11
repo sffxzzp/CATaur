@@ -51,65 +51,61 @@ export class ContentSafetyService {
     }
 
     private async checkField(text: string, fieldName: string): Promise<FieldSafetyResult> {
-        const endpoint = this.configService.get<string>('AZURE_CONTENT_SAFETY_ENDPOINT');
-        const key = this.configService.get<string>('AZURE_CONTENT_SAFETY_KEY');
-
-        if (!endpoint || !key) {
-            this.logger.warn('Azure Content Safety not configured, skipping check');
-            return { field: fieldName, safe: true, violations: [] };
-        }
-
+        let violations: Violation[] = [];
+        
         try {
-            const url = `${endpoint.replace(/\/$/, '')}/contentsafety/text:analyze?api-version=2024-09-01`;
+            const endpoint = this.configService.get<string>('AZURE_CONTENT_SAFETY_ENDPOINT');
+            const key = this.configService.get<string>('AZURE_CONTENT_SAFETY_KEY');
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Ocp-Apim-Subscription-Key': key,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: text.slice(0, 10000), // API limit
-                    categories: ['Hate', 'Violence', 'Sexual', 'SelfHarm'],
-                    outputType: 'FourSeverityLevels',
-                }),
-            });
+            if (endpoint && key) {
+                const url = `${endpoint.replace(/\/$/, '')}/contentsafety/text:analyze?api-version=2024-09-01`;
 
-            if (!response.ok) {
-                const errorBody = await response.text();
-                this.logger.error(`Content Safety API error: ${response.status} ${errorBody}`);
-                // Fail open — don't block submission on API errors
-                return { field: fieldName, safe: true, violations: [] };
-            }
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': key,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text.slice(0, 10000), // API limit
+                        categories: ['Hate', 'Violence', 'Sexual', 'SelfHarm'],
+                        outputType: 'FourSeverityLevels',
+                    }),
+                });
 
-            const data = await response.json();
-            const violations: Violation[] = [];
-
-            for (const item of data.categoriesAnalysis ?? []) {
-                if (item.severity >= SEVERITY_THRESHOLD) {
-                    violations.push({
-                        category: item.category as ViolationCategory,
-                        severity: item.severity,
-                        label: CATEGORY_LABELS[item.category as ViolationCategory] ?? item.category,
-                    });
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    this.logger.error(`Content Safety API error: ${response.status} ${errorBody}`);
+                } else {
+                    const data = await response.json();
+                    for (const item of data.categoriesAnalysis ?? []) {
+                        if (item.severity >= SEVERITY_THRESHOLD) {
+                            violations.push({
+                                category: item.category as ViolationCategory,
+                                severity: item.severity,
+                                label: CATEGORY_LABELS[item.category as ViolationCategory] ?? item.category,
+                            });
+                        }
+                    }
                 }
+            } else {
+                this.logger.warn('Azure Content Safety not configured, checking with fallback only');
             }
-
-            if (violations.length === 0) {
-                const fallbackViolations = this.fallbackRegexCheck(text);
-                violations.push(...fallbackViolations);
-            }
-
-            return {
-                field: fieldName,
-                safe: violations.length === 0,
-                violations,
-            };
         } catch (error) {
             this.logger.error(`Content Safety check failed for field "${fieldName}": ${error}`);
-            // Fail open
-            return { field: fieldName, safe: true, violations: [] };
         }
+
+        // Always run the fallback check if Azure found nothing (or if Azure was skipped/errored)
+        if (violations.length === 0) {
+            const fallbackViolations = this.fallbackRegexCheck(text);
+            violations.push(...fallbackViolations);
+        }
+
+        return {
+            field: fieldName,
+            safe: violations.length === 0,
+            violations,
+        };
     }
 
     private fallbackRegexCheck(text: string): Violation[] {
