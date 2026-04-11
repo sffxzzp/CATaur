@@ -17,16 +17,6 @@ export const loggerConfig: Params = {
                                 destination: 1, // stdout
                             },
                         },
-                        {
-                            target: 'pino-loki', // Output to Loki (structured)
-                            options: {
-                                batching: true,
-                                interval: 5,
-                                host: process.env.LOKI_HOST || 'http://loki:3100',
-                                labels: { app: 'cataur-api' },
-                                propsToLabels: ['context', 'userId', 'category'], // Indexed as Loki labels
-                            },
-                        },
                     ],
                 }
                 : {
