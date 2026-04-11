@@ -15,6 +15,8 @@ import { ApplicationsService } from '../applications/applications.service';
 import { AdminService } from '../admin/admin.service';
 import { CreateJobOrderDto } from '../job-orders/dto/create-job-order.dto';
 import { UpdateJobOrderDto, UpdateJobOrderStatusDto } from '../job-orders/dto/update-job-order.dto';
+import { ContentSafetyService } from '../common/content-safety.service';
+import { ContentSafetyCheckDto } from '../common/dto/content-safety.dto';
 import {
     CreateApplicationDto,
     UpdateApplicationStatusDto,
@@ -77,6 +79,7 @@ export class RecruiterController {
         @InjectRepository(Candidate)
         private candidateRepository: Repository<Candidate>,
         private candidateProfileService: CandidateProfileService,
+        private contentSafetyService: ContentSafetyService,
     ) {}
 
     // ── Job Orders ────────────────────────────────────────────────────────
@@ -177,6 +180,23 @@ export class RecruiterController {
     @ApiNoContentResponse({ description: 'Job order deleted successfully' })
     async deleteJobOrder(@GetUser() user: User, @Param('id') id: string): Promise<void> {
         await this.jobOrdersService.delete(id);
+    }
+
+    // ── Content Safety ────────────────────────────────────────────────────
+    @Post('content-safety/check')
+    @ApiOperation({ summary: 'Check job order content for policy violations' })
+    @ApiOkResponse({
+        schema: {
+            type: 'object',
+            properties: {
+                safe: { type: 'boolean' },
+                titleResult: { type: 'object' },
+                descriptionResult: { type: 'object' },
+            },
+        },
+    })
+    checkContentSafety(@Body() dto: ContentSafetyCheckDto) {
+        return this.contentSafetyService.checkJobOrder(dto.title, dto.description);
     }
 
     // ── Applications ──────────────────────────────────────────────────────

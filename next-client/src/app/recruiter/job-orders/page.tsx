@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { jobOrdersClient } from "@/lib/api/jobOrders";
 import { companiesClient } from "@/lib/api/companies";
 import type { JobOrder, Company } from "@/lib/api/types";
 import { toast } from "sonner";
+import { checkContentSafety, type ContentSafetyResult } from "@/lib/api/contentSafety";
+import { ContentSafetyModal } from "@/components/recruiter/ContentSafetyModal";
 import { LocationSelector } from "@/components/location-selector";
 import {
   Search,
@@ -137,6 +139,13 @@ export default function RecruiterJobOrdersPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [allCompanies, setAllCompanies] = useState<Company[]>([]);
+
+  // Content Safety modal state
+  const [safetyModal, setSafetyModal] = useState<{
+    isOpen: boolean;
+    result: ContentSafetyResult | null;
+  }>({ isOpen: false, result: null });
+  const pendingEditSubmitRef = useRef(false);
 
   useEffect(() => {
     loadData();
@@ -274,6 +283,26 @@ export default function RecruiterJobOrdersPage() {
       toast.error("Title is required");
       return;
     }
+
+    // Run content safety check first (unless already confirmed)
+    if (!pendingEditSubmitRef.current) {
+      setSubmitting(true);
+      try {
+        const safetyResult = await checkContentSafety({
+          title: editForm.title.trim(),
+          description: editForm.description.trim() || undefined,
+        });
+        if (!safetyResult.safe) {
+          setSafetyModal({ isOpen: true, result: safetyResult });
+          setSubmitting(false);
+          return;
+        }
+      } catch {
+        // Fail open on error
+      }
+      setSubmitting(false);
+    }
+    pendingEditSubmitRef.current = false;
 
     setSubmitting(true);
     try {
@@ -855,6 +884,18 @@ export default function RecruiterJobOrdersPage() {
           </div>
         </div>
       )}
+
+      {/* Content Safety Modal */}
+      <ContentSafetyModal
+        isOpen={safetyModal.isOpen}
+        result={safetyModal.result}
+        onClose={() => setSafetyModal({ isOpen: false, result: null })}
+        onSubmitAnyway={() => {
+          setSafetyModal({ isOpen: false, result: null });
+          pendingEditSubmitRef.current = true;
+          handleEditSubmit();
+        }}
+      />
     </div>
   );
 }

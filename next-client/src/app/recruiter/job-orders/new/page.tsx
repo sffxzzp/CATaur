@@ -10,6 +10,8 @@ import { jobOrdersClient } from "@/lib/api/jobOrders";
 import type { Company } from "@/lib/api/types";
 import { LocationSelector } from "@/components/location-selector";
 import { toast } from "sonner";
+import { checkContentSafety, type ContentSafetyResult } from "@/lib/api/contentSafety";
+import { ContentSafetyModal } from "@/components/recruiter/ContentSafetyModal";
 
 const DRAFT_KEY = "DRAFT_JOB_ORDER";
 
@@ -51,6 +53,13 @@ export default function NewJobOrderPage() {
   const [mounted, setMounted] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
+
+  // Content Safety modal state
+  const [safetyModal, setSafetyModal] = useState<{
+    isOpen: boolean;
+    result: ContentSafetyResult | null;
+  }>({ isOpen: false, result: null });
+  const pendingSubmitRef = useRef(false);
 
   // Ref to prevent aggressive auto-saving while typing rapidly
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,6 +106,26 @@ export default function NewJobOrderPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (saving || !form.title.trim() || !form.companyId) return;
+
+    // Run content safety check first (unless already confirmed)
+    if (!pendingSubmitRef.current) {
+      setSaving(true);
+      try {
+        const safetyResult = await checkContentSafety({
+          title: form.title.trim(),
+          description: form.description.trim() || undefined,
+        });
+        if (!safetyResult.safe) {
+          setSafetyModal({ isOpen: true, result: safetyResult });
+          setSaving(false);
+          return;
+        }
+      } catch {
+        // Safety check failed — fail open, continue
+      }
+      setSaving(false);
+    }
+    pendingSubmitRef.current = false;
     setSaving(true);
 
     try {
@@ -134,6 +163,7 @@ export default function NewJobOrderPage() {
   const labelClass = "text-sm font-semibold text-[var(--gray-800)] block mb-1.5 flex items-center gap-2";
 
   return (
+    <>
     <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 py-6 sm:py-10 animate-fade-in">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
         <div>
@@ -368,6 +398,20 @@ export default function NewJobOrderPage() {
         </form>
       </div>
     </div>
+
+      {/* Content Safety Modal */}
+      <ContentSafetyModal
+        isOpen={safetyModal.isOpen}
+        result={safetyModal.result}
+        onClose={() => setSafetyModal({ isOpen: false, result: null })}
+        onSubmitAnyway={() => {
+          setSafetyModal({ isOpen: false, result: null });
+          pendingSubmitRef.current = true;
+          // Re-trigger submit via form
+          const form = document.querySelector('form');
+          form?.requestSubmit();
+        }}
+      />
+    </>   
   );
 }
-
