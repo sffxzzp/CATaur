@@ -50,8 +50,6 @@ services:
   # STORAGE CLUSTER (SeaweedFS)
   # Purpose: A highly available distributed file system split into Master (metadata), Volume (storage), and Filer (POSIX-like file API).
   # ==========================================
-  # SeaweedFS Storage Cluster
-  # SeaweedFS Storage Cluster
   seaweedfs-master:
     image: chrislusf/seaweedfs:latest
     command: master -ip=seaweedfs-master
@@ -99,10 +97,47 @@ services:
     networks:
       - web-network
 
+  # ==========================================
+  # OBSERVABILITY CLUSTER (Loki & Grafana)
+  # Purpose: Centralized log aggregation and visualization dashboard.
+  # ==========================================
+  loki:
+    image: grafana/loki:latest
+    restart: always
+    ports:
+      - "127.0.0.1:3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - web-network
+ 
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    depends_on:
+      - loki
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - web-network
+
 # ==========================================
 # NETWORKS
-# Purpose: A custom bridge network allowing services to communicate securely using their service names (e.g., 'http://webapi').
+# Purpose: A custom bridge network allowing services to communicate securely using their service names.
 # ==========================================
 networks:
   web-network:
     driver: bridge
+
+# ==========================================
+# VOLUMES
+# Purpose: Global declaration of named volumes used by observability services for data persistence.
+# ==========================================
+volumes:
+  loki-data:
+  grafana-data:
