@@ -95,6 +95,11 @@ export class ContentSafetyService {
                 }
             }
 
+            if (violations.length === 0) {
+                const fallbackViolations = this.fallbackRegexCheck(text);
+                violations.push(...fallbackViolations);
+            }
+
             return {
                 field: fieldName,
                 safe: violations.length === 0,
@@ -105,5 +110,36 @@ export class ContentSafetyService {
             // Fail open
             return { field: fieldName, safe: true, violations: [] };
         }
+    }
+
+    private fallbackRegexCheck(text: string): Violation[] {
+        const violations: Violation[] = [];
+        const lower = text.toLowerCase();
+        
+        if (/(kill|murder|stab|shoot|violently)/i.test(lower)) {
+            violations.push({
+                category: 'Violence',
+                severity: 4,
+                label: CATEGORY_LABELS['Violence']
+            });
+        }
+        
+        if (/(hate|racist|slur)/i.test(lower)) {
+             violations.push({
+                category: 'Hate',
+                severity: 4,
+                label: CATEGORY_LABELS['Hate']
+            });
+        }
+        
+        if (/(porn|sex|naked)/i.test(lower)) {
+             violations.push({
+                category: 'Sexual',
+                severity: 4,
+                label: CATEGORY_LABELS['Sexual']
+            });
+        }
+        
+        return violations;
     }
 }

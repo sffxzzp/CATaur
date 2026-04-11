@@ -27,6 +27,7 @@
     "migration:revert": "npm run typeorm -- -d ./src/data-source.ts migration:revert"
   },
   "dependencies": {
+    "@azure-rest/ai-content-safety": "^1.0.1",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
