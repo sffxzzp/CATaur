@@ -24,7 +24,7 @@ export async function checkContentSafety(params: {
     title: string;
     description?: string;
 }): Promise<ContentSafetyResult> {
-    return request<ContentSafetyResult>('/recruiter/content-safety/check', {
+    return request<ContentSafetyResult>('/api/recruiter/content-safety/check', {
         method: 'POST',
         body: JSON.stringify(params),
     });
