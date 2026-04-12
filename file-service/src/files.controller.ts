@@ -137,7 +137,7 @@ export class FilesController {
     @ApiResponse({ status: 401, description: 'Unauthorized: signature invalid or URL expired.' })
     @ApiResponse({ status: 400, description: 'Bad Request: no file provided.' })
     @ApiResponse({ status: 500, description: 'Internal Server Error: SeaweedFS upload failure.' })
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
     async upload(
         @Query('filename') filename: string,
         @Query('expires') expires: string,

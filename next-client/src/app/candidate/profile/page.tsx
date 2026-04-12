@@ -329,24 +329,34 @@ export default function ProfilePage() {
   };
 
   const handleSimulateUpload = () => {
+    setParseError(null);
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".pdf,.docx,.doc,.txt,.rtf";
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        setParseError("File size exceeds 5MB limit. Please select a smaller file.");
+        return;
+      }
       await processResumeUpload(file, "onboarding");
     };
     input.click();
   };
 
   const handleReuploadSimulate = () => {
+    setParseError(null);
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".pdf,.docx,.doc,.txt,.rtf";
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        setParseError("File size exceeds 5MB limit. Please select a smaller file.");
+        return;
+      }
       setResumeUploadState("parsing");
       await processResumeUpload(file, "update");
     };
@@ -711,6 +721,7 @@ export default function ProfilePage() {
                     <h3 className="text-sm font-semibold text-[#111827]">Click to browse or drag and drop</h3>
                     <p className="mt-1 text-xs text-[#6B7280]">PDF, DOCX, or RTF (Max 5MB)</p>
                   </div>
+                  {parseError && <p className="mt-4 text-center text-sm font-medium text-red-600">{parseError}</p>}
                 </div>
                 <div className="flex justify-between gap-2 border-t border-[var(--border-light)] bg-[#F9FAFB] px-6 py-4">
                   <Button variant="outline" onClick={() => setStep("basic-info")}>Back</Button>
@@ -1159,6 +1170,7 @@ export default function ProfilePage() {
                         <h3 className="text-sm font-semibold text-[#111827]">Click to browse</h3>
                         <p className="mt-1 text-xs text-[#6B7280]">Upload an updated PDF or DOCX</p>
                       </div>
+                      {parseError && <p className="mt-4 text-center text-sm font-medium text-red-600">{parseError}</p>}
                     </div>
                   </div>
                 )}
