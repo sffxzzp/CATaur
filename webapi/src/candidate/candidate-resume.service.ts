@@ -10,17 +10,24 @@ import { Repository } from 'typeorm';
 import axios from 'axios';
 import * as pdfParseModule from 'pdf-parse';
 
-let parsePdfFn: any = pdfParseModule;
-if (typeof parsePdfFn !== 'function') {
-    if (typeof parsePdfFn.default === 'function') {
-        parsePdfFn = parsePdfFn.default;
-    } else if (typeof parsePdfFn.PDFParse === 'function') {
-        parsePdfFn = parsePdfFn.PDFParse;
-    } else if (parsePdfFn.default && typeof parsePdfFn.default.PDFParse === 'function') {
-        parsePdfFn = parsePdfFn.default.PDFParse;
+// pdf-parse v2.x exports a PDFParse class, not a function.
+// Usage: new PDFParse(Uint8Array) → load() → getText() → { text }
+const PDFParseClass: any = (pdfParseModule as any).PDFParse;
+
+/**
+ * Extract text from a PDF buffer using pdf-parse v2 class API.
+ */
+async function extractPdfText(buffer: Buffer): Promise<string> {
+    const uint8 = new Uint8Array(buffer);
+    const parser = new PDFParseClass(uint8);
+    try {
+        await parser.load();
+        const result = await parser.getText();
+        return result?.text?.trim() ?? '';
+    } finally {
+        try { parser.destroy(); } catch { /* ignore cleanup errors */ }
     }
 }
-const parsePdf: (buffer: Buffer) => Promise<{ text: string }> = parsePdfFn;
 import * as mammoth from 'mammoth';
 import { Candidate } from '../database/entities/candidate.entity';
 import { ResumeParser } from '../database/entities/resume-parser.entity';
@@ -144,9 +151,8 @@ export class CandidateResumeService {
                 const buffer = Buffer.from(res.data);
 
                 if (contentType.includes('pdf') || resolvedResumeUrl.toLowerCase().endsWith('.pdf')) {
-                    // Extract text from PDF
-                    const pdfData = await parsePdf(buffer);
-                    rawText = pdfData.text?.trim() || null;
+                    // Extract text from PDF using pdf-parse v2 class API
+                    rawText = await extractPdfText(buffer) || null;
                     isBinary = true;
                 } else if (
                     contentType.includes('wordprocessingml') ||
