@@ -118,6 +118,65 @@ function SuccessModal({
   );
 }
 
+// ─── Missing Resume Modal ────────────────────────────────────────────────────────────
+function MissingResumeModal({
+  onClose,
+}: {
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.15)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded p-1 text-[#6B7280] transition hover:bg-[#F3F4F6] hover:text-[#111827]"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="border-b border-[#E5E7EB] px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#FFFBEB]">
+              <FileText className="h-5 w-5 text-[#92400E]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#111827]">Resume Required</p>
+              <p className="text-xs text-[#6B7280]">
+                Please add your resume to continue
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-5">
+          <p className="text-sm text-[#374151]">
+            We need your resume or a completed profile before you can submit an application. This helps recruiters evaluate your qualifications.
+          </p>
+
+          <div className="mt-5 flex flex-col gap-2">
+            <Button variant="primary" size="md" className="w-full" asChild>
+              <Link href="/candidate/profile" className="flex items-center justify-center gap-2">
+                Update Profile & Resume
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="md" className="w-full" onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Apply Panel ──────────────────────────────────────────────────────────────
 export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
   const loggedIn = useCandidateAuth();
@@ -126,6 +185,7 @@ export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
   const [applied, setApplied] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showMissingResumeModal, setShowMissingResumeModal] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applyError, setApplyError] = useState<string | null>(null);
 
@@ -165,6 +225,21 @@ export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
     setApplyError(null);
 
     try {
+      // Check if profile has a resume or work experience
+      try {
+        const profile = await request<any>("/candidate/profile");
+        const hasResume = !!profile?.resumeUrl;
+        const hasExperience = profile?.workExperience && profile.workExperience.length > 0;
+        
+        if (!hasResume && !hasExperience) {
+          setShowMissingResumeModal(true);
+          setIsApplying(false);
+          return;
+        }
+      } catch (profileErr) {
+        // If fetching profile fails, just proceed to let the backend handle validation if any
+      }
+
       // Call backend API to submit application
       await request(`/candidate/jobs/${jobId}/apply`, { method: "POST" });
 
@@ -205,6 +280,12 @@ export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
         <LoginToApplyModal
           jobTitle={jobTitle ?? "this position"}
           onClose={() => setShowLoginModal(false)}
+        />
+      )}
+
+      {showMissingResumeModal && (
+        <MissingResumeModal
+          onClose={() => setShowMissingResumeModal(false)}
         />
       )}
 
