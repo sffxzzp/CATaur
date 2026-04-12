@@ -8,10 +8,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import axios from 'axios';
-import * as pdfParse from 'pdf-parse';
-// pdf-parse may export as default or named depending on build
-const parsePdf: (buffer: Buffer) => Promise<{ text: string }> =
-    (pdfParse as any).default ?? (pdfParse as any);
+import * as pdfParseModule from 'pdf-parse';
+
+let parsePdfFn: any = pdfParseModule;
+if (typeof parsePdfFn !== 'function') {
+    if (typeof parsePdfFn.default === 'function') {
+        parsePdfFn = parsePdfFn.default;
+    } else if (typeof parsePdfFn.PDFParse === 'function') {
+        parsePdfFn = parsePdfFn.PDFParse;
+    } else if (parsePdfFn.default && typeof parsePdfFn.default.PDFParse === 'function') {
+        parsePdfFn = parsePdfFn.default.PDFParse;
+    }
+}
+const parsePdf: (buffer: Buffer) => Promise<{ text: string }> = parsePdfFn;
 import * as mammoth from 'mammoth';
 import { Candidate } from '../database/entities/candidate.entity';
 import { ResumeParser } from '../database/entities/resume-parser.entity';
