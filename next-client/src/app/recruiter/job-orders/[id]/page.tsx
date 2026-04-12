@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Building2, MapPin, Users, CircleDollarSign, Briefcase, MonitorSmartphone, Loader2, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { toast } from "sonner";
 
 // Mock data uses sourcing/interview/offer/filled/paused; form uses active/onhold/closed
@@ -189,7 +191,7 @@ export default function JobOrderDetails() {
           <div className={`rounded-md border border-[var(--border-light)] min-h-[300px] px-6 py-5 ${!description ? "flex items-center justify-center" : ""}`}>
             {description ? (
               <div className="prose prose-sm prose-blue dark:prose-invert max-w-none text-[var(--gray-800)] break-words [overflow-wrap:anywhere]">
-                <ReactMarkdown>{description}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{description}</ReactMarkdown>
               </div>
             ) : (
               <p className="text-sm text-[var(--gray-400)] italic">No description provided yet.</p>

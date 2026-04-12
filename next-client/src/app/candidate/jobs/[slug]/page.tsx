@@ -1,5 +1,8 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { JOBS, type Job, type JobType, type WorkArrangement } from "@/data/jobs";
@@ -21,74 +24,14 @@ import ApplyPanel from "./apply-panel";
 // ─── Markdown renderer ─────────────────────────────────────────────────────────
 
 function MarkdownRenderer({ content }: { content: string }) {
-  const lines = content.split("\n");
-  const elements: React.ReactNode[] = [];
-  let listBuffer: string[] = [];
-  let keyIndex = 0;
-
-  const flushList = () => {
-    if (listBuffer.length === 0) return;
-    elements.push(
-      <ul key={`ul-${keyIndex++}`} className="mb-4 space-y-1.5 pl-1">
-        {listBuffer.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-base text-[#374151] leading-relaxed">
-            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#1D4ED8]" />
-            <span dangerouslySetInnerHTML={{ __html: boldify(item) }} />
-          </li>
-        ))}
-      </ul>
-    );
-    listBuffer = [];
-  };
-
-  const boldify = (text: string) =>
-    text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-
-  for (const raw of lines) {
-    const line = raw.trim();
-
-    if (line.startsWith("## ")) {
-      flushList();
-      elements.push(
-        <h2 key={keyIndex++} className="mb-2 mt-6 first:mt-0 text-base font-semibold text-[#111827]">
-          {line.slice(3)}
-        </h2>
-      );
-      continue;
-    }
-
-    if (line.startsWith("### ")) {
-      flushList();
-      elements.push(
-        <h3 key={keyIndex++} className="mb-1.5 mt-4 text-sm font-semibold text-[#374151]">
-          {line.slice(4)}
-        </h3>
-      );
-      continue;
-    }
-
-    if (line.startsWith("- ") || line.startsWith("• ")) {
-      listBuffer.push(line.slice(2));
-      continue;
-    }
-
-    if (line === "") {
-      flushList();
-      continue;
-    }
-
-    flushList();
-    elements.push(
-      <p
-        key={keyIndex++}
-        className="mb-3 text-base leading-relaxed text-[#374151]"
-        dangerouslySetInnerHTML={{ __html: boldify(line) }}
-      />
-    );
-  }
-
-  flushList();
-  return <div>{elements}</div>;
+  if (!content) return <p className="text-sm text-[#6B7280] italic">No description provided yet.</p>;
+  return (
+    <div className="prose prose-sm md:prose-base prose-blue dark:prose-invert max-w-none text-[#374151] break-words [overflow-wrap:anywhere]">
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 // ─── Work arrangement badge ───────────────────────────────────────────────────
