@@ -112,7 +112,7 @@ export class ContentSafetyService {
         const violations: Violation[] = [];
         const lower = text.toLowerCase();
         
-        if (/(kill|murder|stab|shoot|violently)/i.test(lower)) {
+        if (/\b(kill|murder|stab|shoot|violently)\b/i.test(lower)) {
             violations.push({
                 category: 'Violence',
                 severity: 4,
@@ -120,7 +120,7 @@ export class ContentSafetyService {
             });
         }
         
-        if (/(hate|racist|slur)/i.test(lower)) {
+        if (/\b(hate|racist|slur)\b/i.test(lower)) {
              violations.push({
                 category: 'Hate',
                 severity: 4,
@@ -128,7 +128,7 @@ export class ContentSafetyService {
             });
         }
         
-        if (/(porn|sex|naked)/i.test(lower)) {
+        if (/\b(porn|sex|naked)\b/i.test(lower)) {
              violations.push({
                 category: 'Sexual',
                 severity: 4,
