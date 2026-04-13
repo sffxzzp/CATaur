@@ -298,7 +298,10 @@ export default function RecruiterJobOrdersPage() {
           return;
         }
       } catch {
-        // Fail open on error
+        // Fail closed on error
+        toast.error("Content safety check is unavailable. Please try again later.");
+        setSubmitting(false);
+        return;
       }
       setSubmitting(false);
     }

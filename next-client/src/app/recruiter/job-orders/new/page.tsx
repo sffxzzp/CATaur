@@ -121,7 +121,10 @@ export default function NewJobOrderPage() {
           return;
         }
       } catch {
-        // Safety check failed — fail open, continue
+        // Safety check failed — fail CLOSED, block submission
+        toast.error("Content safety check is unavailable. Please try again later.");
+        setSaving(false);
+        return;
       }
       setSaving(false);
     }
