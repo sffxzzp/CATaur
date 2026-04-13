@@ -227,7 +227,7 @@ export default function ApplyPanel({ slug, jobId, jobTitle, company }: Props) {
     try {
       // Check if profile has a resume or work experience
       try {
-        const profile = await request<any>("/candidate/profile");
+        const profile = await request<any>("/candidate/my-profile");
         const hasResume = !!profile?.resumeUrl;
         const hasExperience = profile?.workExperience && profile.workExperience.length > 0;
         
