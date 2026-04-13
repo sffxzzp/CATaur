@@ -987,16 +987,27 @@ export default function ProfilePage() {
                     <SectionCard title="Resume" icon={<FileText className="h-4 w-4" />}>
                       <div className="p-5 space-y-3">
                         {profile?.resumeUrl ? (
-                          <div className="flex items-center gap-3 rounded border border-[var(--border-light)] bg-[#F9FAFB] p-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded bg-[#FEE2E2]">
-                              <File className="h-4 w-4 text-[#DC2626]" />
+                          <div className="group flex items-center justify-between rounded-lg border border-[var(--border-light)] bg-[#F9FAFB] p-3 transition hover:border-[#1D4ED8] hover:bg-[#EFF6FF]/40">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#FEE2E2] to-[#FECACA] shadow-sm">
+                                <FileText className="h-5 w-5 text-[#DC2626]" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-[#111827]">
+                                  {profile.resumeUrl.split('/').pop() || "Uploaded Document"}
+                                </p>
+                                <p className="text-xs text-[#6B7280]">PDF or Doc • Securely stored</p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <a href={profile.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#1D4ED8] truncate hover:underline block">
-                                View Resume
-                              </a>
-                              <p className="text-[10px] text-[#6B7280]">Current resume on file</p>
-                            </div>
+                            <a 
+                              href={profile.resumeUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="ml-4 shrink-0 rounded-md bg-white border border-[#D1D5DB] px-2.5 py-1.5 text-xs font-semibold text-[#374151] shadow-sm transition hover:text-[#1D4ED8] hover:border-[#1D4ED8]"
+                              title="View Document"
+                            >
+                              Open
+                            </a>
                           </div>
                         ) : (
                           <p className="text-xs text-[#6B7280]">No resume uploaded yet.</p>
