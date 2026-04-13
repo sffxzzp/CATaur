@@ -275,7 +275,6 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
 
   const [fontSizeValue, setFontSizeValue] = useState("20px");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [candidateEmail, setCandidateEmail] = useState("");
 
   // Fetch actual profile info
@@ -295,10 +294,6 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
     const savedFont = localStorage.getItem(FONT_SIZE_KEY) ?? "20px";
     setFontSizeValue(savedFont);
     applyFontSize(savedFont);
-
-    const savedTheme = (localStorage.getItem(THEME_KEY) ?? "light") as "light" | "dark";
-    setTheme(savedTheme);
-    applyTheme(savedTheme);
   }, []);
 
   // Close on outside click
@@ -314,12 +309,6 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
   const handleFontSize = (value: string) => {
     setFontSizeValue(value);
     applyFontSize(value);
-  };
-
-  const handleThemeToggle = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    applyTheme(next);
   };
 
   const currentIdx = FONT_SIZES.findIndex((f) => f.value === fontSizeValue);
@@ -394,47 +383,6 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
               <Info className="h-4 w-4 text-[var(--gray-400)]" />
               Account Information
             </Link>
-          </div>
-
-          {/* ── Theme toggle ── */}
-          <div className="border-t border-[var(--border)] px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                {isDark ? (
-                  <Moon className="h-3.5 w-3.5 text-[var(--gray-400)]" />
-                ) : (
-                  <Sun className="h-3.5 w-3.5 text-[var(--gray-400)]" />
-                )}
-                <span className="text-xs font-medium text-[var(--gray-600)]">
-                  {isDark ? "Dark Mode" : "Light Mode"}
-                </span>
-              </div>
-
-              {/* Pill toggle */}
-              <button
-                onClick={handleThemeToggle}
-                aria-label="Toggle dark mode"
-                className={cn(
-                  "relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none",
-                  isDark
-                    ? "bg-[var(--accent)] border-[var(--accent)]"
-                    : "bg-[var(--gray-200)] border-[var(--border)]"
-                )}
-              >
-                <span
-                  className={cn(
-                    "inline-flex h-4 w-4 items-center justify-center rounded-full bg-white shadow transition-transform duration-200",
-                    isDark ? "translate-x-[22px]" : "translate-x-[2px]"
-                  )}
-                >
-                  {isDark ? (
-                    <Moon className="h-2.5 w-2.5 text-[var(--accent)]" />
-                  ) : (
-                    <Sun className="h-2.5 w-2.5 text-amber-600" />
-                  )}
-                </span>
-              </button>
-            </div>
           </div>
 
           {/* ── Font size ── */}

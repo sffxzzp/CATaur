@@ -251,7 +251,6 @@ function NotificationDropdown() {
 function AvatarDropdown() {
   const [open, setOpen] = useState(false);
   const [fontIdx, setFontIdx] = useState(0);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [nickname, setNickname] = useState("Recruiter");
   const [email, setEmail] = useState("-");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -259,11 +258,6 @@ function AvatarDropdown() {
 
   // Init from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("catats-theme") as "light" | "dark" | null;
-    const initial = saved || "light";
-    setTheme(initial);
-    document.documentElement.setAttribute("data-theme", initial);
-
     const savedFont = localStorage.getItem("catats-font-idx");
     if (savedFont !== null) {
       const idx = Number(savedFont);
@@ -311,18 +305,10 @@ function AvatarDropdown() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Apply font scale
   const handleFontChange = (idx: number) => {
     setFontIdx(idx);
     localStorage.setItem("catats-font-idx", String(idx));
     document.documentElement.style.setProperty("--font-scale", String(FONT_SIZES[idx].value));
-  };
-
-  // Apply theme
-  const handleThemeChange = (t: "light" | "dark") => {
-    setTheme(t);
-    localStorage.setItem("catats-theme", t);
-    document.documentElement.setAttribute("data-theme", t);
   };
 
   const signOut = () => {
@@ -390,31 +376,6 @@ function AvatarDropdown() {
                 {fontIdx === i && <Check className="h-3.5 w-3.5 text-[var(--accent)]" />}
               </button>
             ))}
-          </div>
-
-          <div className="border-t border-[var(--border)]" />
-
-          {/* Theme */}
-          <div className="py-1">
-            <div className="px-4 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--gray-400)]">
-              Theme
-            </div>
-            <button
-              onClick={() => handleThemeChange("light")}
-              className="flex w-full items-center gap-3 px-4 py-1.5 text-sm text-[var(--gray-700)] cursor-pointer hover:bg-[var(--gray-100)]"
-            >
-              <Sun className="h-4 w-4 text-[var(--gray-400)]" />
-              <span className="flex-1 text-left">Light</span>
-              {theme === "light" && <Check className="h-3.5 w-3.5 text-[var(--accent)]" />}
-            </button>
-            <button
-              onClick={() => handleThemeChange("dark")}
-              className="flex w-full items-center gap-3 px-4 py-1.5 text-sm text-[var(--gray-700)] cursor-pointer hover:bg-[var(--gray-100)]"
-            >
-              <Moon className="h-4 w-4 text-[var(--gray-400)]" />
-              <span className="flex-1 text-left">Dark</span>
-              {theme === "dark" && <Check className="h-3.5 w-3.5 text-[var(--accent)]" />}
-            </button>
           </div>
 
           <div className="border-t border-[var(--border)]" />
