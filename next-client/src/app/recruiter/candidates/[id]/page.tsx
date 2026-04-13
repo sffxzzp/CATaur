@@ -260,7 +260,7 @@ function TimePickerInput({ value, onChange }: { value: string; onChange: (v: str
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
+        <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
           <div className="grid grid-cols-4 gap-1 max-h-52 overflow-y-auto">
             {TIME_SLOTS.map(slot => (
               <button
@@ -303,9 +303,9 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4">
-      <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-modal)] overflow-hidden">
+      <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-modal)] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
+        <div className="flex items-center justify-between rounded-t-xl border-b border-[var(--border)] px-6 py-4">
           <div>
             <h3 className="text-base font-semibold text-[var(--gray-900)]">{round > 1 ? `Send Round ${round} Interview` : "Send Interview Invitation"}</h3>
             <p className="text-xs text-[var(--gray-500)] mt-0.5">To: <span className="font-medium text-[var(--gray-700)]">{candidateName}</span> · {jobTitle}</p>
@@ -351,7 +351,7 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
           </div>
         </div>
         {/* Footer */}
-        <div className="flex justify-end gap-3 border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
+        <div className="flex justify-end gap-3 rounded-b-xl border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
           <button onClick={onClose} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] cursor-pointer hover:bg-[var(--gray-50)] transition">Cancel</button>
           <button onClick={onSend} disabled={disabled} className={`rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white transition ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-[var(--accent-hover)]"}`}>
             Send Invitation

@@ -85,6 +85,38 @@ function toBadgeLabel(type: string) {
     .join(" ");
 }
 
+// ─── Theme Toggle Button (always visible, no login required) ─────────────────
+function ThemeToggleButton() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = (localStorage.getItem(THEME_KEY) ?? "light") as "light" | "dark";
+    setTheme(saved);
+    applyTheme(saved);
+  }, []);
+
+  const toggle = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    applyTheme(next);
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      title={theme === "dark" ? "Light mode" : "Dark mode"}
+      className="group flex h-8 w-8 items-center justify-center rounded-md text-[var(--gray-400)] transition-colors hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)]"
+    >
+      {theme === "dark" ? (
+        <Sun className="h-[18px] w-[18px] transition-transform group-hover:rotate-12" />
+      ) : (
+        <Moon className="h-[18px] w-[18px] transition-transform group-hover:-rotate-12" />
+      )}
+    </button>
+  );
+}
+
 // ─── Nav items ────────────────────────────────────────────────────────────────
 type NavItem = { label: string; href: string; icon: LucideIcon };
 
@@ -95,6 +127,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Applications", href: "/candidate/applications", icon: FileText },
   { label: "AI Assistant", href: "/candidate/assistant", icon: Sparkles },
 ];
+
 
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
@@ -534,6 +567,7 @@ export function SiteHeader() {
 
         {/* Desktop right: notifications + avatar or login */}
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggleButton />
           {candidateLoggedIn ? (
             <>
               <NotificationDropdown />
@@ -551,6 +585,7 @@ export function SiteHeader() {
             </div>
           )}
         </div>
+
 
         {/* Mobile hamburger */}
         <button

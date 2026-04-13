@@ -76,6 +76,38 @@ function toBadgeLabel(type: string) {
     .join(" ");
 }
 
+// ─── Theme Toggle Button (always visible) ──────────────────────────────────
+function ThemeToggleButton() {
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const saved = (localStorage.getItem("catats-theme") ?? "light") as "light" | "dark";
+    setTheme(saved);
+  }, []);
+
+  const toggle = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("catats-theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      title={theme === "dark" ? "Light mode" : "Dark mode"}
+      className="group flex h-8 w-8 items-center justify-center rounded-md text-[var(--gray-400)] transition-colors hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)] cursor-pointer"
+    >
+      {theme === "dark" ? (
+        <Sun className="h-[18px] w-[18px] transition-transform group-hover:rotate-12" />
+      ) : (
+        <Moon className="h-[18px] w-[18px] transition-transform group-hover:-rotate-12" />
+      )}
+    </button>
+  );
+}
+
 function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -478,6 +510,7 @@ export default function RecruiterLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-2">
+            <ThemeToggleButton />
             <NotificationDropdown />
 
             <div className="ml-1 h-6 w-px bg-[var(--gray-200)]" />

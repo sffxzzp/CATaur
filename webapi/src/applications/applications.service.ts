@@ -377,6 +377,9 @@ export class ApplicationsService {
           app.candidate.email,
           emailSubject,
           emailContent,
+          dto.interviewType,
+          dto.interviewDate,
+          dto.interviewTime,
         )
         .catch((err) => {
           this.logger.error(
@@ -431,7 +434,7 @@ export class ApplicationsService {
           ].join('\n');
 
       await this.emailService
-        .sendOfferNotification(app.candidate.email, jobTitle, offerEmailContent)
+        .sendOfferNotification(app.candidate.email, jobTitle, offerEmailContent, companyName)
         .catch((err) => {
           this.logger.error(
             `Failed to send offer email for application ${id}: ${err?.message}`,
