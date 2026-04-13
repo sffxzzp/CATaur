@@ -327,7 +327,6 @@ function AvatarDropdown({ onSignOut }: { onSignOut: () => void }) {
   })();
 
   const initial = email ? email[0].toUpperCase() : "U";
-  const isDark = theme === "dark";
 
   return (
     <div ref={ref} className="relative">
