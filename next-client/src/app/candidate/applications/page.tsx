@@ -106,6 +106,19 @@ function mapApiApplication(item: any): Application {
   else if (status === "closed" || status === "rejected" || status === "withdrawn" || status === "hired") recruiterStatus = "Closed";
   else recruiterStatus = "New";
 
+  // Map interview fields from the backend
+  let interview: Application["interview"] | undefined;
+  if (recruiterStatus === "Interview" && item.interviewDate) {
+    interview = {
+      recruiterName: "Recruiter",
+      date: item.interviewDate || "",
+      time: item.interviewTime || "",
+      format: item.interviewType || "Zoom",
+      type: item.interviewSubject || "Interview Invitation",
+      message: item.interviewContent || "",
+    };
+  }
+
   return {
     id: item.id,
     jobSlug: item.jobOrderId || item.jobOrder?.id || "",
@@ -116,8 +129,10 @@ function mapApiApplication(item: any): Application {
       ? new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
       : "Recently",
     recruiterStatus,
+    interview,
   };
 }
+
 
 // ─── Application card ─────────────────────────────────────────────────────────
 
@@ -182,58 +197,83 @@ function ApplicationCard({ app }: { app: Application }) {
       </div>
 
       {/* Interview block */}
-      {app.recruiterStatus === "Interview" && app.interview && (
+      {app.recruiterStatus === "Interview" && (
         <div className="border-t border-[#E5E7EB]">
-          {/* Message header */}
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-[#FFFBEB] px-5 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FDE68A] text-xs font-bold text-[#92400E]">
-                {app.interview.recruiterName.charAt(0)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#111827]">
-                  {app.interview.recruiterName} · Recruiter at {app.company}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Interview Invitation · {app.interview.type}
-                </p>
-              </div>
-            </div>
-            {/* Interview meta */}
-            <div className="flex items-center gap-1.5 rounded border border-[#FDE68A] bg-white px-3 py-1.5 text-sm font-medium text-[#92400E]">
-              <CalendarClock className="h-3 w-3" />
-              {app.interview.date} · {app.interview.time} · {app.interview.format}
-            </div>
-          </div>
+          {app.interview ? (
+            <>
+              {/* Header */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FDE68A] text-sm font-bold text-[#92400E]">
+                    <CalendarClock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#111827]">Interview Invitation</p>
+                    <p className="text-xs text-[#92400E]">{app.interview.type}</p>
+                  </div>
+                </div>
 
-          {/* Message body */}
-          <div className="bg-white px-5 py-4">
-            {app.interview.message.split("\n\n").map((para, i) => (
-              <p key={i} className={`text-base text-[#374151] leading-relaxed ${i > 0 ? "mt-3" : ""}`}>
-                {para}
+                {/* Info chips */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {app.interview.format && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#FDE68A] bg-white px-2.5 py-1 text-xs font-semibold text-[#92400E]">
+                      <CheckCircle2 className="h-3 w-3" /> {app.interview.format}
+                    </span>
+                  )}
+                  {app.interview.date && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#FDE68A] bg-white px-2.5 py-1 text-xs font-semibold text-[#92400E]">
+                      <CalendarClock className="h-3 w-3" /> {app.interview.date}
+                    </span>
+                  )}
+                  {app.interview.time && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-[#FDE68A] bg-white px-2.5 py-1 text-xs font-semibold text-[#92400E]">
+                      <Clock className="h-3 w-3" /> {app.interview.time}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Message body */}
+              {app.interview.message && (
+                <div className="bg-white px-5 py-4">
+                  {app.interview.message.split("\n\n").map((para, i) => (
+                    <p key={i} className={`text-sm text-[#374151] leading-relaxed ${i > 0 ? "mt-3" : ""}`}>
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* Confirm footer */}
+              <div className="flex items-center justify-end border-t border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3">
+                {confirmed ? (
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#166534]">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Interview Confirmed
+                  </span>
+                ) : (
+                  <button
+                    onClick={handleConfirm}
+                    className="flex items-center gap-1.5 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Confirm Interview
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            /* Interview status but no detail data yet */
+            <div className="flex items-center gap-3 bg-[#FFFBEB] px-5 py-3">
+              <CalendarClock className="h-4 w-4 text-[#92400E]" />
+              <p className="text-sm font-medium text-[#92400E]">
+                Interview scheduled — your recruiter will send details shortly.
               </p>
-            ))}
-          </div>
-
-          {/* Confirm footer */}
-          <div className="flex items-center justify-end border-t border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3">
-            {confirmed ? (
-              <span className="flex items-center gap-1.5 text-base font-medium text-[#166534]">
-                <CheckCircle2 className="h-4 w-4" />
-                Interview Confirmed
-              </span>
-            ) : (
-              <button
-                onClick={handleConfirm}
-                className="flex items-center gap-1.5 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-1.5 text-base font-medium text-white transition hover:bg-[#1E40AF]"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Confirm Interview
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* Offer strip */}
       {app.recruiterStatus === "Offer" && (

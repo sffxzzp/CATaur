@@ -245,13 +245,54 @@ const MSG_CONFIG: Record<MessageType, { label: string; iconBg: string; icon: Rea
 /* ─── Interview Modal ─────────────────────────────────────────────────────── */
 interface InterviewDraft { subject: string; type: "Zoom" | "Phone" | "Onsite"; date: string; time: string; content: string; }
 
+/* ─── Time slot generator ─────────────────────────────────────────────────── */
+const TIME_ZONES = [
+  { label: "ET", value: "ET" },
+  { label: "CT", value: "CT" },
+  { label: "MT", value: "MT" },
+  { label: "PT", value: "PT" },
+];
+const TIME_SLOTS: string[] = [];
+for (let h = 7; h <= 21; h++) {
+  for (const m of [0, 30]) {
+    if (h === 21 && m === 30) continue;
+    const ampm = h < 12 ? "AM" : "PM";
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    TIME_SLOTS.push(`${hour12}:${m === 0 ? "00" : "30"} ${ampm}`);
+  }
+}
+
 function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSend, onClose, disabled = false }: {
   round: number; candidateName: string; jobTitle: string;
   draft: InterviewDraft; onChange: (p: Partial<InterviewDraft>) => void;
   onSend: () => void; onClose: () => void;
   disabled?: boolean;
 }) {
+  const [tz, setTz] = useState("ET");
   const inp = "w-full rounded-md border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] text-[var(--gray-900)]";
+
+  // Format yyyy-mm-dd -> "Mar 10, 2026" for storage
+  const handleDateChange = (raw: string) => {
+    if (!raw) { onChange({ date: "" }); return; }
+    const d = new Date(raw + "T00:00:00");
+    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    onChange({ date: formatted });
+  };
+
+  // Convert stored "Mar 10, 2026" back to yyyy-mm-dd for the input
+  const toInputDate = (display: string): string => {
+    if (!display) return "";
+    const d = new Date(display);
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().split("T")[0];
+  };
+
+  const handleTimeSelect = (slot: string) => {
+    onChange({ time: `${slot} ${tz}` });
+  };
+
+  const selectedSlot = draft.time ? draft.time.replace(/ (ET|CT|MT|PT)$/, "") : "";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4">
       <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-modal)] overflow-hidden">
@@ -266,25 +307,89 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
           <div className="flex items-center gap-2 rounded-lg bg-[var(--status-blue-bg)] px-3 py-2 text-xs text-[var(--status-blue-text)]">
             <Mail className="h-3.5 w-3.5 shrink-0" /> An email will be sent to the candidate simultaneously.
           </div>
+
+          {/* Subject */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">Subject</label>
             <input maxLength={100} type="text" className={inp} value={draft.subject} onChange={e => onChange({ subject: e.target.value })} />
-            {draft.subject.length >= 100 && (
-              <p className="text-xs text-[var(--error)]">Subject is too long</p>
+            {draft.subject.length >= 100 && <p className="text-xs text-[var(--error)]">Subject is too long</p>}
+          </div>
+
+          {/* Type + Date row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">Type</label>
+              <select className={inp} value={draft.type} onChange={e => onChange({ type: e.target.value as InterviewDraft["type"] })}>
+                <option>Zoom</option><option>Phone</option><option>Onsite</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1.5">
+                <CalendarClock className="h-3 w-3" /> Date
+              </label>
+              <input
+                type="date"
+                className={inp + " cursor-pointer"}
+                value={toInputDate(draft.date)}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={e => handleDateChange(e.target.value)}
+              />
+              {draft.date && (
+                <p className="text-xs text-[var(--gray-500)] mt-0.5">📅 {draft.date}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Time Picker */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1.5">
+                <Clock className="h-3 w-3" /> Time
+              </label>
+              {/* Timezone selector */}
+              <div className="flex gap-1">
+                {TIME_ZONES.map(z => (
+                  <button
+                    key={z.value}
+                    type="button"
+                    onClick={() => {
+                      setTz(z.value);
+                      if (selectedSlot) onChange({ time: `${selectedSlot} ${z.value}` });
+                    }}
+                    className={`px-2 py-0.5 rounded text-xs font-semibold transition ${
+                      tz === z.value
+                        ? "bg-[var(--accent)] text-white"
+                        : "bg-[var(--gray-100)] text-[var(--gray-500)] hover:bg-[var(--gray-200)] cursor-pointer"
+                    }`}
+                  >
+                    {z.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Scrollable time grid */}
+            <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--gray-50)] p-2">
+              {TIME_SLOTS.map(slot => (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => handleTimeSelect(slot)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-medium transition ${
+                    selectedSlot === slot
+                      ? "bg-[var(--accent)] text-white shadow-sm"
+                      : "bg-[var(--surface)] text-[var(--gray-700)] border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer"
+                  }`}
+                >
+                  {slot}
+                </button>
+              ))}
+            </div>
+            {draft.time && (
+              <p className="text-xs text-[var(--gray-500)]">🕐 Selected: <span className="font-semibold text-[var(--gray-700)]">{draft.time}</span></p>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { key: "type", label: "Type", el: <select className={inp} value={draft.type} onChange={e => onChange({ type: e.target.value as InterviewDraft["type"] })}><option>Zoom</option><option>Phone</option><option>Onsite</option></select> },
-              { key: "date", label: "Date", el: <input maxLength={100} type="text" className={inp} placeholder="e.g. Mar 10, 2026" value={draft.date} onChange={e => onChange({ date: e.target.value })} /> },
-              { key: "time", label: "Time", el: <input maxLength={100} type="text" className={inp} placeholder="e.g. 2:30 PM EST" value={draft.time} onChange={e => onChange({ time: e.target.value })} /> },
-            ].map(({ key, label, el }) => (
-              <div key={key} className="space-y-1.5">
-                <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">{label}</label>
-                {el}
-              </div>
-            ))}
-          </div>
+
+          {/* Message */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">Message</label>
             <textarea rows={4} className={inp} value={draft.content} onChange={e => onChange({ content: e.target.value })} />

@@ -163,6 +163,12 @@ function StatsRow({ apps }: { apps: Application[] }) {
 
 // ─── Upcoming Interviews ──────────────────────────────────────────────────────
 
+const FORMAT_ICON: Record<string, string> = {
+  Zoom: "💻",
+  Phone: "📞",
+  Onsite: "🏢",
+};
+
 function UpcomingInterviews({ apps }: { apps: Application[] }) {
   const interviews = apps.filter(
     (a) => a.status === "interview" && a.interviewDate
@@ -170,43 +176,86 @@ function UpcomingInterviews({ apps }: { apps: Application[] }) {
   if (interviews.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB]">
-      <div className="flex items-center gap-2 border-b border-[#FDE68A] px-5 py-3">
-        <CalendarClock className="h-4 w-4 text-[#92400E]" />
-        <h2 className="text-lg font-medium text-[#92400E]">Upcoming Interviews</h2>
+    <div className="rounded-xl border border-[#FDE68A] bg-[#FFFBEB] overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#FDE68A] px-5 py-3">
+        <div className="flex items-center gap-2">
+          <CalendarClock className="h-4 w-4 text-[#92400E]" />
+          <h2 className="text-sm font-semibold text-[#92400E] uppercase tracking-wide">
+            Upcoming Interviews
+          </h2>
+          <span className="rounded-full bg-[#FDE68A] px-2 py-0.5 text-xs font-bold text-[#92400E]">
+            {interviews.length}
+          </span>
+        </div>
+        <Link
+          href="/candidate/applications"
+          className="flex items-center gap-1 text-xs font-medium text-[#92400E] hover:underline"
+        >
+          View all <ArrowRight className="h-3 w-3" />
+        </Link>
       </div>
+
+      {/* Cards */}
       <div className="divide-y divide-[#FDE68A]">
-        {interviews.map((app) => (
-          <Link
-            key={app.id}
-            href="/candidate/applications"
-            className="flex items-center gap-4 px-5 py-4 transition hover:bg-[#FEF3C7]"
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-[#111827]">
-                {app.interviewType || "Interview"}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {app.jobOrder?.title || "Position"} · {app.jobOrder?.companyId || "Company"}
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              {app.interviewDate && (
-                <p className="text-base font-semibold text-[#92400E]">
-                  {new Date(app.interviewDate).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" })}
+        {interviews.map((app) => {
+          const fmt = app.interviewType || "Zoom";
+          const fmtIcon = FORMAT_ICON[fmt] ?? "📅";
+          // Safe parse: the date is stored as "Apr 15, 2026" (string), parse directly
+          const dateDisplay = app.interviewDate || "";
+          const companyName = (app.jobOrder as any)?.company?.name
+            || (app.jobOrder as any)?.companyName
+            || app.jobOrder?.companyId
+            || "Company";
+
+          return (
+            <Link
+              key={app.id}
+              href="/candidate/applications"
+              className="group flex items-center gap-4 px-5 py-4 transition hover:bg-[#FEF3C7]"
+            >
+              {/* Format icon badge */}
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white border border-[#FDE68A] text-xl shadow-sm">
+                {fmtIcon}
+              </div>
+
+              {/* Main info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#111827] truncate">
+                  {app.interviewSubject || `${fmt} Interview`}
                 </p>
-              )}
-              {app.interviewTime && (
-                <p className="text-sm text-muted-foreground">{app.interviewTime}</p>
-              )}
-            </div>
-            <ChevronRight className="h-4 w-4 shrink-0 text-[#92400E]" />
-          </Link>
-        ))}
+                <p className="mt-0.5 text-xs text-[#92400E] font-medium">
+                  {app.jobOrder?.title || "Position"}
+                  {companyName && companyName !== app.jobOrder?.companyId && (
+                    <> · {companyName}</>
+                  )}
+                </p>
+                {/* Action needed badge */}
+                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-[#FEF3C7] px-2 py-0.5 text-[10px] font-semibold text-[#92400E] border border-[#FDE68A]">
+                  <Clock className="h-2.5 w-2.5" /> Action needed — confirm your attendance
+                </span>
+              </div>
+
+              {/* Date / time */}
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-bold text-[#92400E]">{dateDisplay}</p>
+                {app.interviewTime && (
+                  <p className="mt-0.5 text-xs text-[#92400E] font-medium">{app.interviewTime}</p>
+                )}
+                <span className="mt-1 inline-block rounded-full bg-white border border-[#FDE68A] px-2 py-0.5 text-[10px] font-semibold text-[#92400E]">
+                  {fmt}
+                </span>
+              </div>
+
+              <ChevronRight className="h-4 w-4 shrink-0 text-[#92400E] transition group-hover:translate-x-0.5" />
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
 }
+
 
 // ─── Recent Activity ──────────────────────────────────────────────────────────
 
