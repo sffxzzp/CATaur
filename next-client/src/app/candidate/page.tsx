@@ -14,8 +14,7 @@ import {
   Clock,
   ArrowRight,
   Loader2,
-  Sparkles,
-  PartyPopper,
+  X,
 } from "lucide-react";
 import { candidateSelfProfileClient } from "@/lib/api/candidate-self-profile";
 import { candidateApplicationsClient } from "@/lib/api/candidate-applications";
@@ -133,12 +132,24 @@ function OnboardingSection({ profile }: { profile: CandidateProfileExtended | nu
 // ─── Offer Celebration Banner ────────────────────────────────────────────────────
 
 function OfferCelebrationBanner({ apps }: { apps: Application[] }) {
-  const offerApps = apps.filter((a) => a.status === "offer");
-  if (offerApps.length === 0) return null;
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem("dismissedOfferBanners") || "[]"); }
+    catch { return []; }
+  });
+
+  const dismiss = (id: string) => {
+    const next = [...dismissed, id];
+    setDismissed(next);
+    localStorage.setItem("dismissedOfferBanners", JSON.stringify(next));
+  };
+
+  const visible = apps.filter((a) => a.status === "offer" && !dismissed.includes(String(a.id)));
+  if (visible.length === 0) return null;
 
   return (
     <div className="space-y-3">
-      {offerApps.map((app) => {
+      {visible.map((app) => {
         const jobTitle = (app as any).jobTitle || (app as any).job?.title || "a position";
         const company = (app as any).companyName || (app as any).job?.company || "";
         return (
@@ -154,7 +165,16 @@ function OfferCelebrationBanner({ apps }: { apps: Application[] }) {
             <div className="pointer-events-none absolute -left-4 -bottom-4 h-28 w-28 rounded-full bg-white/5" />
             <div className="pointer-events-none absolute right-24 bottom-2 h-16 w-16 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: "0.7s" }} />
 
-            <div className="relative flex items-center gap-5">
+            {/* Dismiss button */}
+            <button
+              onClick={() => dismiss(String(app.id))}
+              aria-label="Dismiss"
+              className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white/70 hover:bg-white/25 hover:text-white transition cursor-pointer z-10"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+
+            <div className="relative flex items-center gap-5 pr-8">
               {/* Trophy icon */}
               <div className="shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-inner">
                 🏆
@@ -178,6 +198,7 @@ function OfferCelebrationBanner({ apps }: { apps: Application[] }) {
 
               <Link
                 href="/candidate/applications"
+                onClick={() => dismiss(String(app.id))}
                 className="shrink-0 flex items-center gap-1.5 rounded-xl bg-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/30 transition"
               >
                 View <ArrowRight className="h-4 w-4" />
@@ -189,6 +210,7 @@ function OfferCelebrationBanner({ apps }: { apps: Application[] }) {
     </div>
   );
 }
+
 
 // ─── Stats row ─────────────────────────────────────────────────────
 

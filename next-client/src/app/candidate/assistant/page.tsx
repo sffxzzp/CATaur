@@ -152,11 +152,11 @@ export default function AssistantPage() {
                       <span>·</span>
                       <span>{chat.time}</span>
                     </div>
-                    <div className="prose prose-sm max-w-none">
+                    <div className={`prose prose-sm max-w-none ${chat.role === "user" ? "prose-invert" : ""}`}>
                       {chat.role === "assistant" ? (
                         <ReactMarkdown>{chat.message}</ReactMarkdown>
                       ) : (
-                        <p className="text-base whitespace-pre-wrap">{chat.message}</p>
+                        <p className="text-base text-white whitespace-pre-wrap">{chat.message}</p>
                       )}
                     </div>
                   </div>

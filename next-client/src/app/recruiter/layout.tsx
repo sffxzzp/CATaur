@@ -81,18 +81,22 @@ function NotificationDropdown() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
-  const hasUnread = notifications.some((n) => !n.isRead);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
+  const loadNotifications = async () => {
+    try {
+      const data = await request<NotificationItem[]>("/recruiter/notifications?status=unread");
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch {
+      setNotifications([]);
+    }
+  };
+
+  // Initial load + 15s polling
   useEffect(() => {
-    const loadNotifications = async () => {
-      try {
-        const data = await request<NotificationItem[]>("/recruiter/notifications?status=unread");
-        setNotifications(Array.isArray(data) ? data : []);
-      } catch {
-        setNotifications([]);
-      }
-    };
     loadNotifications();
+    const timer = setInterval(loadNotifications, 15_000);
+    return () => clearInterval(timer);
   }, []);
 
   // Close on click-outside
@@ -104,12 +108,8 @@ function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const handleOpen = async () => {
-    setOpen((prev) => !prev);
-  };
-
   const handleReadAll = async () => {
-    if (!hasUnread) return;
+    if (!unreadCount) return;
     try {
       await request<void>("/recruiter/notifications/read-all", { method: "PATCH" });
     } finally {
@@ -117,65 +117,94 @@ function NotificationDropdown() {
     }
   };
 
+  // Map notification type → emoji
+  const typeEmoji = (type: string) => {
+    const t = type.toLowerCase();
+    if (t.includes("offer")) return "🏆";
+    if (t.includes("interview")) return "📅";
+    if (t.includes("confirm")) return "✅";
+    if (t.includes("apply") || t.includes("application")) return "📄";
+    if (t.includes("message")) return "💬";
+    return "🔔";
+  };
+
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={handleOpen}
+        onClick={() => setOpen((prev) => !prev)}
         className="relative flex h-8 w-8 items-center justify-center rounded-md text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] hover:text-[var(--gray-600)] transition-colors"
       >
         <Bell className="h-[18px] w-[18px]" />
-        {hasUnread && (
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--danger)] ring-2 ring-[var(--surface)]" />
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-[var(--surface)]">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] animate-scale-in z-50">
-          <div className="border-b border-[var(--border)] px-4 py-3 flex justify-between items-center">
-            <h3 className="text-sm font-semibold text-[var(--gray-900)]">Notifications</h3>
+        <div className="absolute right-0 top-full mt-2 w-96 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl z-50 overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4 bg-[var(--gray-50)]">
+            <div className="flex items-center gap-2.5">
+              <Bell className="h-4.5 w-4.5 text-[var(--accent)]" />
+              <h3 className="text-base font-bold text-[var(--gray-900)]">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
             <button
               onClick={handleReadAll}
-              disabled={!hasUnread}
-              className="text-xs font-medium text-[var(--accent)] disabled:text-[var(--gray-400)] disabled:cursor-not-allowed cursor-pointer hover:underline"
+              disabled={!unreadCount}
+              className="text-sm font-medium text-[var(--accent)] disabled:text-[var(--gray-300)] disabled:cursor-not-allowed cursor-pointer hover:underline transition"
             >
-              Read all
+              Mark all read
             </button>
           </div>
-          <div className="max-h-80 overflow-y-auto">
+
+          {/* List */}
+          <div className="max-h-[420px] overflow-y-auto divide-y divide-[var(--border-light)]">
             {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-[var(--gray-500)]">
-                No new notifications
+              <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+                <span className="text-4xl">🔔</span>
+                <p className="text-sm font-medium text-[var(--gray-500)]">You're all caught up!</p>
+                <p className="text-xs text-[var(--gray-400)]">No new notifications right now.</p>
               </div>
             ) : (
-              <div className="divide-y divide-[var(--border-light)]">
-                {notifications.map((n) => (
-                  <div key={n.id} className={`p-4 transition-colors cursor-pointer ${!n.isRead ? "bg-[var(--accent-light)]/30 hover:bg-[var(--accent-light)]/50" : "hover:bg-[var(--gray-50)]"}`}>
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`flex gap-4 px-5 py-4 transition-colors cursor-pointer ${
+                    !n.isRead
+                      ? "bg-blue-50/60 hover:bg-blue-50"
+                      : "hover:bg-[var(--gray-50)]"
+                  }`}
+                >
+                  {/* Emoji icon */}
+                  <div className="shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-[var(--border)] text-xl shadow-sm">
+                    {typeEmoji(n.type)}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className="text-sm font-medium text-[var(--gray-900)]">
-                            {n.title}
-                          </p>
-                          {n.type && (
-                            <span className="inline-flex items-center rounded-full bg-[var(--status-green-bg)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--status-green-text)]">
-                              {toBadgeLabel(n.type)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[var(--gray-600)] leading-snug">
-                          {n.body}
-                        </p>
-                        <p className="text-[10px] text-[var(--gray-400)] mt-2">
-                          {formatRelativeTime(n.createdAt)}
-                        </p>
-                      </div>
+                      <p className={`text-sm font-semibold leading-snug ${!n.isRead ? "text-[var(--gray-900)]" : "text-[var(--gray-700)]"}`}>
+                        {n.title}
+                      </p>
                       {!n.isRead && (
-                        <div className="h-2 w-2 rounded-full bg-[var(--accent)] mt-1 shrink-0" />
+                        <div className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-blue-500" />
                       )}
                     </div>
+                    <p className="mt-1 text-sm text-[var(--gray-600)] leading-relaxed">
+                      {n.body}
+                    </p>
+                    <p className="mt-1.5 text-xs font-medium text-[var(--gray-400)]">
+                      {formatRelativeTime(n.createdAt)}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -183,6 +212,7 @@ function NotificationDropdown() {
     </div>
   );
 }
+
 
 /* ─── Avatar Dropdown ────────────────────────────────────────────────────── */
 
