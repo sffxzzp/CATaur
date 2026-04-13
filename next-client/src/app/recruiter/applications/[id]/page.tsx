@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -245,16 +245,7 @@ const MSG_CONFIG: Record<MessageType, { label: string; iconBg: string; icon: Rea
   offer_notification: { label: "Offer Notification", iconBg: "bg-[var(--status-green-bg)] text-[var(--status-green-text)]", icon: BadgeDollarSign },
 };
 
-/* ─── Interview Modal ─────────────────────────────────────────────────────── */
-interface InterviewDraft { subject: string; type: "Zoom" | "Phone" | "Onsite"; date: string; time: string; content: string; }
-
-/* ─── Time slot generator ─────────────────────────────────────────────────── */
-const TIME_ZONES = [
-  { label: "ET", value: "ET" },
-  { label: "CT", value: "CT" },
-  { label: "MT", value: "MT" },
-  { label: "PT", value: "PT" },
-];
+/* ─── Time slots ────────────────────────────────────────────────────── */
 const TIME_SLOTS: string[] = [];
 for (let h = 7; h <= 21; h++) {
   for (const m of [0, 30]) {
@@ -265,40 +256,85 @@ for (let h = 7; h <= 21; h++) {
   }
 }
 
+
+/* ─── TimePicker dropdown input ─────────────────────────────────────── */
+function TimePickerInput({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className={`relative ${className ?? ""}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] hover:border-[var(--accent)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent-ring)] cursor-pointer transition text-left"
+      >
+        <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--gray-400)]" />
+        <span className={value ? "text-[var(--gray-900)]" : "text-[var(--gray-400)]"}>
+          {value || "Select time"}
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
+          <div className="grid grid-cols-4 gap-1 max-h-52 overflow-y-auto">
+            {TIME_SLOTS.map(slot => (
+              <button
+                key={slot}
+                type="button"
+                onClick={() => { onChange(slot); setOpen(false); }}
+                className={`rounded px-1.5 py-1 text-xs font-medium transition ${
+                  value === slot
+                    ? "bg-[var(--accent)] text-white"
+                    : "text-[var(--gray-700)] hover:bg-[var(--gray-100)] cursor-pointer"
+                }`}
+              >
+                {slot}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Interview Modal ─────────────────────────────────────────────── */
+interface InterviewDraft { subject: string; type: "Zoom" | "Phone" | "Onsite"; date: string; time: string; content: string; }
+
 function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSend, onClose, disabled = false }: {
   round: number; candidateName: string; jobTitle: string;
   draft: InterviewDraft; onChange: (p: Partial<InterviewDraft>) => void;
   onSend: () => void; onClose: () => void;
   disabled?: boolean;
 }) {
-  const [tz, setTz] = useState("ET");
   const inp = "w-full rounded-md border border-[var(--border)] px-3 py-2 text-sm bg-[var(--surface)] focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-ring)] text-[var(--gray-900)]";
 
   // Format yyyy-mm-dd -> "Mar 10, 2026" for storage
   const handleDateChange = (raw: string) => {
     if (!raw) { onChange({ date: "" }); return; }
     const d = new Date(raw + "T00:00:00");
-    const formatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    onChange({ date: formatted });
+    onChange({ date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) });
   };
-
-  // Convert stored "Mar 10, 2026" back to yyyy-mm-dd for the input
   const toInputDate = (display: string): string => {
     if (!display) return "";
     const d = new Date(display);
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString().split("T")[0];
+    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
   };
-
-  const handleTimeSelect = (slot: string) => {
-    onChange({ time: `${slot} ${tz}` });
-  };
-
-  const selectedSlot = draft.time ? draft.time.replace(/ (ET|CT|MT|PT)$/, "") : "";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4">
       <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-modal)] overflow-hidden">
+        {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] px-6 py-4">
           <div>
             <h3 className="text-base font-semibold text-[var(--gray-900)]">{round > 1 ? `Send Round ${round} Interview` : "Send Interview Invitation"}</h3>
@@ -306,7 +342,9 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-[var(--gray-400)] cursor-pointer hover:bg-[var(--gray-100)] transition"><X className="h-4 w-4" /></button>
         </div>
+
         <div className="space-y-4 px-6 py-5">
+          {/* Email notice */}
           <div className="flex items-center gap-2 rounded-lg bg-[var(--status-blue-bg)] px-3 py-2 text-xs text-[var(--status-blue-text)]">
             <Mail className="h-3.5 w-3.5 shrink-0" /> An email will be sent to the candidate simultaneously.
           </div>
@@ -318,8 +356,8 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
             {draft.subject.length >= 100 && <p className="text-xs text-[var(--error)]">Subject is too long</p>}
           </div>
 
-          {/* Type + Date row */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Type · Date · Time — one row */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider">Type</label>
               <select className={inp} value={draft.type} onChange={e => onChange({ type: e.target.value as InterviewDraft["type"] })}>
@@ -327,9 +365,7 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1.5">
-                <CalendarClock className="h-3 w-3" /> Date
-              </label>
+              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1"><CalendarClock className="h-3 w-3" /> Date</label>
               <input
                 type="date"
                 className={inp + " cursor-pointer"}
@@ -337,59 +373,11 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
                 min={new Date().toISOString().split("T")[0]}
                 onChange={e => handleDateChange(e.target.value)}
               />
-              {draft.date && (
-                <p className="text-xs text-[var(--gray-500)] mt-0.5">📅 {draft.date}</p>
-              )}
             </div>
-          </div>
-
-          {/* Time Picker */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1.5">
-                <Clock className="h-3 w-3" /> Time
-              </label>
-              {/* Timezone selector */}
-              <div className="flex gap-1">
-                {TIME_ZONES.map(z => (
-                  <button
-                    key={z.value}
-                    type="button"
-                    onClick={() => {
-                      setTz(z.value);
-                      if (selectedSlot) onChange({ time: `${selectedSlot} ${z.value}` });
-                    }}
-                    className={`px-2 py-0.5 rounded text-xs font-semibold transition ${
-                      tz === z.value
-                        ? "bg-[var(--accent)] text-white"
-                        : "bg-[var(--gray-100)] text-[var(--gray-500)] hover:bg-[var(--gray-200)] cursor-pointer"
-                    }`}
-                  >
-                    {z.label}
-                  </button>
-                ))}
-              </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[var(--gray-500)] uppercase tracking-wider flex items-center gap-1"><Clock className="h-3 w-3" /> Time</label>
+              <TimePickerInput value={draft.time} onChange={v => onChange({ time: v })} />
             </div>
-            {/* Scrollable time grid */}
-            <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--gray-50)] p-2">
-              {TIME_SLOTS.map(slot => (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => handleTimeSelect(slot)}
-                  className={`rounded-md px-2 py-1.5 text-xs font-medium transition ${
-                    selectedSlot === slot
-                      ? "bg-[var(--accent)] text-white shadow-sm"
-                      : "bg-[var(--surface)] text-[var(--gray-700)] border border-[var(--border)] hover:border-[var(--accent)] hover:text-[var(--accent)] cursor-pointer"
-                  }`}
-                >
-                  {slot}
-                </button>
-              ))}
-            </div>
-            {draft.time && (
-              <p className="text-xs text-[var(--gray-500)]">🕐 Selected: <span className="font-semibold text-[var(--gray-700)]">{draft.time}</span></p>
-            )}
           </div>
 
           {/* Message */}
@@ -398,6 +386,8 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
             <textarea rows={4} className={inp} value={draft.content} onChange={e => onChange({ content: e.target.value })} />
           </div>
         </div>
+
+        {/* Footer */}
         <div className="flex justify-end gap-3 border-t border-[var(--border)] bg-[var(--gray-50)] px-6 py-4">
           <button onClick={onClose} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--gray-700)] cursor-pointer hover:bg-[var(--gray-50)] transition">Cancel</button>
           <button
@@ -412,6 +402,7 @@ function InterviewModal({ round, candidateName, jobTitle, draft, onChange, onSen
     </div>
   );
 }
+
 
 /* ─── Section header ──────────────────────────────────────────────────────── */
 function SectionTitle({ icon: Icon, title }: { icon: React.ComponentType<{ className?: string }>; title: string }) {
