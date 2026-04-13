@@ -260,14 +260,14 @@ function TimePickerInput({ value, onChange }: { value: string; onChange: (v: str
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
+        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
           <div className="grid grid-cols-4 gap-1 max-h-52 overflow-y-auto">
             {TIME_SLOTS.map(slot => (
               <button
                 key={slot}
                 type="button"
                 onClick={() => { onChange(slot); setOpen(false); }}
-                className={`rounded px-1.5 py-1 text-xs font-medium transition ${
+                className={`rounded px-1 py-1.5 text-xs font-medium whitespace-nowrap transition ${
                   value === slot ? "bg-[var(--accent)] text-white" : "text-[var(--gray-700)] hover:bg-[var(--gray-100)] cursor-pointer"
                 }`}
               >

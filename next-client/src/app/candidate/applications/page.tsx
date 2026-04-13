@@ -164,13 +164,20 @@ function ApplicationCard({ app }: { app: Application }) {
     }
   };
 
+  const isOffer = app.recruiterStatus === "Offer";
   const isClosed = app.recruiterStatus === "Closed";
 
   return (
     <div
-      className={`overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-sm ${isClosed ? "border-[#E5E7EB] opacity-60" : "border-[#E5E7EB]"
-        }`}
+      className={`overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-md ${
+        isOffer
+          ? "border-[#BBF7D0] shadow-[0_0_0_3px_rgba(20,83,45,0.08)] ring-1 ring-[#BBF7D0]"
+          : isClosed
+          ? "border-[#E5E7EB] opacity-60"
+          : "border-[#E5E7EB]"
+      }`}
     >
+
       {/* Main row */}
       <div className="flex items-start justify-between gap-4 px-5 py-4">
         {/* Left: job info */}
@@ -298,15 +305,39 @@ function ApplicationCard({ app }: { app: Application }) {
       )}
 
 
-      {/* Offer strip */}
-      {app.recruiterStatus === "Offer" && (
-        <div className="flex items-center gap-3 border-t border-[#BBF7D0] bg-[#F0FDF4] px-5 py-3">
-          <CheckCircle2 className="h-4 w-4 text-[#166534]" />
-          <p className="text-base font-medium text-[#166534]">
-            You&apos;ve received an offer! The recruiter will be in touch with next steps.
-          </p>
+      {/* Offer Celebration Section */}
+      {isOffer && (
+        <div
+          className="relative overflow-hidden px-5 py-5 text-white"
+          style={{
+            background: "linear-gradient(135deg, #14532D 0%, #166534 50%, #15803D 100%)",
+          }}
+        >
+          {/* Background blobs */}
+          <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/10 animate-pulse" />
+          <div className="pointer-events-none absolute left-1/2 bottom-0 h-16 w-16 rounded-full bg-white/5 animate-pulse" style={{ animationDelay: "0.5s" }} />
+
+          <div className="relative flex items-center gap-4">
+            {/* Trophy with pulse ring */}
+            <div className="relative shrink-0">
+              <div className="absolute inset-0 rounded-full bg-white/20 animate-ping opacity-50" />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-2xl">
+                🏆
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-bold">
+                🎉 Congratulations! You've received an offer!
+              </p>
+              <p className="mt-0.5 text-sm text-green-100">
+                The recruiter will be in touch with the formal offer letter and next steps soon.
+              </p>
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 }

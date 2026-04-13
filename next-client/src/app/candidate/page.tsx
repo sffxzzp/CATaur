@@ -14,6 +14,8 @@ import {
   Clock,
   ArrowRight,
   Loader2,
+  Sparkles,
+  PartyPopper,
 } from "lucide-react";
 import { candidateSelfProfileClient } from "@/lib/api/candidate-self-profile";
 import { candidateApplicationsClient } from "@/lib/api/candidate-applications";
@@ -127,6 +129,68 @@ function OnboardingSection({ profile }: { profile: CandidateProfileExtended | nu
 }
 
 // ─── Stats Row ────────────────────────────────────────────────────────────────
+
+// ─── Offer Celebration Banner ────────────────────────────────────────────────────
+
+function OfferCelebrationBanner({ apps }: { apps: Application[] }) {
+  const offerApps = apps.filter((a) => a.status === "offer");
+  if (offerApps.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      {offerApps.map((app) => {
+        const jobTitle = (app as any).jobTitle || (app as any).job?.title || "a position";
+        const company = (app as any).companyName || (app as any).job?.company || "";
+        return (
+          <div
+            key={app.id}
+            className="relative overflow-hidden rounded-2xl px-6 py-5 text-white shadow-xl"
+            style={{
+              background: "linear-gradient(135deg, #14532D 0%, #166534 40%, #15803D 70%, #16A34A 100%)",
+            }}
+          >
+            {/* Animated blobs */}
+            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 animate-pulse" />
+            <div className="pointer-events-none absolute -left-4 -bottom-4 h-28 w-28 rounded-full bg-white/5" />
+            <div className="pointer-events-none absolute right-24 bottom-2 h-16 w-16 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: "0.7s" }} />
+
+            <div className="relative flex items-center gap-5">
+              {/* Trophy icon */}
+              <div className="shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-inner">
+                🏆
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider">
+                    ✨ Offer Received
+                  </span>
+                </div>
+                <p className="text-lg font-bold leading-tight">
+                  Congratulations! You received an offer for{" "}
+                  <span className="underline decoration-green-300 underline-offset-2">{jobTitle}</span>
+                  {company ? <span className="font-normal"> at {company}</span> : null}
+                </p>
+                <p className="mt-1 text-sm text-green-100">
+                  The recruiter will be in touch with the formal offer details. Exciting times ahead! 🎉
+                </p>
+              </div>
+
+              <Link
+                href="/candidate/applications"
+                className="shrink-0 flex items-center gap-1.5 rounded-xl bg-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/30 transition"
+              >
+                View <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Stats row ─────────────────────────────────────────────────────
 
 function StatsRow({ apps }: { apps: Application[] }) {
   const total = apps.length;
@@ -359,6 +423,7 @@ function Dashboard({ profile, apps }: { profile: CandidateProfileExtended | null
         <h1 className="text-2xl font-semibold text-[#111827]">Hi, {displayName} 👋</h1>
         <p className="mt-1 text-base text-muted-foreground">Here&apos;s a summary of your job search activity.</p>
       </div>
+      <OfferCelebrationBanner apps={apps} />
       <StatsRow apps={apps} />
       <UpcomingInterviews apps={apps} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

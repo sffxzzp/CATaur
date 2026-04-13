@@ -285,14 +285,14 @@ function TimePickerInput({ value, onChange, className }: { value: string; onChan
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
+        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] p-2">
           <div className="grid grid-cols-4 gap-1 max-h-52 overflow-y-auto">
             {TIME_SLOTS.map(slot => (
               <button
                 key={slot}
                 type="button"
                 onClick={() => { onChange(slot); setOpen(false); }}
-                className={`rounded px-1.5 py-1 text-xs font-medium transition ${
+                className={`rounded px-1 py-1.5 text-xs font-medium whitespace-nowrap transition ${
                   value === slot
                     ? "bg-[var(--accent)] text-white"
                     : "text-[var(--gray-700)] hover:bg-[var(--gray-100)] cursor-pointer"
@@ -430,13 +430,13 @@ export default function CandidateDetailPage() {
   const [interviewDraft, setInterviewDraft] = useState<InterviewDraft>({ subject: "", type: "Zoom", date: "", time: "", content: "" });
   const [statusDropdown, setStatusDropdown] = useState(false);
 
-  // Recruiter Notes state
   const [noteText, setNoteText] = useState("");
   const [noteEditing, setNoteEditing] = useState(false);
   const [noteSavedAt, setNoteSavedAt] = useState<string | null>(null);
   const [noteSaveToast, setNoteSaveToast] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [savingNote, setSavingNote] = useState(false);
+  const [pendingOfferConfirm, setPendingOfferConfirm] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -584,6 +584,15 @@ export default function CandidateDetailPage() {
       openInterviewModal();
       return;
     }
+    // Offer requires secondary confirmation
+    if (newStatus === "offer") {
+      setPendingOfferConfirm(true);
+      return;
+    }
+    await applyStatusChange(newStatus);
+  };
+
+  const applyStatusChange = async (newStatus: ApplicationStatus) => {
     if (!id) return;
     try {
       setUpdatingStatus(true);
@@ -619,6 +628,47 @@ export default function CandidateDetailPage() {
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+      {/* Offer Confirmation Dialog */}
+      {pendingOfferConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
+            {/* Gradient header */}
+            <div className="bg-gradient-to-br from-[#14532D] via-[#166534] to-[#15803D] px-6 pt-8 pb-6 text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-4xl">
+                🏆
+              </div>
+              <h2 className="text-xl font-bold text-white">Send Offer to {cand.name}?</h2>
+              <p className="mt-1 text-sm text-green-200">{cand.jobTitle}</p>
+            </div>
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              <div className="rounded-xl border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-sm text-[#166534] leading-relaxed">
+                📧 An <strong>Offer Notification</strong> email will be sent to the candidate automatically. Their application status will update to <strong>Offer</strong>.
+              </div>
+              <p className="text-sm text-[#6B7280] text-center">This action cannot be undone automatically. Please confirm you are ready to extend this offer.</p>
+            </div>
+            {/* Actions */}
+            <div className="flex gap-3 border-t border-[#F3F4F6] px-6 py-4">
+              <button
+                onClick={() => setPendingOfferConfirm(false)}
+                className="flex-1 rounded-xl border border-[#E5E7EB] bg-white py-2.5 text-sm font-medium text-[#374151] cursor-pointer hover:bg-[#F9FAFB] transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setPendingOfferConfirm(false); applyStatusChange("offer"); }}
+                disabled={updatingStatus}
+                className={`flex-1 rounded-xl bg-[#166534] py-2.5 text-sm font-semibold text-white transition ${
+                  updatingStatus ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-[#14532D]"
+                }`}
+              >
+                {updatingStatus ? "Sending..." : "🏆 Confirm & Send Offer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-sm text-[var(--gray-500)]">
