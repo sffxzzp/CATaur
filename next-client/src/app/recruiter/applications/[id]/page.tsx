@@ -53,6 +53,7 @@ interface CandidateRecord {
   appliedAt: string;
   status: ApplicationStatus;
   interviewMessage?: { subject: string; content: string; sentAt: string; type: 'Zoom' | 'Phone' | 'Onsite'; date: string; time: string } | null;
+  interviewConfirmedAt?: string | null;
   clientDecision?: { type: 'request-offer' | 'pass' | 'hold'; note?: string | null; submittedAt: string } | null;
 }
 
@@ -68,7 +69,7 @@ interface CommunicationEntry {
   sentAt: string;
   interviewType?: "Zoom" | "Phone" | "Onsite";
   interviewDate?: string; interviewTime?: string;
-
+  confirmedAt?: string | null;
 }
 
 interface WorkExp { role: string; company: string; duration: string; highlights: string[]; }
@@ -151,6 +152,7 @@ function mapApplicationToCandidateRecord(app: Application): CandidateRecord {
     appliedAt: formatShortDate(app.createdAt) || "—",
     status: app.status,
     interviewMessage,
+    interviewConfirmedAt: app.interviewConfirmedAt ?? null,
     clientDecision,
   };
 }
@@ -231,6 +233,7 @@ function seedMessages(c: CandidateRecord): CommunicationEntry[] {
       sender: "recruiter", sentAt: c.interviewMessage.sentAt,
       interviewType: c.interviewMessage.type as "Zoom" | "Phone" | "Onsite",
       interviewDate: c.interviewMessage.date, interviewTime: c.interviewMessage.time,
+      confirmedAt: c.interviewConfirmedAt ?? null,
     });
   }
   return msgs;
@@ -811,9 +814,22 @@ export default function CandidateDetailPage() {
                           </div>
                         </div>
                         {msg.type === "interview_invite" && (
-                          <span className="flex items-center gap-1.5 rounded bg-[var(--status-green-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-green-text)]">
-                            <CheckCircle2 className="h-3 w-3" /> Sent
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="flex items-center gap-1.5 rounded bg-[var(--status-green-bg)] px-2.5 py-1 text-xs font-medium text-[var(--status-green-text)]">
+                              <CheckCircle2 className="h-3 w-3" /> Sent
+                            </span>
+                            {msg.confirmedAt ? (
+                              <span className="flex items-center gap-1.5 rounded bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1 text-xs font-semibold text-[#166534]">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Candidate Confirmed · {formatShortDate(msg.confirmedAt)}
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 rounded bg-[var(--gray-100)] px-2.5 py-1 text-xs font-medium text-[var(--gray-400)]">
+                                <Clock className="h-3 w-3" />
+                                Awaiting confirmation
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                       <div className="px-5 py-4 space-y-2">

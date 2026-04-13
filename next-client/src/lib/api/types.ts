@@ -80,6 +80,7 @@ export type Application = {
   interviewSubject: string | null;
   interviewContent: string | null;
   interviewSentAt: string | null;
+  interviewConfirmedAt: string | null;
   clientDecisionType: string | null;
   clientDecisionNote: string | null;
   clientDecisionAt: string | null;

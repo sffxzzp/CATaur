@@ -88,6 +88,11 @@ export class Application {
     @Column({ type: 'datetime', nullable: true })
     interviewSentAt: Date | null;
 
+    @ApiProperty({ required: false, type: Date })
+    @Column({ type: 'datetime', nullable: true })
+    interviewConfirmedAt: Date | null;
+
+
     // ── Client Decision ───────────────────────────────────
     @ApiProperty({ required: false, type: String })
     @Column({ type: 'varchar', length: 20, nullable: true })

@@ -26,7 +26,7 @@ const dataSource = new DataSource({
   password: getRequiredEnv('DB_PASSWORD'),
   database: getRequiredEnv('DB_DATABASE'),
   entities: [__dirname + '/**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/*{.ts,.js}'],
+  migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
   synchronize: false,
 });
 

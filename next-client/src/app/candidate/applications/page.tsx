@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Clock, MapPin, Building2, CalendarClock, ChevronRight, Inbox, CheckCircle2, Loader2 } from "lucide-react";
+import { Clock, MapPin, Building2, CalendarClock, ChevronRight, Inbox, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { GuestGate } from "@/components/candidate/guest-gate";
 import { request } from "@/lib/request";
+import { candidateApplicationsClient } from "@/lib/api/candidate-applications";
 
 // ─── Status mapping ───────────────────────────────────────────────────────────
 type RecruiterStatus = "New" | "Interview" | "Offer" | "Closed";
@@ -37,6 +38,7 @@ interface Application {
   location: string;
   appliedDate: string;
   recruiterStatus: RecruiterStatus;
+  interviewConfirmedAt?: string | null;
   interview?: {
     recruiterName: string;
     date: string;
@@ -129,6 +131,7 @@ function mapApiApplication(item: any): Application {
       ? new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
       : "Recently",
     recruiterStatus,
+    interviewConfirmedAt: item.interviewConfirmedAt ?? null,
     interview,
   };
 }
@@ -138,16 +141,27 @@ function mapApiApplication(item: any): Application {
 
 function ApplicationCard({ app }: { app: Application }) {
   const status = STATUS_DISPLAY[app.recruiterStatus];
-  const storageKey = `interviewConfirmed_${app.id}`;
   const [confirmed, setConfirmed] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   useEffect(() => {
-    setConfirmed(localStorage.getItem(storageKey) === "1");
-  }, [storageKey]);
+    if (app.interviewConfirmedAt) {
+      setConfirmed(true);
+    }
+  }, [app.interviewConfirmedAt]);
 
-  const handleConfirm = () => {
-    localStorage.setItem(storageKey, "1");
-    setConfirmed(true);
+  const handleConfirm = async () => {
+    setConfirming(true);
+    setConfirmError(null);
+    try {
+      await candidateApplicationsClient.confirmInterview(String(app.id));
+      setConfirmed(true);
+    } catch (err: any) {
+      setConfirmError(err?.message || "Failed to confirm. Please try again.");
+    } finally {
+      setConfirming(false);
+    }
   };
 
   const isClosed = app.recruiterStatus === "Closed";
@@ -245,7 +259,12 @@ function ApplicationCard({ app }: { app: Application }) {
               )}
 
               {/* Confirm footer */}
-              <div className="flex items-center justify-end border-t border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3">
+              <div className="flex flex-col items-end gap-1.5 border-t border-[#E5E7EB] bg-[#F9FAFB] px-5 py-3">
+                {confirmError && (
+                  <p className="flex items-center gap-1 text-xs text-red-600">
+                    <AlertCircle className="h-3 w-3" /> {confirmError}
+                  </p>
+                )}
                 {confirmed ? (
                   <span className="flex items-center gap-1.5 text-sm font-medium text-[#166534]">
                     <CheckCircle2 className="h-4 w-4" />
@@ -254,10 +273,14 @@ function ApplicationCard({ app }: { app: Application }) {
                 ) : (
                   <button
                     onClick={handleConfirm}
-                    className="flex items-center gap-1.5 rounded border border-[#1D4ED8] bg-[#1D4ED8] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+                    disabled={confirming}
+                    className={`flex items-center gap-1.5 rounded border px-4 py-1.5 text-sm font-medium text-white transition ${confirming ? "border-[#93C5FD] bg-[#93C5FD] cursor-not-allowed" : "border-[#1D4ED8] bg-[#1D4ED8] hover:bg-[#1E40AF] cursor-pointer"}`}
                   >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Confirm Interview
+                    {confirming ? (
+                      <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Confirming…</>
+                    ) : (
+                      <><CheckCircle2 className="h-4 w-4" /> Confirm Interview</>
+                    )}
                   </button>
                 )}
               </div>

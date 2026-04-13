@@ -478,6 +478,56 @@ export class ApplicationsService {
     return this.decryptApplication(app);
   }
 
+  /**
+   * Called by the candidate to confirm they will attend the interview.
+   * Sets interviewConfirmedAt and sends a notification to all recruiters/admins.
+   */
+  async confirmInterview(
+    applicationId: string,
+    candidateId: string,
+  ): Promise<Application> {
+    const app = await this.repo.findOne({
+      where: { id: applicationId, candidateId },
+      relations: ['jobOrder', 'jobOrder.company', 'candidate'],
+    });
+    if (!app) throw new NotFoundException('Application not found');
+    if (app.status !== 'interview') {
+      throw new BadRequestException('No pending interview to confirm');
+    }
+
+    app.interviewConfirmedAt = new Date();
+    await this.repo.save(app);
+    this.logger.log(
+      `Candidate ${candidateId} confirmed interview for application ${applicationId}`,
+    );
+
+    // Notify all admin/recruiter accounts
+    const recruiters = await this.userRepo
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .where('role.role IN (:...roles)', { roles: [Role.ADMIN, Role.RECRUITER] })
+      .getMany();
+
+    const candidateName = app.candidate?.nickname || app.candidate?.email || 'A candidate';
+    const jobTitle = app.jobOrder?.title ?? 'the role';
+    const notifTitle = 'Interview Confirmed';
+    const notifBody = `${candidateName} has confirmed their interview for ${jobTitle}.`;
+
+    await Promise.all(
+      recruiters.map((r) =>
+        this.notificationsService
+          .create(r.id, 'interview_confirmed', notifTitle, notifBody, applicationId)
+          .catch((err) =>
+            this.logger.error(
+              `Failed to notify recruiter ${r.id} of interview confirmation: ${err?.message}`,
+            ),
+          ),
+      ),
+    );
+
+    return this.decryptApplication(app);
+  }
+
   async findRecruiterCandidates(
     recruiterId: string,
     opts: {

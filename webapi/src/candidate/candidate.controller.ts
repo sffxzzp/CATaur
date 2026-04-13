@@ -187,6 +187,17 @@ export class CandidateController {
         return this.applicationsService.create(dto, 'self_applied');
     }
 
+    @Post('applications/:id/confirm-interview')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Candidate confirms their interview attendance' })
+    @ApiOkResponse({ type: ApplicationResponseDto })
+    confirmInterview(
+        @GetUser() user: User,
+        @Param('id') applicationId: string,
+    ): Promise<Application> {
+        return this.applicationsService.confirmInterview(applicationId, user.id);
+    }
+
     @Get('applications')
     @ApiOperation({ summary: 'Get my applications' })
     @ApiQuery({ name: 'page', required: false })

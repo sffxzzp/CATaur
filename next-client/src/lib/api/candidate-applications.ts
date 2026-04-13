@@ -11,4 +11,10 @@ export const candidateApplicationsClient = {
       `/candidate/applications?${searchParams}`
     );
   },
+
+  confirmInterview: (applicationId: string) =>
+    request<Application>(`/candidate/applications/${applicationId}/confirm-interview`, {
+      method: "POST",
+    }),
 };
+
