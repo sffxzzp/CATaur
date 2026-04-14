@@ -1,7 +1,7 @@
 "use client";
 
 import { GuestGate } from "@/components/candidate/guest-gate";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { request } from "@/lib/request";
 import { COUNTRIES, REGIONS, CITIES, type CountryCode } from "@/data/locations";
 import { Button } from "@/components/ui/button";
@@ -26,8 +26,10 @@ import {
   RotateCcw,
   Plus,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { candidateSelfProfileClient } from "@/lib/api/candidate-self-profile";
+import confetti from "canvas-confetti";
 import type {
   CandidateProfileExtended,
   CandidateWorkExperience,
@@ -172,6 +174,12 @@ export default function ProfilePage() {
   const [latestParsedResume, setLatestParsedResume] = useState<any>(null);
   const [parseError, setParseError] = useState<string | null>(null);
 
+  // Progress simulation for resume parsing
+  const [parseProgress, setParseProgress] = useState(0);
+  const [parseStage, setParseStage] = useState("");
+  const [showSuccessCelebration, setShowSuccessCelebration] = useState(false);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Skill add form
   const [newSkillName, setNewSkillName] = useState("");
   const [newSkillLevel, setNewSkillLevel] = useState<"Expert" | "Intermediate" | "Beginner">("Intermediate");
@@ -206,6 +214,13 @@ export default function ProfilePage() {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
+
+  // Cleanup progress interval on unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    };
+  }, []);
 
   // Fetch profile on mount
   useEffect(() => {
@@ -278,10 +293,52 @@ export default function ProfilePage() {
   };
 
   // ─── Resume upload flow ────────────────────────────────────────────────────
+
+  const startProgressSimulation = useCallback(() => {
+    setParseProgress(0);
+    setParseStage("Uploading file...");
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+
+    let current = 0;
+    progressIntervalRef.current = setInterval(() => {
+      current += Math.random() * 3 + 0.5;
+      if (current >= 95) current = 95; // cap at 95 until real completion
+      setParseProgress(Math.round(current));
+
+      if (current < 30) setParseStage("Uploading file...");
+      else if (current < 55) setParseStage("Analyzing content...");
+      else if (current < 75) setParseStage("Extracting experience & skills...");
+      else setParseStage("Finalizing profile data...");
+    }, 300);
+  }, []);
+
+  const stopProgressSimulation = useCallback((success: boolean) => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (success) {
+      setParseProgress(100);
+      setParseStage("Complete!");
+    }
+  }, []);
+
+  const fireConfetti = useCallback(() => {
+    // Left burst
+    confetti({ particleCount: 80, spread: 70, origin: { x: 0.15, y: 0.6 }, colors: ["#1D4ED8", "#3B82F6", "#60A5FA", "#22C55E", "#FCD34D"] });
+    // Right burst
+    confetti({ particleCount: 80, spread: 70, origin: { x: 0.85, y: 0.6 }, colors: ["#1D4ED8", "#3B82F6", "#60A5FA", "#22C55E", "#FCD34D"] });
+    // Center shower
+    setTimeout(() => {
+      confetti({ particleCount: 50, spread: 100, origin: { x: 0.5, y: 0.3 }, colors: ["#1D4ED8", "#22C55E", "#FCD34D", "#F472B6"] });
+    }, 300);
+  }, []);
+
   const processResumeUpload = async (file: File, flow: "onboarding" | "update") => {
     try {
       if (flow === "onboarding") setStep("parsing");
       setParseError(null);
+      startProgressSimulation();
 
       // Upload directly to external file service
       const formData = new FormData();
@@ -303,19 +360,27 @@ export default function ProfilePage() {
         json: { resumeUrl },
       });
       setLatestParsedResume(parseRes);
+      stopProgressSimulation(true);
 
       if (flow === "onboarding") {
         await applyResumeData(parseRes.id, "overwrite");
-        setStep("complete");
-        setShowToast(true);
-        const userId = profile?.id;
-        if (userId) {
-          localStorage.setItem(`candidateProfileResume_${userId}`, "1");
-        }
+        // Show celebration before transitioning
+        setShowSuccessCelebration(true);
+        fireConfetti();
+        setTimeout(() => {
+          setShowSuccessCelebration(false);
+          setStep("complete");
+          setShowToast(true);
+          const userId = profile?.id;
+          if (userId) {
+            localStorage.setItem(`candidateProfileResume_${userId}`, "1");
+          }
+        }, 2800);
       } else {
         setResumeUploadState("overwrite-prompt");
       }
     } catch (err: any) {
+      stopProgressSimulation(false);
       setParseError(err.message || "Failed to process resume");
       if (flow === "onboarding") setStep("uploading");
       else setResumeUploadState("hidden");
@@ -732,17 +797,60 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* ── Onboarding: Step 3 Parsing ── */}
+            {/* ── Onboarding: Step 3 Parsing (enhanced) ── */}
             {step === "parsing" && (
-              <div className="mx-auto mt-20 max-w-sm rounded-lg border border-[var(--border-light)] bg-white p-10 text-center shadow-sm">
-                <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-[#1D4ED8]" />
-                <h2 className="text-lg font-semibold text-[#111827]">Analyzing your resume...</h2>
-                <p className="mt-2 text-sm text-[#6B7280]">
-                  Our AI is extracting your work experience, education, and skills. This will take just a moment.
+              <div className="mx-auto mt-16 max-w-md rounded-xl border border-[var(--border-light)] bg-white p-10 text-center shadow-md animate-scale-in">
+                {/* Animated icon */}
+                <div className="relative mx-auto mb-6 h-16 w-16">
+                  <div className="absolute inset-0 rounded-full bg-[#EFF6FF] animate-success-ring" />
+                  <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#EFF6FF]">
+                    <Sparkles className="h-7 w-7 text-[#1D4ED8] animate-spin" style={{ animationDuration: "3s" }} />
+                  </div>
+                </div>
+
+                {/* Percentage */}
+                <div className="mb-2 text-4xl font-bold tabular-nums text-[#1D4ED8]">
+                  {parseProgress}%
+                </div>
+
+                {/* Stage label */}
+                <h2 className="text-base font-semibold text-[#111827]">{parseStage || "Preparing..."}</h2>
+                <p className="mt-1.5 text-xs text-[#6B7280]">
+                  AI is extracting your work experience, education, and skills
                 </p>
+
                 {parseError && <p className="mt-4 text-sm text-red-600 font-medium">Error: {parseError}</p>}
-                <div className="mx-auto mt-6 h-1 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
-                  <div className="h-full animate-pulse rounded-full bg-[#1D4ED8]" />
+
+                {/* Progress bar */}
+                <div className="mx-auto mt-6 h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#1D4ED8] to-[#3B82F6] animate-progress-glow"
+                    style={{ width: `${parseProgress}%`, transition: "width 0.4s ease-out" }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ── Success Celebration Overlay ── */}
+            {showSuccessCelebration && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 animate-success-overlay">
+                <div className="flex flex-col items-center">
+                  {/* Animated checkmark circle */}
+                  <div className="relative mb-6">
+                    <div className="absolute -inset-4 rounded-full bg-[#22C55E]/20 animate-success-ring" />
+                    <div className="animate-success-circle flex h-28 w-28 items-center justify-center rounded-full bg-[#22C55E] shadow-[0_0_40px_rgba(34,197,94,0.4)]">
+                      <svg viewBox="0 0 24 24" className="h-14 w-14" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 12 10 16 18 8" className="animate-success-check" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Text */}
+                  <h2 className="animate-success-text text-2xl font-bold text-white drop-shadow-lg">
+                    Profile Created Successfully!
+                  </h2>
+                  <p className="animate-success-text text-sm text-white/80 mt-2 drop-shadow" style={{ animationDelay: "0.8s" }}>
+                    Your resume has been analyzed and your profile is ready
+                  </p>
                 </div>
               </div>
             )}
@@ -1186,11 +1294,23 @@ export default function ProfilePage() {
                   </div>
                 )}
                 {resumeUploadState === "parsing" && (
-                  <div className="w-full max-w-sm rounded-lg border border-[var(--border-light)] bg-white p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
-                    <Loader2 className="mx-auto mb-4 h-9 w-9 animate-spin text-[#1D4ED8]" />
-                    <h3 className="text-base font-semibold text-[#111827]">Analyzing Update...</h3>
-                    <p className="mt-2 text-xs text-[#6B7280]">Uploading and extracting your latest experience...</p>
+                  <div className="w-full max-w-sm rounded-xl border border-[var(--border-light)] bg-white p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.15)] animate-scale-in">
+                    <div className="relative mx-auto mb-5 h-12 w-12">
+                      <div className="absolute inset-0 rounded-full bg-[#EFF6FF] animate-success-ring" />
+                      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[#EFF6FF]">
+                        <Sparkles className="h-5 w-5 text-[#1D4ED8] animate-spin" style={{ animationDuration: "3s" }} />
+                      </div>
+                    </div>
+                    <div className="mb-1.5 text-3xl font-bold tabular-nums text-[#1D4ED8]">{parseProgress}%</div>
+                    <h3 className="text-sm font-semibold text-[#111827]">{parseStage || "Preparing..."}</h3>
+                    <p className="mt-1 text-xs text-[#6B7280]">Uploading and extracting your latest experience</p>
                     {parseError && <p className="mt-4 text-xs text-red-600 font-medium">Error: {parseError}</p>}
+                    <div className="mx-auto mt-5 h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#1D4ED8] to-[#3B82F6] animate-progress-glow"
+                        style={{ width: `${parseProgress}%`, transition: "width 0.4s ease-out" }}
+                      />
+                    </div>
                   </div>
                 )}
                 {resumeUploadState === "overwrite-prompt" && (
