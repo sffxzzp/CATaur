@@ -78,6 +78,10 @@ export class UsersService {
 
         await this.userRolesRepository.save(userRoles);
 
+        if (userFields.email) {
+            await this.clearUserCache(userFields.email);
+        }
+
         return this.findOneById(userId) as Promise<User>;
     }
 
