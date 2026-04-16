@@ -22,6 +22,7 @@
         "name": "next"
       }
     ],
+    "types": ["node", "@playwright/test"],
     "paths": {
       "@/*": [
         "./src/*"
@@ -39,6 +40,6 @@
   "exclude": [
     "node_modules",
     "playwright.config.ts",
-    "tests"
+    
   ]
 }
